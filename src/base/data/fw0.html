@@ -1,0 +1,61 @@
+<script type="text/javascript">
+    function firmwareValidation(){
+        var fn=document.getElementById("fi").value;
+        if(fn.lastIndexOf("/")!=-1) fn=fn.substring(fn.lastIndexOf("/")+1);
+        if(fn.lastIndexOf("\\")!=-1) fn=fn.substring(fn.lastIndexOf("\\")+1);
+        if(fn.toLowerCase().indexOf(sessionStorage.getItem("ProductName").toLowerCase()) != 0){
+            alert("You didn't select a valid Firmware file for "+sessionStorage.getItem("ProductName"));
+            return false;
+            };
+        var ret=confirm("Are you sure to flash firmware?");
+        if(ret) document.getElementById('r').innerHTML='In Progress...';
+        return ret;
+    }
+</script>
+
+<h3>Upload a new Firmware : </h3>
+<form class="pure-form pure-form-aligned" id="f" method='POST' action='/fw' enctype='multipart/form-data' onsubmit='return firmwareValidation()'>
+    <fieldset>
+        <div class="pure-control-group">
+            <label for="name">Firmware File</label>
+            <input type='file' name='fi' id='fi' accept='.bin' required>
+        </div>
+        <div class="pure-controls">
+            <input type='submit' name='sub' id='sub' value='/!\ Upload Firmware /!\' class="pure-button pure-button-primary">
+        </div>
+        
+    </fieldset>
+</form>
+<span id='r'></span>
+
+<script>
+    //QuerySelector Prefix is added by load function to know into what element queySelector need to look for
+    //var qsp = '#content0 ';
+
+    $(qsp+"#f").addEventListener('submit',function (evt) {
+        evt.preventDefault();
+        //if (!firmwareValidation()) return;
+        $(qsp+'#fi').readOnly = true;
+        $(qsp+'#sub').disabled = true;
+        post('/fw',
+            new FormData($(qsp+'#f')),
+            function () {
+                var reload15sec = document.createElement('script');
+                $(qsp+'#r').innerHTML = '<h3><span style="color: green;"><b>Done</b></span> System is rebooting. This page will be reloaded in <span id="cd">20</span>sec.</h3>';
+                runScript('var count=19;var cdi=setInterval(function(){$("#cd").innerText=count;if(!count){clearInterval(cdi);location.reload();}count--;},1000);');
+                $(qsp+'#f').reset();
+            },
+            function (responseText) {
+                $(qsp+'#r').innerHTML = '<span style="color: red;"><b>Failed</b></span> (' + responseText + ')';
+                $(qsp+'#f').reset();
+                $(qsp+'#fi').readOnly = false;
+                $(qsp+'#sub').disabled = false;
+            },
+            30000,
+            function (evt) {
+                $(qsp+'#r').innerHTML = 'In Progress';
+                if (evt.lengthComputable) $(qsp+'#r').innerHTML += ' : ' + evt.loaded / evt.total * 100 + '%';
+            }
+        );
+    });
+</script>

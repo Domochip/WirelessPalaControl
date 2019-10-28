@@ -1,0 +1,22 @@
+<div id="applicationName" style="display: none;">WirelessBase</div>
+<div id="shortApplicationName" style="display: none;">WBase</div>
+
+<h2 class="content-subhead">WirelessBase<span id="l"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
+<span id="todo"></span>
+
+<script>
+    //QuerySelector Prefix is added by load function to know into what element queySelector need to look for
+    //var qsp = '#content1 ';
+
+    getJSON("/gs"+qsp[8], 
+        function(GS){
+            for(k in GS){
+                if((e = $(qsp+'#' + k)) != undefined) e.innerHTML = GS[k];
+            }
+            fadeOut($(qsp+'#l'));
+        },
+        function(){
+            $(qsp+'#l').innerHTML='<h4 style="display:inline;color:red;"><b> Failed</b></h4>';
+        }
+    );
+</script>

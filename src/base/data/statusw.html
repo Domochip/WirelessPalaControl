@@ -1,0 +1,27 @@
+<h2 class="content-subhead">WiFi<span id="l"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
+MAC : <span id="mac"></span><br>
+AP : <span id="ap"></span> (<span id="ai"></span>)<br>
+Station : <span id="sta"></span> (<span id="stai"></span>)<br>
+
+<script>
+    //QuerySelector Prefix is added by load function to know into what element queySelector need to look for
+    //var qsp = '#contentw ';
+
+    getJSON("/gs"+qsp[8],
+        function(GS){
+            for(k in GS){
+                if((e = $(qsp+'#'+k)) != undefined) e.innerHTML = GS[k];
+            }
+
+            if(GS["sta"]=="on" && location.hostname == "192.168.4.1"){
+                var containerDiv = document.createElement('div');
+                containerDiv.innerHTML="<div id='connectedToAP' class='pure-button pure-button-disabled' style='width:100%;position:fixed;top:0;color: white;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background: rgb(202, 60, 60);opacity:1;white-space:normal;'>!!! Disconnect from this Wifi network to allow reconnection or modify WiFi configuration !!!</div>";
+                $("#main").appendChild(containerDiv.firstChild)
+            }
+            fadeOut($(qsp+"#l"));
+        },
+        function(){
+            $(qsp+"#l").innerHTML='<h4 style="display:inline;color:red;"><b> Failed</b></h4>';
+        }
+    );
+</script>

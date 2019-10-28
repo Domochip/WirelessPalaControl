@@ -1,0 +1,52 @@
+<h2 class="content-subhead">System</h2>
+
+<form class="pure-form pure-form-aligned" id='f' method='POST' action='/rbt'>
+    <fieldset>                    
+        <div class="pure-controls">
+            <input type='submit' name='subRbt' id='subRbt' value='Reboot' class="pure-button pure-button-primary" style="background: rgb(223, 117, 20);">
+        </div>
+    </fieldset>
+</form>
+<form class="pure-form pure-form-aligned" id='fb' method='POST' action='/rbtrsc'>
+    <fieldset>                    
+        <div class="pure-controls">
+            <input type='submit' name='subRbtRsc' id='subRbtRsc' value='Reboot in Rescue Mode' class="pure-button pure-button-primary" style="background: rgb(202, 60, 60);">
+        </div>
+    </fieldset>
+</form>
+<span id='r'></span>
+
+<script>
+    //QuerySelector Prefix is added by load function to know into what element queySelector need to look for
+    //var qsp = '#content0 ';
+
+    function postFailed(){
+        $(qsp+'#r').innerHTML = '<span style="color: red;"><b>Failed</b></span>';
+        $(qsp+'#f').reset();
+        $(qsp+'#fb').reset();
+        $(qsp+'#subRbt').disabled = false;
+        $(qsp+'#subRbtRsc').disabled = false;
+    };
+    
+    $(qsp+"#f").addEventListener('submit', function (evt) {
+        evt.preventDefault();
+        $(qsp+'#subRbt').disabled = true;
+        $(qsp+'#subRbtRsc').disabled = true;
+
+        post('/rbt', null, function () {
+            $(qsp+'#r').innerHTML = '<h3><span style="color: green;"><b>Done</b></span> System will reboot shortly. Go back to Status page and look for UpTime reset. This page will be reloaded in <span id="cd">20</span>sec.</h3>';
+            runScript('var count=19;var cdi=setInterval(function(){$("#cd").innerText=count;if(!count){clearInterval(cdi);location.reload();}count--;},1000);');
+        }, postFailed);
+    });
+
+    $(qsp+"#fb").addEventListener('submit', function (evt) {
+        evt.preventDefault();
+        $(qsp+'#subRbt').disabled = true;
+        $(qsp+'#subRbtRsc').disabled = true;
+
+        post('/rbtrsc', null, function () {
+            $(qsp+'#r').innerHTML = '<h3><span style="color: green;"><b>Done</b></span> System will reboot shortly in RESCUE MODE. This page will be reloaded in <span id="cd">20</span>sec.</h3>';
+            runScript('var count=19;var cdi=setInterval(function(){$("#cd").innerText=count;if(!count){clearInterval(cdi);location.reload();}count--;},1000);');
+        }, postFailed);
+    });
+</script>

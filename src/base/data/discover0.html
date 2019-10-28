@@ -1,0 +1,53 @@
+<h2 class="content-subhead">Network</h2>
+<form class="pure-form pure-form-aligned" id='f'>
+    <fieldset>
+        <div class="pure-control-group">
+                <label for="nr">Network Range</label>
+                <input type='text' id='nr' name='nr' pattern='((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$' required>
+        </div>
+        <div class="pure-controls">
+            <input type='submit' id='RunDisco' value='Run Discover' class="pure-button pure-button-primary">
+        </div>
+    </fieldset>
+</form>
+
+<h2 class="content-subhead">Modules Found</h2>
+<span ></span>
+<table id="ModuleListTable" class="pure-table pure-table-horizontal" style="display:none">
+    <thead><tr><th>IP</th><th>Model</th><th>Version</th><th>S/N</th></tr></thead>
+    <tbody id='ModuleListBody'></tbody>
+</table>
+
+
+<script>
+    //QuerySelector Prefix is added by load function to know into what element queySelector need to look for
+    //var qsp = '#content0 ';
+
+    function getUserIP(n){function e(e){t[e]||n(e),t[e]=!0}var a=new(window.RTCPeerConnection||window.mozRTCPeerConnection||window.webkitRTCPeerConnection)({iceServers:[]}),c=function(){},t={},i=/([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/g;try{a.createDataChannel("")}catch(e){return void n("")}a.createOffer(function(n){n.sdp.split("\n").forEach(function(n){n.indexOf("candidate")<0||n.match(i).forEach(e)}),a.setLocalDescription(n,c,c)},c),a.onicecandidate=function(n){n&&n.candidate&&n.candidate.candidate&&n.candidate.candidate.match(i)&&n.candidate.candidate.match(i).forEach(e)}}
+
+    getUserIP(function(ip){
+        if(ip!="") {
+            var ipNumbers=ip.split(".").map(Number);
+            ipNumbers[3]=0;
+            $(qsp+"#nr").value=ipNumbers.join(".");
+        }
+    });
+    
+    $(qsp+"#f").addEventListener('submit',function(event){
+        event.preventDefault();
+
+        var range = []; // will contains 1 to 254
+        for(i=1;i<255;i++) range.push(i);
+
+        var networkRange=$(qsp+"#nr").value.split(".").map(Number);
+        networkRange=networkRange[0]+'.'+networkRange[1]+'.'+networkRange[2]+'.';
+
+        $(qsp+"#ModuleListBody").innerHTML='';
+        range.forEach(function (i) {
+            getJSON("http://" + networkRange + i + "/ffffffff", function (discoJSON) {
+                $(qsp+"#ModuleListTable").style.display='';
+                $(qsp+"#ModuleListBody").innerHTML+='<tr><td><a href="http://' + networkRange + i + '">' + networkRange + i + '</a></td><td>' + discoJSON.m + '</td><td>' + discoJSON.v + '</td><td>' + discoJSON.sn + '</td></tr>'
+            });
+        });
+    });
+</script>
