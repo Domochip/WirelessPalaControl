@@ -4,20 +4,15 @@
 #include <arduino.h>
 
 //DomoChip Informations
-//------------Compile for 1M 64K SPIFFS------------
 //Configuration Web Pages :
 //http://IP/
-//http://IP/config
-//http://IP/fw
 
-//include Application header file
-#include "WirelessPalaControl.h"
-
+#define APPLICATION1_HEADER "WirelessPalaControl.h"
 #define APPLICATION1_NAME "WPalaControl"
 #define APPLICATION1_DESC "DomoChip Wireless Palazzetti Control"
 #define APPLICATION1_CLASS WebPalaControl
 
-#define VERSION_NUMBER "3.X"
+#define VERSION_NUMBER "0.3"
 
 #define DEFAULT_AP_SSID "WirelessPalaControl"
 #define DEFAULT_AP_PSK "PasswordPalaControl"
@@ -25,11 +20,13 @@
 //Enable developper mode (SPIFFS editor)
 #define DEVELOPPER_MODE 0
 
-//Choose Serial Speed
-#define SERIAL_SPEED 115200
+//Log Serial Object
+#define LOG_SERIAL Serial1
+//Choose Log Serial Speed
+#define LOG_SERIAL_SPEED 115200
 
 //Choose Pin used to boot in Rescue Mode
-#define RESCUE_BTN_PIN 2
+//#define RESCUE_BTN_PIN 2
 
 //Define time to wait for Rescue press (in s)
 //#define RESCUE_BUTTON_WAIT 3

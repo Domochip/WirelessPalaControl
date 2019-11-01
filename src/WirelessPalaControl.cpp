@@ -1,5 +1,42 @@
 #include "WirelessPalaControl.h"
 
+//Serial management functions -------------
+int WebPalaControl::myOpenSerial(uint32_t baudrate)
+{
+  Serial.begin(baudrate);
+  Serial.pins(15, 13); //swap ESP8266 pins to alternative positions (D7(GPIO13)(RX)/D8(GPIO15)(TX))
+  return 0;
+}
+void WebPalaControl::myCloseSerial() { Serial.end(); }
+int WebPalaControl::mySelectSerial(unsigned long timeout)
+{
+  unsigned long startmillis = millis();
+  esp8266::polledTimeout::periodicMs timeOut(10);
+  while (!Serial.available() && (startmillis + timeout) > millis())
+  {
+    timeOut.reset();
+    while (!timeOut)
+      ;
+  }
+
+  if (Serial.available())
+    return 1;
+  return 0;
+}
+size_t WebPalaControl::myReadSerial(void *buf, size_t count) { return Serial.read((char *)buf, count); }
+size_t WebPalaControl::myWriteSerial(const void *buf, size_t count) { return Serial.write((const uint8_t *)buf, count); }
+int WebPalaControl::myDrainSerial()
+{
+  Serial.flush(); //On ESP, Serial.flush() is drain
+  return 0;
+}
+int WebPalaControl::myFlushSerial()
+{
+  Serial.flush();
+  return 0;
+}
+void WebPalaControl::myUSleep(unsigned long usecond) { delayMicroseconds(usecond); }
+
 //------------------------------------------
 //Used to initialize configuration properties to default values
 void WebPalaControl::SetConfigDefaultValues(){
@@ -18,103 +55,224 @@ void WebPalaControl::ParseConfigJSON(DynamicJsonDocument &doc){
 //Parse HTTP POST parameters in request into configuration properties
 bool WebPalaControl::ParseConfigWebRequest(AsyncWebServerRequest *request)
 {
-    //TODO
-    // if (!request->hasParam(F("prop1"), true))
-    // {
-    //     request->send(400, F("text/html"), F("prop1 missing"));
-    //     return false;
-    // }
-    //if (request->hasParam(F("prop1"), true)) property1 = request->getParam(F("prop1"), true)->value().toInt();
-    //if (request->hasParam(F("prop2"), true) && request->getParam(F("prop2"), true)->value().length() < sizeof(property2)) strcpy(property2, request->getParam(F("prop2"), true)->value().c_str());
+  //TODO
+  // if (!request->hasParam(F("prop1"), true))
+  // {
+  //     request->send(400, F("text/html"), F("prop1 missing"));
+  //     return false;
+  // }
+  //if (request->hasParam(F("prop1"), true)) property1 = request->getParam(F("prop1"), true)->value().toInt();
+  //if (request->hasParam(F("prop2"), true) && request->getParam(F("prop2"), true)->value().length() < sizeof(property2)) strcpy(property2, request->getParam(F("prop2"), true)->value().c_str());
 
-    return true;
+  return true;
 };
 //------------------------------------------
 //Generate JSON from configuration properties
 String WebPalaControl::GenerateConfigJSON(bool forSaveFile = false)
 {
-    String gc('{');
-    //TODO
-    // gc = gc + F("\"p1\":") + (property1 ? true : false);
-    // gc = gc + F("\"p2\":\"") + property2 + '"';
+  String gc('{');
+  //TODO
+  // gc = gc + F("\"p1\":") + (property1 ? true : false);
+  // gc = gc + F("\"p2\":\"") + property2 + '"';
 
-    gc += '}';
+  gc += '}';
 
-    return gc;
+  return gc;
 };
 //------------------------------------------
 //Generate JSON of application status
 String WebPalaControl::GenerateStatusJSON()
 {
-    String gs('{');
+  String gs('{');
 
-    //TODO
-    // gs = gs + F("\"p1\":") + (property1 ? true : false);
-    // gs = gs + F(",\"p2\":\"") + property2 + '"';
+  //TODO
+  // gs = gs + F("\"p1\":") + (property1 ? true : false);
+  // gs = gs + F(",\"p2\":\"") + property2 + '"';
 
-    gs += '}';
+  gs += '}';
 
-    return gs;
+  return gs;
 };
 //------------------------------------------
 //code to execute during initialization and reinitialization of the app
 bool WebPalaControl::AppInit(bool reInit)
 {
-    //TODO
-    //if (toto.enabled) _sendTimer.setInterval(SEND_PERIOD, [this]() {this->SendTimerTick();});
+  bool res = true;
+  res &= m_Pala.initialize(
+      std::bind(&WebPalaControl::myOpenSerial, this, std::placeholders::_1),
+      std::bind(&WebPalaControl::myCloseSerial, this),
+      std::bind(&WebPalaControl::mySelectSerial, this, std::placeholders::_1),
+      std::bind(&WebPalaControl::myReadSerial, this, std::placeholders::_1, std::placeholders::_2),
+      std::bind(&WebPalaControl::myWriteSerial, this, std::placeholders::_1, std::placeholders::_2),
+      std::bind(&WebPalaControl::myDrainSerial, this),
+      std::bind(&WebPalaControl::myFlushSerial, this),
+      std::bind(&WebPalaControl::myUSleep, this, std::placeholders::_1));
 
-    return true;
+  float setPoint;
+  res &= m_Pala.getSetPoint(&setPoint);
+  if (res)
+    LOG_SERIAL.printf("setpoint=%.2f", setPoint);
+  return res;
 };
 //------------------------------------------
 //Return HTML Code to insert into Status Web page
-const uint8_t* WebPalaControl::GetHTMLContent(WebPageForPlaceHolder wp){
-      switch(wp){
-    case status:
-      return (const uint8_t*) status1htmlgz;
-      break;
-    case config:
-      return (const uint8_t*) config1htmlgz;
-      break;
-    default:
-      return nullptr;
-      break;
+const uint8_t *WebPalaControl::GetHTMLContent(WebPageForPlaceHolder wp)
+{
+  switch (wp)
+  {
+  case status:
+    return (const uint8_t *)status1htmlgz;
+    break;
+  case config:
+    return (const uint8_t *)config1htmlgz;
+    break;
+  default:
+    return nullptr;
+    break;
   };
   return nullptr;
 };
 //and his Size
-size_t WebPalaControl::GetHTMLContentSize(WebPageForPlaceHolder wp){
-  switch(wp){
-    case status:
-      return sizeof(status1htmlgz);
-      break;
-    case config:
-      return sizeof(config1htmlgz);
-      break;
-    default:
-      return 0;
-      break;
+size_t WebPalaControl::GetHTMLContentSize(WebPageForPlaceHolder wp)
+{
+  switch (wp)
+  {
+  case status:
+    return sizeof(status1htmlgz);
+    break;
+  case config:
+    return sizeof(config1htmlgz);
+    break;
+  default:
+    return 0;
+    break;
   };
   return 0;
 };
 
 //------------------------------------------
 //code to register web request answer to the web server
-void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication){
-    //TODO
-    //server.on("/getColor", HTTP_GET, [this](AsyncWebServerRequest * request) {request->send(200, F("text/html"), GetColor());});
+void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
+{
+
+  server.on("/cgi-bin/sendmsg.lua", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    if (request->hasParam(F("cmd")))
+    {
+      const String &cmd = request->getParam(F("cmd"))->value();
+
+      if (cmd == F("GET+ALLS") || cmd == F("GET ALLS"))
+      {
+        bool res = true;
+
+        uint16_t STATUS;
+        res &= m_Pala.getStatus(&STATUS, nullptr);
+
+        float T1;
+        res &= m_Pala.readTemperature(&T1, nullptr, nullptr, nullptr, nullptr);
+
+        float setPoint;
+        res &= m_Pala.getSetPoint(&setPoint);
+
+        uint16_t PQT;
+        res &= m_Pala.getPelletQtUsed(&PQT);
+
+        if (res)
+        {
+          DynamicJsonDocument doc(500);
+          String jsonToReturn;
+          JsonObject data = doc.createNestedObject(F("DATA"));
+          data[F("STATUS")] = STATUS;
+          data[F("T1")] = T1;
+          data[F("SETP")] = setPoint;
+          data[F("PQT")] = PQT;
+          serializeJson(doc, jsonToReturn);
+
+          request->send(200, F("text/json"), jsonToReturn);
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
+      if (cmd.startsWith(F("CMD+")) || cmd.startsWith(F("CMD ")))
+      {
+        bool res = true;
+
+        if (cmd.substring(4) == F("ON"))
+          res &= m_Pala.powerOn();
+        else if (cmd.substring(4) == F("OFF"))
+          res &= m_Pala.powerOff();
+        else
+          res = false;
+
+        if (res)
+        {
+          DynamicJsonDocument doc(100);
+          String jsonToReturn;
+          doc[F("SUCCESS")] = true;
+          serializeJson(doc, jsonToReturn);
+
+          request->send(200, F("text/json"), jsonToReturn);
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
+      // if (cmd.startsWith(F("SET+SETP+")) || cmd.startsWith(F("SET SETP ")))
+      // {
+      //   bool res = true;
+
+      //   byte setPoint = cmd.substring(9).toInt();
+
+      //   if (setPoint == 0)
+      //   {
+      //     String ret(F("No valid request received : "));
+      //     ret += cmd;
+      //     request->send(400, F("text/html"), ret);
+      //     return;
+      //   }
+
+      //   res &= m_Pala.setSetpoint(setPoint);
+
+      //   if (res)
+      //   {
+      //     DynamicJsonDocument doc(100);
+      //     String jsonToReturn;
+      //     doc[F("SUCCESS")] = true;
+      //     serializeJson(doc, jsonToReturn);
+
+      //     request->send(200, F("text/json"), jsonToReturn);
+      //     return;
+      //   }
+      //   else
+      //   {
+      //     request->send(500, F("text/html"), F("Stove communication failed"));
+      //     return;
+      //   }
+      // }
+    }
+
+    //answer with error and return
+    request->send(400, F("text/html"), F("No valid request received"));
+  });
 };
 
 //------------------------------------------
 //Run for timer
 void WebPalaControl::AppRun()
 {
-    //TODO : implement run tasks (receive from serial, run timer, etc.)
+  //TODO : implement run tasks (receive from serial, run timer, etc.)
 }
 
 //------------------------------------------
 //Constructor
 WebPalaControl::WebPalaControl(char appId, String appName) : Application(appId, appName)
 {
-    //TODO : Initialize special structure or libraries in constructor
-    //Note : most of the time, init is done during AppInit based on configuration
 }

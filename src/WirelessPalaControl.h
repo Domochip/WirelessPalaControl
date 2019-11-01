@@ -14,14 +14,25 @@ const char appDataPredefPassword[] PROGMEM = "ewcXoCt4HHjZUvY1";
 #include "data\status1.html.gz.h"
 #include "data\config1.html.gz.h"
 
+#include <PolledTimeout.h>
+#include <SoftwareSerial.h>
+#include <Palazzetti.h>
+
 class WebPalaControl : public Application
 {
 private:
   //TODO : Declare configuration properies
 
-  //TODO : Declare run/status properties
+  Palazzetti m_Pala;
 
-  //TODO : Declare required private methods
+  int myOpenSerial(uint32_t baudrate);
+  void myCloseSerial();
+  int mySelectSerial(unsigned long timeout);
+  size_t myReadSerial(void *buf, size_t count);
+  size_t myWriteSerial(const void *buf, size_t count);
+  int myDrainSerial();
+  int myFlushSerial();
+  void myUSleep(unsigned long usecond);
 
   void SetConfigDefaultValues();
   void ParseConfigJSON(DynamicJsonDocument &doc);
@@ -29,7 +40,7 @@ private:
   String GenerateConfigJSON(bool forSaveFile);
   String GenerateStatusJSON();
   bool AppInit(bool reInit);
-  const uint8_t* GetHTMLContent(WebPageForPlaceHolder wp);
+  const uint8_t *GetHTMLContent(WebPageForPlaceHolder wp);
   size_t GetHTMLContentSize(WebPageForPlaceHolder wp);
   void AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication);
   void AppRun();
