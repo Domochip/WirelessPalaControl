@@ -2,6 +2,7 @@
 #define Core_h
 
 #include "..\Main.h"
+#include "Application.h"
 
 #include "data\status0.html.gz.h"
 #include "data\config0.html.gz.h"

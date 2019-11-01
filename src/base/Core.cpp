@@ -162,24 +162,32 @@ void Core::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pa
     if (!index) {
       //stop to Run Application in loop
       pauseApplication = true;
-      Serial.printf("Update Start: %s\n", filename.c_str());
+#ifdef LOG_SERIAL
+      LOG_SERIAL.printf("Update Start: %s\n", filename.c_str());
+#endif
       Update.runAsync(true);
       if (!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000)) {
-        Update.printError(Serial);
+#ifdef LOG_SERIAL
+        Update.printError(LOG_SERIAL);
+#endif
       }
     }
     if (!Update.hasError()) {
       //Feed the dog otherwise big firmware won't pass
       ESP.wdtFeed();
       if (Update.write(data, len) != len) {
-        Update.printError(Serial);
+#ifdef LOG_SERIAL
+        Update.printError(LOG_SERIAL);
+#endif
       }
     }
     if (final) {
       if (Update.end(true)) {
-        Serial.printf("Update Success: %uB\n", index + len);
+#ifdef LOG_SERIAL
+        LOG_SERIAL.printf("Update Success: %uB\n", index + len);
       } else {
-        Update.printError(Serial);
+        Update.printError(LOG_SERIAL);
+#endif
       }
     } });
 

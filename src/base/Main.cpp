@@ -5,10 +5,21 @@
 #include <ESPAsyncWebServer.h>
 
 #include "Version.h"
+#include "..\Main.h"
 #include "Application.h"
 #include "Core.h"
 #include "WifiMan.h"
-#include "..\Main.h"
+
+//include Application header files
+#ifdef APPLICATION1_HEADER
+#include APPLICATION1_HEADER
+#endif
+#ifdef APPLICATION2_HEADER
+#include APPLICATION2_HEADER
+#endif
+#ifdef APPLICATION3_HEADER
+#include APPLICATION3_HEADER
+#endif
 
 //System
 Core core('0', "Core");
@@ -41,11 +52,12 @@ APPLICATION3_CLASS application3('3', APPLICATION3_NAME);
 //-----------------------------------------------------------------------
 void setup()
 {
-
-  Serial.begin(SERIAL_SPEED);
-  Serial.println();
-  Serial.println();
+#ifdef LOG_SERIAL
+  LOG_SERIAL.begin(LOG_SERIAL_SPEED);
+  LOG_SERIAL.println();
+  LOG_SERIAL.println();
   delay(200);
+#endif
 
 #ifdef STATUS_LED_SETUP
   STATUS_LED_SETUP
@@ -54,9 +66,11 @@ void setup()
   STATUS_LED_ERROR
 #endif
 
-  Serial.print(F(APPLICATION1_DESC " "));
-  Serial.println(BASE_VERSION "/" VERSION);
-  Serial.println(F("---Booting---"));
+#ifdef LOG_SERIAL
+  LOG_SERIAL.print(F(APPLICATION1_DESC " "));
+  LOG_SERIAL.println(BASE_VERSION "/" VERSION);
+  LOG_SERIAL.println(F("---Booting---"));
+#endif
 
 #ifndef RESCUE_BUTTON_WAIT
 #define RESCUE_BUTTON_WAIT 3
@@ -75,9 +89,11 @@ void setup()
   //if config already skipped, don't wait for rescue button
   if (!skipExistingConfig)
   {
-    Serial.print(F("Wait Rescue button for "));
-    Serial.print(RESCUE_BUTTON_WAIT);
-    Serial.println(F(" seconds"));
+#ifdef LOG_SERIAL
+    LOG_SERIAL.print(F("Wait Rescue button for "));
+    LOG_SERIAL.print(RESCUE_BUTTON_WAIT);
+    LOG_SERIAL.println(F(" seconds"));
+#endif
 
     pinMode(RESCUE_BTN_PIN, (RESCUE_BTN_PIN != 16) ? INPUT_PULLUP : INPUT);
     for (int i = 0; i < 100 && skipExistingConfig == false; i++)
@@ -90,12 +106,17 @@ void setup()
 #endif
 
   if (skipExistingConfig)
-    Serial.println(F("-> RESCUE MODE : Stored configuration won't be loaded."));
-
+  {
+#ifdef LOG_SERIAL
+    LOG_SERIAL.println(F("-> RESCUE MODE : Stored configuration won't be loaded."));
+#endif
+  }
   if (!SPIFFS.begin())
   {
-    Serial.println(F("/!\\   File System Mount Failed   /!\\"));
-    Serial.println(F("/!\\ Configuration can't be saved /!\\"));
+#ifdef LOG_SERIAL
+    LOG_SERIAL.println(F("/!\\   File System Mount Failed   /!\\"));
+    LOG_SERIAL.println(F("/!\\ Configuration can't be saved /!\\"));
+#endif
   }
 
   //Init Core
@@ -115,8 +136,9 @@ void setup()
   application3.Init(skipExistingConfig);
 #endif
 
-  Serial.print(F("Start WebServer : "));
-
+#ifdef LOG_SERIAL
+  LOG_SERIAL.print(F("Start WebServer : "));
+#endif
   core.InitWebServer(server, shouldReboot, pauseApplication);
   wifiMan.InitWebServer(server, shouldReboot, pauseApplication);
 #ifdef APPLICATION1_CLASS
@@ -129,9 +151,11 @@ void setup()
   application3.InitWebServer(server, shouldReboot, pauseApplication);
 #endif
   server.begin();
-  Serial.println(F("OK"));
+#ifdef LOG_SERIAL
+  LOG_SERIAL.println(F("OK"));
 
-  Serial.println(F("---End of setup()---"));
+  LOG_SERIAL.println(F("---End of setup()---"));
+#endif
 }
 
 //-----------------------------------------------------------------------
@@ -157,9 +181,11 @@ void loop(void)
 
   if (shouldReboot)
   {
-    Serial.println("Rebooting...");
+#ifdef LOG_SERIAL
+    LOG_SERIAL.println("Rebooting...");
     delay(100);
-    Serial.end();
+    LOG_SERIAL.end();
+#endif
     ESP.restart();
   }
   yield();

@@ -1,7 +1,8 @@
 #ifndef WifiMan_h
 #define WifiMan_h
 
-#include "..\Main.h" //for DEFAULT_AP_SSID and ...PSK
+#include "..\Main.h"
+#include "Application.h"
 
 #include <Ticker.h>
 

@@ -5,7 +5,9 @@ bool Application::SaveConfig()
   File configFile = SPIFFS.open(String('/') + _appName + F(".json"), "w");
   if (!configFile)
   {
-    Serial.println(F("Failed to open config file for writing"));
+#ifdef LOG_SERIAL
+    LOG_SERIAL.println(F("Failed to open config file for writing"));
+#endif
     return false;
   }
 
@@ -44,8 +46,10 @@ bool Application::LoadConfig()
       //if parsing result is not a NoMemory, there is a problem in JSON
       if (deserializeJsonError.code() != DeserializationError::NoMemory)
       {
-        Serial.print(F("deserializeJson() failed : "));
-        Serial.println(deserializeJsonError.c_str());
+#ifdef LOG_SERIAL
+        LOG_SERIAL.print(F("deserializeJson() failed : "));
+        LOG_SERIAL.println(deserializeJsonError.c_str());
+#endif
         break;
       }
 
@@ -67,9 +71,11 @@ void Application::Init(bool skipExistingConfig)
 {
   bool result = true;
 
-  Serial.print(F("Start "));
-  Serial.print(_appName);
-  Serial.print(F(" : "));
+#ifdef LOG_SERIAL
+  LOG_SERIAL.print(F("Start "));
+  LOG_SERIAL.print(_appName);
+  LOG_SERIAL.print(F(" : "));
+#endif
 
   SetConfigDefaultValues();
 
@@ -79,10 +85,12 @@ void Application::Init(bool skipExistingConfig)
   //Execute specific Application Init Code
   result = AppInit() && result;
 
+#ifdef LOG_SERIAL
   if (result)
-    Serial.println(F("OK"));
+    LOG_SERIAL.println(F("OK"));
   else
-    Serial.println(F("FAILED"));
+    LOG_SERIAL.println(F("FAILED"));
+#endif
 }
 
 void Application::InitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
@@ -163,14 +171,22 @@ void Application::Run()
 {
   if (_reInit)
   {
-    Serial.print(F("ReStart "));
-    Serial.print(_appName);
-    Serial.print(F(" : "));
+#ifdef LOG_SERIAL
+    LOG_SERIAL.print(F("ReStart "));
+    LOG_SERIAL.print(_appName);
+    LOG_SERIAL.print(F(" : "));
+#endif
 
     if (AppInit(true))
-      Serial.println(F("OK"));
+    {
+#ifdef LOG_SERIAL
+      LOG_SERIAL.println(F("OK"));
+    }
     else
-      Serial.println(F("FAILED"));
+    {
+      LOG_SERIAL.println(F("FAILED"));
+#endif
+    }
 
     _reInit = false;
   }

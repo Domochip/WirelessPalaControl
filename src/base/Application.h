@@ -1,6 +1,7 @@
 #ifndef Application_h
 #define Application_h
 
+#include "..\Main.h"
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>

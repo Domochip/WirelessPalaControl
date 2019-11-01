@@ -16,9 +16,9 @@ void WifiMan::RefreshWiFi()
     if (!WiFi.isConnected() || WiFi.SSID() != ssid || WiFi.psk() != password)
     {
       EnableAP();
-
-      Serial.print(F("Connect"));
-
+#ifdef LOG_SERIAL
+      LOG_SERIAL.print(F("Connect"));
+#endif
       WiFi.begin(ssid, password);
       WiFi.config(ip, gw, mask, dns1, dns2);
 
@@ -26,7 +26,11 @@ void WifiMan::RefreshWiFi()
       for (int i = 0; i < (((uint16_t)_reconnectDuration) * 10) && !WiFi.isConnected(); i++)
       {
         if ((i % 10) == 0)
-          Serial.print(".");
+        {
+#ifdef LOG_SERIAL
+          LOG_SERIAL.print(".");
+#endif
+        }
         delay(100);
       }
 
@@ -37,14 +41,19 @@ void WifiMan::RefreshWiFi()
 #ifdef STATUS_LED_GOOD
         STATUS_LED_GOOD
 #endif
-        Serial.print(F("Connected ("));
-        Serial.print(WiFi.localIP());
-        Serial.print(F(") "));
+
+#ifdef LOG_SERIAL
+        LOG_SERIAL.print(F("Connected ("));
+        LOG_SERIAL.print(WiFi.localIP());
+        LOG_SERIAL.print(F(") "));
+#endif
       }
       else //connection failed
       {
         WiFi.disconnect();
-        Serial.print(F("AP not found "));
+#ifdef LOG_SERIAL
+        LOG_SERIAL.print(F("AP not found "));
+#endif
         _refreshTicker.once(_refreshPeriod, [this]() { _needRefreshWifi = true; });
       }
     }
@@ -57,9 +66,12 @@ void WifiMan::RefreshWiFi()
 #ifdef STATUS_LED_GOOD
     STATUS_LED_GOOD
 #endif
-    Serial.print(F(" AP mode("));
-    Serial.print(WiFi.softAPIP());
-    Serial.print(F(") "));
+
+#ifdef LOG_SERIAL
+    LOG_SERIAL.print(F(" AP mode("));
+    LOG_SERIAL.print(WiFi.softAPIP());
+    LOG_SERIAL.print(F(") "));
+#endif
   }
 }
 
@@ -263,8 +275,11 @@ bool WifiMan::AppInit(bool reInit = false)
 
   // scan networks to search for best free channel
   int n = WiFi.scanNetworks();
-  Serial.print(n);
-  Serial.print(F("N-CH"));
+
+#ifdef LOG_SERIAL
+  LOG_SERIAL.print(n);
+  LOG_SERIAL.print(F("N-CH"));
+#endif
   if (n)
   {
     while (_apChannel < 12)
@@ -277,8 +292,10 @@ bool WifiMan::AppInit(bool reInit = false)
       _apChannel++;
     }
   }
-  Serial.print(_apChannel);
-  Serial.print(' ');
+#ifdef LOG_SERIAL
+  LOG_SERIAL.print(_apChannel);
+  LOG_SERIAL.print(' ');
+#endif
 
   //Configure handlers
   if (!reInit)
@@ -288,7 +305,9 @@ bool WifiMan::AppInit(bool reInit = false)
       {
         //stop reconnection
         WiFi.disconnect();
-        Serial.println(F("Wifi disconnected"));
+#ifdef LOG_SERIAL
+        LOG_SERIAL.println(F("Wifi disconnected"));
+#endif
         //call RefreshWifi shortly
         _needRefreshWifi = true;
       }
