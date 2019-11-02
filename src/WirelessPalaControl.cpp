@@ -197,6 +197,35 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
+      if (cmd == F("GET+TMPS") || cmd == F("GET TMPS"))
+      {
+        bool res = true;
+
+        float T1, T2, T3, T4, T5;
+        res &= m_Pala.readTemperature(&T1, &T2, &T3, &T4, &T5);
+
+        if (res)
+        {
+          DynamicJsonDocument doc(500);
+          String jsonToReturn;
+          JsonObject data = doc.createNestedObject(F("DATA"));
+          data[F("T1")] = T1;
+          data[F("T2")] = T2;
+          data[F("T3")] = T3;
+          data[F("T4")] = T4;
+          data[F("T5")] = T5;
+          serializeJson(doc, jsonToReturn);
+
+          request->send(200, F("text/json"), jsonToReturn);
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
       if (cmd.startsWith(F("CMD+")) || cmd.startsWith(F("CMD ")))
       {
         bool res = true;
