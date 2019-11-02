@@ -254,38 +254,38 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
-      // if (cmd.startsWith(F("SET+SETP+")) || cmd.startsWith(F("SET SETP ")))
-      // {
-      //   bool res = true;
+      if (cmd.startsWith(F("SET+SETP+")) || cmd.startsWith(F("SET SETP ")))
+      {
+        bool res = true;
 
-      //   byte setPoint = cmd.substring(9).toInt();
+        byte setPoint = cmd.substring(9).toInt();
 
-      //   if (setPoint == 0)
-      //   {
-      //     String ret(F("No valid request received : "));
-      //     ret += cmd;
-      //     request->send(400, F("text/html"), ret);
-      //     return;
-      //   }
+        if (setPoint == 0)
+        {
+          String ret(F("Incorrect SetPoint value : "));
+          ret += cmd;
+          request->send(400, F("text/html"), ret);
+          return;
+        }
 
-      //   res &= m_Pala.setSetpoint(setPoint);
+        res &= m_Pala.setSetpoint(setPoint);
 
-      //   if (res)
-      //   {
-      //     DynamicJsonDocument doc(100);
-      //     String jsonToReturn;
-      //     doc[F("SUCCESS")] = true;
-      //     serializeJson(doc, jsonToReturn);
+        if (res)
+        {
+          DynamicJsonDocument doc(100);
+          String jsonToReturn;
+          doc[F("SUCCESS")] = true;
+          serializeJson(doc, jsonToReturn);
 
-      //     request->send(200, F("text/json"), jsonToReturn);
-      //     return;
-      //   }
-      //   else
-      //   {
-      //     request->send(500, F("text/html"), F("Stove communication failed"));
-      //     return;
-      //   }
-      // }
+          request->send(200, F("text/json"), jsonToReturn);
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
     }
 
     //answer with error and return
