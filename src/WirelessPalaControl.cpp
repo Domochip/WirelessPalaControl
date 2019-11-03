@@ -226,6 +226,36 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
+      
+      if (cmd == F("GET+FAND") || cmd == F("GET FAND"))
+      {
+        bool res = true;
+
+        uint16_t F1V,F2V,F1RPM,F2L,F2LF;
+        res &= m_Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF);
+
+        if (res)
+        {
+          DynamicJsonDocument doc(500);
+          String jsonToReturn;
+          JsonObject data = doc.createNestedObject(F("DATA"));
+          data[F("F1V")] = F1V;
+          data[F("F2V")] = F2V;
+          data[F("F1RPM")] = F1RPM;
+          data[F("F2L")] = F2L;
+          data[F("F2LF")] = F2LF;
+          serializeJson(doc, jsonToReturn);
+
+          request->send(200, F("text/json"), jsonToReturn);
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
       if (cmd.startsWith(F("CMD+")) || cmd.startsWith(F("CMD ")))
       {
         bool res = true;
