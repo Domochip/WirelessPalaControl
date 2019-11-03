@@ -168,7 +168,7 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         res &= m_Pala.getStatus(&STATUS, nullptr);
 
         float T1;
-        res &= m_Pala.readTemperature(&T1, nullptr, nullptr, nullptr, nullptr);
+        res &= m_Pala.getAllTemps(&T1, nullptr, nullptr, nullptr, nullptr);
 
         float setPoint;
         res &= m_Pala.getSetPoint(&setPoint);
@@ -202,7 +202,7 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         bool res = true;
 
         float T1, T2, T3, T4, T5;
-        res &= m_Pala.readTemperature(&T1, &T2, &T3, &T4, &T5);
+        res &= m_Pala.getAllTemps(&T1, &T2, &T3, &T4, &T5);
 
         if (res)
         {
