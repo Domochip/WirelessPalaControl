@@ -226,12 +226,11 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
-      
       if (cmd == F("GET+FAND") || cmd == F("GET FAND"))
       {
         bool res = true;
 
-        uint16_t F1V,F2V,F1RPM,F2L,F2LF;
+        uint16_t F1V, F2V, F1RPM, F2L, F2LF;
         res &= m_Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF);
 
         if (res)
@@ -244,6 +243,58 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
           data[F("F1RPM")] = F1RPM;
           data[F("F2L")] = F2L;
           data[F("F2LF")] = F2LF;
+          serializeJson(doc, jsonToReturn);
+
+          request->send(200, F("text/json"), jsonToReturn);
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
+      if (cmd == F("GET+SETP") || cmd == F("GET SETP"))
+      {
+        bool res = true;
+
+        float SETP;
+        res &= m_Pala.getSetPoint(&SETP);
+
+        if (res)
+        {
+          DynamicJsonDocument doc(100);
+          String jsonToReturn;
+          JsonObject data = doc.createNestedObject(F("DATA"));
+          data[F("SETP")] = SETP;
+          serializeJson(doc, jsonToReturn);
+
+          request->send(200, F("text/json"), jsonToReturn);
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
+      if (cmd == F("GET+POWR") || cmd == F("GET POWR"))
+      {
+        bool res = true;
+
+        byte PWR;
+        float FDR;
+        res &= m_Pala.getPower(&PWR, &FDR);
+
+        if (res)
+        {
+          DynamicJsonDocument doc(100);
+          String jsonToReturn;
+          JsonObject data = doc.createNestedObject(F("DATA"));
+          data[F("PWR")] = PWR;
+          data[F("FDR")] = FDR;
           serializeJson(doc, jsonToReturn);
 
           request->send(200, F("text/json"), jsonToReturn);
@@ -269,12 +320,63 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
         if (res)
         {
-          DynamicJsonDocument doc(100);
-          String jsonToReturn;
-          doc[F("SUCCESS")] = true;
-          serializeJson(doc, jsonToReturn);
+          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
 
-          request->send(200, F("text/json"), jsonToReturn);
+      if (cmd.startsWith(F("SET+POWR+")) || cmd.startsWith(F("SET POWR ")))
+      {
+        bool res = true;
+
+        byte powerLevel = cmd.substring(9).toInt();
+
+        if (powerLevel == 0)
+        {
+          String ret(F("Incorrect Power value : "));
+          ret += cmd;
+          request->send(400, F("text/html"), ret);
+          return;
+        }
+
+        res &= m_Pala.setPower(powerLevel);
+
+        if (res)
+        {
+          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
+      if (cmd.startsWith(F("SET+RFAN+")) || cmd.startsWith(F("SET RFAN ")))
+      {
+        bool res = true;
+
+        byte roomFanLevel = cmd.substring(9).toInt();
+
+        if (roomFanLevel == 0)
+        {
+          String ret(F("Incorrect Power value : "));
+          ret += cmd;
+          request->send(400, F("text/html"), ret);
+          return;
+        }
+
+        res &= m_Pala.setRoomFan(roomFanLevel);
+
+        if (res)
+        {
+          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
           return;
         }
         else
@@ -302,12 +404,7 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
         if (res)
         {
-          DynamicJsonDocument doc(100);
-          String jsonToReturn;
-          doc[F("SUCCESS")] = true;
-          serializeJson(doc, jsonToReturn);
-
-          request->send(200, F("text/json"), jsonToReturn);
+          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
           return;
         }
         else
