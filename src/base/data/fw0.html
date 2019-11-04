@@ -34,7 +34,7 @@
 
     $(qsp+"#f").addEventListener('submit',function (evt) {
         evt.preventDefault();
-        //if (!firmwareValidation()) return;
+        if (!firmwareValidation()) return;
         $(qsp+'#fi').readOnly = true;
         $(qsp+'#sub').disabled = true;
         post('/fw',
@@ -58,4 +58,6 @@
             }
         );
     });
+
+    $(qsp+"#f").onsubmit = null; //remove default submit after new Event listener
 </script>
