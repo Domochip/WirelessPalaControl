@@ -89,4 +89,4 @@ Usage (answers are in JSON format):
 - `http://{IP}/cgi-bin/sendmsg.lua?cmd=CMD+OFF` will turn stove OFF
 - `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+POWR` will set power (1-5)
 - `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+SETP` will set Set Point (desired temperature)
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+RFAN` will set Room Fan value
+- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+RFAN` will set Room Fan value (1-5;6=Max;7=Auto)
