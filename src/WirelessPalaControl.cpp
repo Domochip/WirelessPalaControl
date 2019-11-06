@@ -17,6 +17,7 @@ int WebPalaControl::mySelectSerial(unsigned long timeout)
     timeOut.reset();
     while (!timeOut)
       ;
+    ESP.wdtFeed(); //feed the WDT to prevent bite
   }
 
   if (Serial.available())
