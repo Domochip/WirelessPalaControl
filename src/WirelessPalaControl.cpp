@@ -161,7 +161,7 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
     {
       const String &cmd = request->getParam(F("cmd"))->value();
 
-      if (cmd == F("GET+ALLS") || cmd == F("GET ALLS"))
+      if (cmd == F("GET ALLS"))
       {
         bool res = true;
 
@@ -198,7 +198,7 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
-      if (cmd == F("GET+TMPS") || cmd == F("GET TMPS"))
+      if (cmd == F("GET TMPS"))
       {
         bool res = true;
 
@@ -227,7 +227,7 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
-      if (cmd == F("GET+FAND") || cmd == F("GET FAND"))
+      if (cmd == F("GET FAND"))
       {
         bool res = true;
 
@@ -256,7 +256,7 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
-      if (cmd == F("GET+SETP") || cmd == F("GET SETP"))
+      if (cmd == F("GET SETP"))
       {
         bool res = true;
 
@@ -281,7 +281,7 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
-      if (cmd == F("GET+POWR") || cmd == F("GET POWR"))
+      if (cmd == F("GET POWR"))
       {
         bool res = true;
 
@@ -308,7 +308,7 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
-      if (cmd.startsWith(F("CMD+")) || cmd.startsWith(F("CMD ")))
+      if (cmd.startsWith(F("CMD ")))
       {
         bool res = true;
 
@@ -331,7 +331,7 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
-      if (cmd.startsWith(F("SET+POWR+")) || cmd.startsWith(F("SET POWR ")))
+      if (cmd.startsWith(F("SET POWR ")))
       {
         bool res = true;
 
@@ -359,7 +359,7 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
-      if (cmd.startsWith(F("SET+RFAN+")) || cmd.startsWith(F("SET RFAN ")))
+      if (cmd.startsWith(F("SET RFAN ")))
       {
         bool res = true;
 
@@ -387,7 +387,7 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
-      if (cmd.startsWith(F("SET+SETP+")) || cmd.startsWith(F("SET SETP ")))
+      if (cmd.startsWith(F("SET SETP ")))
       {
         bool res = true;
 
