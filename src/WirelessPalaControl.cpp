@@ -308,6 +308,80 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
+      if (cmd.startsWith(F("GET PARM ")))
+      {
+        bool res = true;
+
+        String strParamNumber(cmd.substring(9));
+
+        byte paramNumber = strParamNumber.toInt();
+
+        if (paramNumber == 0 && strParamNumber[0] != '0')
+        {
+          String ret(F("Incorrect Parameter Number : "));
+          ret += strParamNumber;
+          request->send(400, F("text/html"), ret);
+          return;
+        }
+
+        byte paramValue;
+        res &= m_Pala.getParameter(paramNumber, &paramValue);
+
+        if (res)
+        {
+          DynamicJsonDocument doc(100);
+          String jsonToReturn;
+          JsonObject data = doc.createNestedObject(F("DATA"));
+          data[F("PAR")] = paramValue;
+          serializeJson(doc, jsonToReturn);
+
+          request->send(200, F("text/json"), jsonToReturn);
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
+      if (cmd.startsWith(F("GET HPAR ")))
+      {
+        bool res = true;
+
+        String strHiddenParamNumber(cmd.substring(9));
+
+        byte hiddenParamNumber = strHiddenParamNumber.toInt();
+
+        if (hiddenParamNumber == 0 && strHiddenParamNumber[0] != '0')
+        {
+          String ret(F("Incorrect Hidden Parameter Number : "));
+          ret += strHiddenParamNumber;
+          request->send(400, F("text/html"), ret);
+          return;
+        }
+
+        uint16_t hiddenParamValue;
+        res &= m_Pala.getHiddenParameter(hiddenParamNumber, &hiddenParamValue);
+
+        if (res)
+        {
+          DynamicJsonDocument doc(100);
+          String jsonToReturn;
+          JsonObject data = doc.createNestedObject(F("DATA"));
+          data[F("HPAR")] = hiddenParamValue;
+          serializeJson(doc, jsonToReturn);
+
+          request->send(200, F("text/json"), jsonToReturn);
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
       if (cmd.startsWith(F("CMD ")))
       {
         bool res = true;
@@ -402,6 +476,88 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
 
         res &= m_Pala.setSetpoint(setPoint);
+
+        if (res)
+        {
+          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
+      if (cmd.startsWith(F("SET PARM ")))
+      {
+        bool res = true;
+
+        String strParamNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
+        String strParamValue(cmd.substring(cmd.indexOf(' ', 9) + 1));
+
+        byte paramNumber = strParamNumber.toInt();
+
+        if (paramNumber == 0 && strParamNumber[0] != '0')
+        {
+          String ret(F("Incorrect Parameter Number : "));
+          ret += strParamNumber;
+          request->send(400, F("text/html"), ret);
+          return;
+        }
+
+        byte paramValue = strParamValue.toInt();
+
+        if (paramValue == 0 && strParamValue[0] != '0')
+        {
+          String ret(F("Incorrect Parameter Value : "));
+          ret += strParamValue;
+          request->send(400, F("text/html"), ret);
+          return;
+        }
+
+        res &= m_Pala.setParameter(paramNumber, paramValue);
+
+        if (res)
+        {
+          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
+      if (cmd.startsWith(F("SET HPAR ")))
+      {
+        bool res = true;
+
+        String strHiddenParamNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
+        String strHiddenParamValue(cmd.substring(cmd.indexOf(' ', 9) + 1));
+
+        byte hiddenParamNumber = strHiddenParamNumber.toInt();
+
+        if (hiddenParamNumber == 0 && strHiddenParamNumber[0] != '0')
+        {
+          String ret(F("Incorrect Hidden Parameter Number : "));
+          ret += strHiddenParamNumber;
+          request->send(400, F("text/html"), ret);
+          return;
+        }
+
+        uint16_t hiddenParamValue = strHiddenParamValue.toInt();
+
+        if (hiddenParamValue == 0 && strHiddenParamValue[0] != '0')
+        {
+          String ret(F("Incorrect Hidden Parameter Value : "));
+          ret += strHiddenParamValue;
+          request->send(400, F("text/html"), ret);
+          return;
+        }
+
+        res &= m_Pala.setHiddenParameter(hiddenParamNumber, hiddenParamValue);
 
         if (res)
         {

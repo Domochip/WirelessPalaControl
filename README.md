@@ -84,9 +84,14 @@ Usage (answers are in JSON format):
 - `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+FAND` will return Fan values
 - `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+SETP` will return current Set Point (desired temperature)
 - `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+POWR` will return current power (1-5)
+- `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+PARM+92` will return parameter (ex : 92=pellet type (1-3))
+- `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+HPAR+57` will return hidden parameter (ex : 57=%of pellet to feed for pellet type 3)
 
 - `http://{IP}/cgi-bin/sendmsg.lua?cmd=CMD+ON` will turn stove ON
 - `http://{IP}/cgi-bin/sendmsg.lua?cmd=CMD+OFF` will turn stove OFF
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+POWR` will set power (1-5)
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+SETP` will set Set Point (desired temperature)
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+RFAN` will set Room Fan value (1-5;6=Max;7=Auto)
+- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+POWR+3` will set power (1-5)
+- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+SETP+20` will set Set Point (desired temperature)
+- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+RFAN+7` will set Room Fan value (1-5;6=Max;7=Auto)
+- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+RFAN+7` will set Room Fan value (1-5;6=Max;7=Auto)
+- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+PARM+92+2` will set parameter 92 to value 2 (ex : 92=pellet type (1-3))
+- `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+HPAR+57+95` will set hidden parameter 57 to value 95 (ex : 57=%of pellet to feed for pellet type 3)
