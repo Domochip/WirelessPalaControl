@@ -231,8 +231,9 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
       {
         bool res = true;
 
-        uint16_t F1V, F2V, F1RPM, F2L, F2LF;
-        res &= m_Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF);
+        uint16_t F1V, F2V, F1RPM, F2L, F2LF, F3L, F4L;
+        bool isF3LF4LValid;
+        res &= m_Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3LF4LValid, &F3L, &F4L);
 
         if (res)
         {
@@ -244,6 +245,11 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
           data[F("F1RPM")] = F1RPM;
           data[F("F2L")] = F2L;
           data[F("F2LF")] = F2LF;
+          if (isF3LF4LValid)
+          {
+            data[F("F3L")] = F3L;
+            data[F("F4L")] = F4L;
+          }
           serializeJson(doc, jsonToReturn);
 
           request->send(200, F("text/json"), jsonToReturn);
@@ -476,6 +482,34 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
 
         res &= m_Pala.setSetpoint(setPoint);
+
+        if (res)
+        {
+          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
+      if (cmd.startsWith(F("SET STPF ")))
+      {
+        bool res = true;
+
+        float setPointFloat = cmd.substring(9).toFloat();
+
+        if (setPointFloat == 0)
+        {
+          String ret(F("Incorrect SetPoint Float value : "));
+          ret += cmd;
+          request->send(400, F("text/html"), ret);
+          return;
+        }
+
+        res &= m_Pala.setSetpoint(setPointFloat);
 
         if (res)
         {
