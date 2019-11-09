@@ -443,11 +443,13 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
       {
         bool res = true;
 
-        byte roomFanLevel = cmd.substring(9).toInt();
+        String strRoomFanLevel(cmd.substring(9));
 
-        if (roomFanLevel == 0)
+        byte roomFanLevel = strRoomFanLevel.toInt();
+
+        if (roomFanLevel == 0 && strRoomFanLevel[0] != '0')
         {
-          String ret(F("Incorrect Power value : "));
+          String ret(F("Incorrect Room Fan value : "));
           ret += cmd;
           request->send(400, F("text/html"), ret);
           return;
