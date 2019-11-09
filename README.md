@@ -54,7 +54,7 @@ WirelessPalaControl offers you some webpages in order to configure it :
 
 TODO
 
-![status screenshot](https://raw.github.com/Domochip/WirelessDS18B20/master/img/status.png)
+![status screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status.png)
 
 - `Config` allows you to change configuration :
 
