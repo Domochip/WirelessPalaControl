@@ -469,6 +469,94 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
+      if (cmd.startsWith(F("SET FN3L ")))
+      {
+        bool res = true;
+
+        String strRoomFan3Level(cmd.substring(9));
+
+        byte roomFan3Level = strRoomFan3Level.toInt();
+
+        if (roomFan3Level == 0 && strRoomFan3Level[0] != '0')
+        {
+          String ret(F("Incorrect Room Fan 3 value : "));
+          ret += cmd;
+          request->send(400, F("text/html"), ret);
+          return;
+        }
+
+        res &= m_Pala.setRoomFan3(roomFan3Level);
+
+        if (res)
+        {
+          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
+      if (cmd.startsWith(F("SET FN4L ")))
+      {
+        bool res = true;
+
+        String strRoomFan4Level(cmd.substring(9));
+
+        byte roomFan4Level = strRoomFan4Level.toInt();
+
+        if (roomFan4Level == 0 && strRoomFan4Level[0] != '0')
+        {
+          String ret(F("Incorrect Room Fan 4 value : "));
+          ret += cmd;
+          request->send(400, F("text/html"), ret);
+          return;
+        }
+
+        res &= m_Pala.setRoomFan4(roomFan4Level);
+
+        if (res)
+        {
+          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
+      if (cmd.startsWith(F("SET SLNT ")))
+      {
+        bool res = true;
+
+        byte silentMode = cmd.substring(9).toInt();
+
+        if (silentMode == 0)
+        {
+          String ret(F("Incorrect Silent Mode value : "));
+          ret += cmd;
+          request->send(400, F("text/html"), ret);
+          return;
+        }
+
+        res &= m_Pala.setSilentMode(silentMode);
+
+        if (res)
+        {
+          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
       if (cmd.startsWith(F("SET SETP ")))
       {
         bool res = true;
