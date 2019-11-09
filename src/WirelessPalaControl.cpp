@@ -314,6 +314,38 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
+      if (cmd == F("GET CUNT") || cmd == F("GET CNTR"))
+      {
+        bool res = true;
+
+        uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQT;
+        res &= m_Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQT);
+
+        if (res)
+        {
+          DynamicJsonDocument doc(500);
+          String jsonToReturn;
+          JsonObject data = doc.createNestedObject(F("DATA"));
+          data[F("IGN")] = IGN;
+          data[F("POWERTIME")] = String(POWERTIMEh) + ':' + (POWERTIMEm / 10) + (POWERTIMEm % 10);
+          data[F("HEATTIME")] = String(HEATTIMEh) + ':' + (HEATTIMEm / 10) + (HEATTIMEm % 10);
+          data[F("SERVICETIME")] = String(SERVICETIMEh) + ':' + (SERVICETIMEm / 10) + (SERVICETIMEm % 10);
+          data[F("ONTIME")] = String(ONTIMEh) + ':' + (ONTIMEm / 10) + (ONTIMEm % 10);
+          data[F("OVERTMPERRORS")] = OVERTMPERRORS;
+          data[F("IGNERRORS")] = IGNERRORS;
+          data[F("PQT")] = PQT;
+          serializeJson(doc, jsonToReturn);
+
+          request->send(200, F("text/json"), jsonToReturn);
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
       if (cmd.startsWith(F("GET PARM ")))
       {
         bool res = true;

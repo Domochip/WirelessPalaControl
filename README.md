@@ -84,6 +84,8 @@ Usage (answers are in JSON format):
 - `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+FAND` will return Fan values
 - `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+SETP` will return current Set Point (desired temperature)
 - `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+POWR` will return current power (1-5)
+- `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+CUNT` will return some counters
+- `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+CNTR` will return some counters (same as GET+CUNT)
 - `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+PARM+92` will return parameter (ex : 92=pellet type (1-3))
 - `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+HPAR+57` will return hidden parameter (ex : 57=%of pellet to feed for pellet type 3)
 
