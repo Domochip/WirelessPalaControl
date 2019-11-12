@@ -420,6 +420,138 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
+      if (cmd.startsWith(F("BKP PARM ")))
+      {
+        bool res = true;
+
+        byte fileType;
+
+        String strFileType(cmd.substring(9));
+
+        if (strFileType == F("CSV"))
+          fileType = 0;
+        else if (strFileType == F("JSON"))
+          fileType = 1;
+        else
+        {
+          String ret(F("Incorrect File Type : "));
+          ret += cmd.substring(9);
+          request->send(400, F("text/html"), ret);
+          return;
+        }
+
+        byte params[0x6A];
+        res &= m_Pala.getAllParameters(params);
+
+        if (res)
+        {
+          String toReturn;
+          AsyncWebServerResponse *response;
+
+          switch (fileType)
+          {
+          case 0: //CSV
+            toReturn += F("PARM;VALUE\r\n");
+            for (byte i = 0; i < 0x6A; i++)
+              toReturn += String(i) + ';' + params[i] + '\r' + '\n';
+
+            response = request->beginResponse(200, F("text/csv"), toReturn);
+            response->addHeader("Content-Disposition", "attachment; filename=\"PARM.csv\"");
+            request->send(response);
+
+            break;
+          case 1: //JSON
+            toReturn += F("{\"PARM\":[");
+            for (byte i = 0; i < 0x6A; i++)
+            {
+              if (i)
+                toReturn += F(",\r\n");
+              toReturn += params[i];
+            }
+            toReturn += F("]}");
+
+            response = request->beginResponse(200, F("text/json"), toReturn);
+            response->addHeader("Content-Disposition", "attachment; filename=\"PARM.json\"");
+            request->send(response);
+
+            break;
+          }
+
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
+      if (cmd.startsWith(F("BKP HPAR ")))
+      {
+        bool res = true;
+
+        byte fileType;
+
+        String strFileType(cmd.substring(9));
+
+        if (strFileType == F("CSV"))
+          fileType = 0;
+        else if (strFileType == F("JSON"))
+          fileType = 1;
+        else
+        {
+          String ret(F("Incorrect File Type : "));
+          ret += cmd.substring(9);
+          request->send(400, F("text/html"), ret);
+          return;
+        }
+
+        uint16_t hiddenParams[0x6F];
+        res &= m_Pala.getAllHiddenParameters(hiddenParams);
+
+        if (res)
+        {
+          String toReturn;
+          AsyncWebServerResponse *response;
+
+          switch (fileType)
+          {
+          case 0: //CSV
+            toReturn += F("HPAR;VALUE\r\n");
+            for (byte i = 0; i < 0x6F; i++)
+              toReturn += String(i) + ';' + hiddenParams[i] + '\r' + '\n';
+
+            response = request->beginResponse(200, F("text/csv"), toReturn);
+            response->addHeader("Content-Disposition", "attachment; filename=\"HPAR.csv\"");
+            request->send(response);
+
+            break;
+          case 1: //JSON
+            toReturn += F("{\"HPAR\":[");
+            for (byte i = 0; i < 0x6F; i++)
+            {
+              if (i)
+                toReturn += F(",\r\n");
+              toReturn += hiddenParams[i];
+            }
+            toReturn += F("]}");
+
+            response = request->beginResponse(200, F("text/json"), toReturn);
+            response->addHeader("Content-Disposition", "attachment; filename=\"HPAR.json\"");
+            request->send(response);
+
+            break;
+          }
+
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
       if (cmd.startsWith(F("CMD ")))
       {
         bool res = true;

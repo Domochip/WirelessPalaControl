@@ -78,24 +78,31 @@ TODO
 
 ### Basics
 
-Usage (answers are in JSON format):
+requests should follow this syntax : **http://*{IP}*/cgi-bin/sendmsg.lua?cmd=*{command}***
 
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+TMPS` will return temperatures of the stove
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+FAND` will return Fan values
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+SETP` will return current Set Point (desired temperature)
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+POWR` will return current power (1-5)
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+CUNT` will return some counters
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+CNTR` will return some counters (same as GET+CUNT)
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+PARM+92` will return parameter (ex : 92=pellet type (1-3))
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+HPAR+57` will return hidden parameter (ex : 57=%of pellet to feed for pellet type 3)
+Command list : 
 
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=CMD+ON` will turn stove ON
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=CMD+OFF` will turn stove OFF
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+POWR+3` will set power (1-5)
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+SETP+20` will set Set Point (desired temperature)
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+STPF+19.8` will set Set Point with a 0.2° precision (depend of your stove model)
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+RFAN+7` will set Room Fan value (0-5;6=Max;7=Auto)
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+FN3L+0` will set Room Fan 3 value (0-5)
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+FN4L+0` will set Room Fan 4 value (0-5)
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=SET+PARM+92+2` will set parameter 92 to value 2 (ex : 92=pellet type (1-3))
-- `http://{IP}/cgi-bin/sendmsg.lua?cmd=GET+HPAR+57+95` will set hidden parameter 57 to value 95 (ex : 57=%of pellet to feed for pellet type 3)
+- `GET+TMPS` will return temperatures of the stove
+- `GET+FAND` will return Fan values
+- `GET+SETP` will return current Set Point (desired temperature)
+- `GET+POWR` will return current power (1-5)
+- `GET+CUNT` will return some counters
+- `GET+CNTR` will return some counters (same as GET+CUNT)
+- `GET+PARM+92` will return parameter (ex : 92=pellet type (1-3))
+- `GET+HPAR+57` will return hidden parameter (ex : 57=%of pellet to feed for pellet type 3)
+---
+- `BKP+PARM+CSV` will return all parameters in CSV format
+- `BKP+PARM+JSON` will return all parameters in JSON format
+- `BKP+PARM+CSV` will return all hidden parameters in CSV format
+- `BKP+PARM+JSON` will return all hidden parameters in JSON format
+---
+- `CMD+ON` will turn stove ON
+- `CMD+OFF` will turn stove OFF
+- `SET+POWR+3` will set power (1-5)
+- `SET+SETP+20` will set Set Point (desired temperature)
+- `SET+STPF+19.8` will set Set Point with a 0.2° precision (depend of your stove model)
+- `SET+RFAN+7` will set Room Fan value (0-5;6=Max;7=Auto)
+- `SET+FN3L+0` will set Room Fan 3 value (0-5)
+- `SET+FN4L+0` will set Room Fan 4 value (0-5)
+- `SET+PARM+92+2` will set parameter 92 to value 2 (ex : 92=pellet type (1-3))
+- `SET+HPAR+57+95` will set hidden parameter 57 to value 95 (ex : 57=%of pellet to feed for pellet type 3)
