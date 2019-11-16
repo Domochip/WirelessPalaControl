@@ -88,6 +88,7 @@ Command list :
 - `GET+POWR` will return current power (1-5)
 - `GET+CUNT` will return some counters
 - `GET+CNTR` will return some counters (same as GET+CUNT)
+- `GET+DPRS` will return delta pressure data
 - `GET+PARM+92` will return parameter (ex : 92=pellet type (1-3))
 - `GET+HPAR+57` will return hidden parameter (ex : 57=%of pellet to feed for pellet type 3)
 ---
