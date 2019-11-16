@@ -82,6 +82,7 @@ requests should follow this syntax : **http://*{IP}*/cgi-bin/sendmsg.lua?cmd=*{c
 
 Command list : 
 
+- `GET+STAT` will return status of the stove
 - `GET+TMPS` will return temperatures of the stove
 - `GET+FAND` will return Fan values
 - `GET+SETP` will return current Set Point (desired temperature)
