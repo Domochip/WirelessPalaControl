@@ -7,7 +7,13 @@ int WebPalaControl::myOpenSerial(uint32_t baudrate)
   Serial.pins(15, 13); //swap ESP8266 pins to alternative positions (D7(GPIO13)(RX)/D8(GPIO15)(TX))
   return 0;
 }
-void WebPalaControl::myCloseSerial() { Serial.end(); }
+void WebPalaControl::myCloseSerial()
+{
+  Serial.end();
+  //TX/GPIO15 is pulled down and so block the stove bus by default...
+  pinMode(15, OUTPUT); //set TX PIN to OUTPUT HIGH
+  digitalWrite(15, HIGH);
+}
 int WebPalaControl::mySelectSerial(unsigned long timeout)
 {
   unsigned long startmillis = millis();
@@ -928,4 +934,7 @@ void WebPalaControl::AppRun()
 //Constructor
 WebPalaControl::WebPalaControl(char appId, String appName) : Application(appId, appName)
 {
+  //TX/GPIO15 is pulled down and so block the stove bus by default...
+  pinMode(15, OUTPUT); //set TX PIN to OUTPUT HIGH to unlock bus during WiFi connection
+  digitalWrite(15, HIGH);
 }

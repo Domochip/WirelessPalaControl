@@ -12,7 +12,7 @@
 #define APPLICATION1_DESC "DomoChip Wireless Palazzetti Control"
 #define APPLICATION1_CLASS WebPalaControl
 
-#define VERSION_NUMBER "1.0"
+#define VERSION_NUMBER "1.1"
 
 #define DEFAULT_AP_SSID "WirelessPalaControl"
 #define DEFAULT_AP_PSK "PasswordPalaControl"
@@ -21,7 +21,7 @@
 #define DEVELOPPER_MODE 0
 
 //Log Serial Object
-#define LOG_SERIAL Serial1
+#define LOG_SERIAL Serial1 //
 //Choose Log Serial Speed
 #define LOG_SERIAL_SPEED 115200
 
