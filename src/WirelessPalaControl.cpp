@@ -346,6 +346,32 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
+      if (cmd == F("GET DPRS"))
+      {
+        bool res = true;
+
+        uint16_t DP_TARGET, DP_PRESS;
+        res &= m_Pala.getDPressData(&DP_TARGET, &DP_PRESS);
+
+        if (res)
+        {
+          DynamicJsonDocument doc(500);
+          String jsonToReturn;
+          JsonObject data = doc.createNestedObject(F("DATA"));
+          data[F("DP_TARGET")] = DP_TARGET;
+          data[F("DP_PRESS")] = DP_PRESS;
+          serializeJson(doc, jsonToReturn);
+
+          request->send(200, F("text/json"), jsonToReturn);
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
       if (cmd.startsWith(F("GET PARM ")))
       {
         bool res = true;

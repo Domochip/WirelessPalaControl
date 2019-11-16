@@ -1,10 +1,6 @@
 #ifndef WirelessPalaControl_h
 #define WirelessPalaControl_h
 
-#include <ESP8266WiFi.h>
-#include <ESPAsyncTCP.h>
-#include <ESPAsyncWebServer.h>
-
 #include "Main.h"
 #include "base\Utils.h"
 #include "base\Application.h"
@@ -15,7 +11,6 @@ const char appDataPredefPassword[] PROGMEM = "ewcXoCt4HHjZUvY1";
 #include "data\config1.html.gz.h"
 
 #include <PolledTimeout.h>
-#include <SoftwareSerial.h>
 #include <Palazzetti.h>
 
 class WebPalaControl : public Application
