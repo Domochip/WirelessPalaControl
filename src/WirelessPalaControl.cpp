@@ -198,6 +198,32 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
+      if (cmd == F("GET STAT"))
+      {
+        bool res = true;
+
+        uint16_t STATUS, LSTATUS;
+        res &= m_Pala.getStatus(&STATUS, &LSTATUS);
+
+        if (res)
+        {
+          DynamicJsonDocument doc(100);
+          String jsonToReturn;
+          JsonObject data = doc.createNestedObject(F("DATA"));
+          data[F("STATUS")] = STATUS;
+          data[F("LSTATUS")] = LSTATUS;
+          serializeJson(doc, jsonToReturn);
+
+          request->send(200, F("text/json"), jsonToReturn);
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
       if (cmd == F("GET TMPS"))
       {
         bool res = true;
