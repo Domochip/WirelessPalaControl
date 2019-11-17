@@ -1,5 +1,26 @@
 #include "MQTTMan.h"
 
+void MQTTMan::prepareTopic(String &topic)
+{
+
+    //check for final slash
+    if (topic.length() && topic.charAt(topic.length() - 1) != '/')
+        topic += '/';
+
+    if (topic.indexOf(F("$sn$")) != -1)
+    {
+        char sn[9];
+        sprintf_P(sn, PSTR("%08x"), ESP.getChipId());
+        topic.replace(F("$sn$"), sn);
+    }
+
+    if (topic.indexOf(F("$mac$")) != -1)
+        topic.replace(F("$mac$"), WiFi.macAddress());
+
+    if (topic.indexOf(F("$model$")) != -1)
+        topic.replace(F("$model$"), APPLICATION1_NAME);
+}
+
 bool MQTTMan::connect(bool firstConnection)
 {
     if (!WiFi.isConnected())

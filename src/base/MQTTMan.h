@@ -21,6 +21,8 @@ private:
     bool connect(bool firstConnection);
 
 public:
+    static void prepareTopic(String &topic);
+
     using PubSubClient::setClient;
     using PubSubClient::setServer;
     MQTTMan &setConnectedCallback(CONNECTED_CALLBACK_SIGNATURE connectedCallback);
@@ -28,12 +30,12 @@ public:
     bool connect(char *username = nullptr, char *password = nullptr);
     using PubSubClient::connected;
     void disconnect();
-    using PubSubClient::subscribe;
     using PubSubClient::beginPublish;
     using PubSubClient::endPublish;
     using PubSubClient::publish;
     using PubSubClient::publish_P;
     using PubSubClient::state;
+    using PubSubClient::subscribe;
     bool loop();
 };
 
