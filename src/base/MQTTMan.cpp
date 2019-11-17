@@ -2,11 +2,6 @@
 
 void MQTTMan::prepareTopic(String &topic)
 {
-
-    //check for final slash
-    if (topic.length() && topic.charAt(topic.length() - 1) != '/')
-        topic += '/';
-
     if (topic.indexOf(F("$sn$")) != -1)
     {
         char sn[9];
@@ -19,6 +14,10 @@ void MQTTMan::prepareTopic(String &topic)
 
     if (topic.indexOf(F("$model$")) != -1)
         topic.replace(F("$model$"), APPLICATION1_NAME);
+
+    //check for final slash
+    if (topic.length() && topic.charAt(topic.length() - 1) != '/')
+        topic += '/';
 }
 
 bool MQTTMan::connect(bool firstConnection)
