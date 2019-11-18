@@ -13,6 +13,7 @@ class MQTTMan : private PubSubClient
 private:
     char m_username[64] = {0};
     char m_password[64] = {0};
+    char m_connectedAndWillTopic[96] = {0};
     bool m_needMqttReconnect = false;
     Ticker m_mqttReconnectTicker;
 
@@ -25,9 +26,10 @@ public:
 
     using PubSubClient::setClient;
     using PubSubClient::setServer;
+    MQTTMan &setConnectedAndWillTopic(const char *topic);
     MQTTMan &setConnectedCallback(CONNECTED_CALLBACK_SIGNATURE connectedCallback);
     using PubSubClient::setCallback;
-    bool connect(char *username = nullptr, char *password = nullptr);
+    bool connect(const char *username = nullptr, const char *password = nullptr);
     using PubSubClient::connected;
     void disconnect();
     using PubSubClient::beginPublish;

@@ -33,13 +33,17 @@ bool MQTTMan::connect(bool firstConnection)
     clientID += sn;
 
     //Connect
-    if (!m_username[0])
-        PubSubClient::connect(clientID.c_str());
-    else
-        PubSubClient::connect(clientID.c_str(), m_username, m_password);
+    char *username = (m_username[0] ? m_username : nullptr);
+    char *password = (m_username[0] ? m_password : nullptr);
+    char *willTopic = (m_connectedAndWillTopic[0] ? m_connectedAndWillTopic : nullptr);
+    const char *willMessage = (m_connectedAndWillTopic[0] ? "0" : nullptr);
+    PubSubClient::connect(clientID.c_str(), username, password, willTopic, 0, false, willMessage);
 
     if (connected())
     {
+        if (m_connectedAndWillTopic[0])
+            publish(m_connectedAndWillTopic, "1");
+
         //Subscribe to needed topic
         if (m_connectedCallBack)
             m_connectedCallBack(this, firstConnection);
@@ -48,13 +52,23 @@ bool MQTTMan::connect(bool firstConnection)
     return connected();
 }
 
+MQTTMan &MQTTMan::setConnectedAndWillTopic(const char *topic)
+{
+    if (!topic)
+        m_connectedAndWillTopic[0] = 0;
+    else if (strlen(topic) < sizeof(m_connectedAndWillTopic))
+        strcpy(m_connectedAndWillTopic, topic);
+
+    return *this;
+}
+
 MQTTMan &MQTTMan::setConnectedCallback(CONNECTED_CALLBACK_SIGNATURE connectedCallback)
 {
     m_connectedCallBack = connectedCallback;
     return *this;
 }
 
-bool MQTTMan::connect(char *username, char *password)
+bool MQTTMan::connect(const char *username, const char *password)
 {
     //check logins
     if (username && strlen(username) >= sizeof(m_username))
@@ -77,6 +91,10 @@ bool MQTTMan::connect(char *username, char *password)
 
 void MQTTMan::disconnect()
 {
+    //publish disconnected just before disconnect...
+    if (m_connectedAndWillTopic[0])
+        publish(m_connectedAndWillTopic, "0");
+
     //Stop MQTT Reconnect
     m_mqttReconnectTicker.detach();
     //Disconnect
