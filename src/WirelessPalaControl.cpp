@@ -44,9 +44,45 @@ int WebPalaControl::myFlushSerial()
 }
 void WebPalaControl::myUSleep(unsigned long usecond) { delayMicroseconds(usecond); }
 
-void WebPalaControl::mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnection) {}
+void WebPalaControl::mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnection)
+{
 
-void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int length) {}
+  //Subscribe to needed topic
+  //prepare topic subscription
+  String subscribeTopic = m_ha.mqtt.generic.baseTopic;
+
+  //Replace placeholders
+  MQTTMan::prepareTopic(subscribeTopic);
+
+  switch (m_ha.mqtt.type) //switch on MQTT type
+  {
+  case HA_MQTT_GENERIC:
+    subscribeTopic += F("cmd");
+    break;
+  }
+
+  if (firstConnection)
+    mqttMan->publish(subscribeTopic.c_str(), ""); //make empty publish only for firstConnection
+  mqttMan->subscribe(subscribeTopic.c_str());
+}
+
+void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int length)
+{
+  //if topic is basetopic/cmd
+  //commented because only this topic is subscribed
+
+  if (length == 6 && !memcmp_P(payload, F("CMD+ON"), length))
+  {
+    m_Pala.powerOn();
+    return;
+  }
+
+  if (length == 7 && !memcmp_P(payload, F("CMD+OFF"), length))
+  {
+    m_Pala.powerOff();
+    return;
+  }
+}
 
 void WebPalaControl::publishTick()
 {
@@ -118,6 +154,25 @@ void WebPalaControl::publishTick()
       if ((m_haSendResult &= m_Pala.getPelletQtUsed(&PQT)))
       {
         m_haSendResult &= m_mqttMan.publish((baseTopic + F("PQT")).c_str(), String(PQT).c_str());
+      }
+      else
+        return;
+
+      byte PWR;
+      float FDR;
+      if ((m_haSendResult &= m_Pala.getPower(&PWR, &FDR)))
+      {
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("PWR")).c_str(), String(PWR).c_str());
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("FDR")).c_str(), String(FDR).c_str());
+      }
+      else
+        return;
+
+      uint16_t DP_TARGET, DP_PRESS;
+      if ((m_haSendResult &= m_Pala.getDPressData(&DP_TARGET, &DP_PRESS)))
+      {
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("DP_TARGET")).c_str(), String(DP_TARGET).c_str());
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("DP_PRESS")).c_str(), String(DP_PRESS).c_str());
       }
       else
         return;
