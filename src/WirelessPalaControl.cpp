@@ -82,6 +82,20 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
     m_Pala.powerOff();
     return;
   }
+
+  if (length > 9 && length <= 14 && !memcmp_P(payload, F("SET+SETP+"), 9))
+  {
+    char strSetPoint[6];
+    memcpy(strSetPoint, payload + 9, length - 9);
+    strSetPoint[length - 9] = 0;
+
+    float setPointFloat = atof(strSetPoint);
+
+    if (setPointFloat != 0.0f)
+      m_Pala.setSetpoint(setPointFloat);
+
+    return;
+  }
 }
 
 void WebPalaControl::publishTick()
@@ -1126,7 +1140,7 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
         float setPointFloat = cmd.substring(9).toFloat();
 
-        if (setPointFloat == 0)
+        if (setPointFloat == 0.0f)
         {
           String ret(F("Incorrect SetPoint Float value : "));
           ret += cmd;
