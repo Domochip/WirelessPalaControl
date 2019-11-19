@@ -44,33 +44,174 @@ int WebPalaControl::myFlushSerial()
 }
 void WebPalaControl::myUSleep(unsigned long usecond) { delayMicroseconds(usecond); }
 
+void WebPalaControl::mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnection) {}
+
+void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int length) {}
+
+void WebPalaControl::publishTick()
+{
+  //if Home Automation upload not enabled then return
+  if (m_ha.protocol == HA_PROTO_DISABLED)
+    return;
+
+  //----- MQTT Protocol configured -----
+  if (m_ha.protocol == HA_PROTO_MQTT)
+  {
+    //if we are connected
+    if (m_mqttMan.connected())
+    {
+      //prepare base topic
+      String baseTopic = m_ha.mqtt.generic.baseTopic;
+
+      //Replace placeholders
+      MQTTMan::prepareTopic(baseTopic);
+
+      m_haSendResult = true;
+
+      uint16_t STATUS, LSTATUS;
+      if ((m_haSendResult &= m_Pala.getStatus(&STATUS, &LSTATUS)))
+      {
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("STATUS")).c_str(), String(STATUS).c_str());
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("LSTATUS")).c_str(), String(LSTATUS).c_str());
+      }
+      else
+        return;
+
+      float T1, T2, T3, T4, T5;
+      if ((m_haSendResult &= m_Pala.getAllTemps(&T1, &T2, &T3, &T4, &T5)))
+      {
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("T1")).c_str(), String(T1).c_str());
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("T2")).c_str(), String(T2).c_str());
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("T3")).c_str(), String(T3).c_str());
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("T4")).c_str(), String(T4).c_str());
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("T5")).c_str(), String(T5).c_str());
+      }
+      else
+        return;
+
+      uint16_t F1V, F2V, F1RPM, F2L, F2LF, F3L, F4L;
+      bool isF3LF4LValid;
+      if ((m_haSendResult &= m_Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3LF4LValid, &F3L, &F4L)))
+      {
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("F1V")).c_str(), String(F1V).c_str());
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("F2V")).c_str(), String(F2V).c_str());
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("F2L")).c_str(), String(F2L).c_str());
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("F2LF")).c_str(), String(F2LF).c_str());
+        if (isF3LF4LValid)
+        {
+          m_haSendResult &= m_mqttMan.publish((baseTopic + F("F3L")).c_str(), String(F3L).c_str());
+          m_haSendResult &= m_mqttMan.publish((baseTopic + F("F4L")).c_str(), String(F4L).c_str());
+        }
+      }
+      else
+        return;
+
+      float SETP;
+      if ((m_haSendResult &= m_Pala.getSetPoint(&SETP)))
+      {
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("SETP")).c_str(), String(SETP).c_str());
+      }
+      else
+        return;
+
+      uint16_t PQT;
+      if ((m_haSendResult &= m_Pala.getPelletQtUsed(&PQT)))
+      {
+        m_haSendResult &= m_mqttMan.publish((baseTopic + F("PQT")).c_str(), String(PQT).c_str());
+      }
+      else
+        return;
+    }
+  }
+}
+
 //------------------------------------------
 //Used to initialize configuration properties to default values
-void WebPalaControl::SetConfigDefaultValues(){
-    //TODO
-    //property1 = 0;
-    //property2 = F("test");
+void WebPalaControl::SetConfigDefaultValues()
+{
+  m_ha.protocol = HA_PROTO_DISABLED;
+  m_ha.hostname[0] = 0;
+  m_ha.uploadPeriod = 60;
+
+  m_ha.mqtt.type = HA_MQTT_GENERIC;
+  m_ha.mqtt.port = 1883;
+  m_ha.mqtt.username[0] = 0;
+  m_ha.mqtt.password[0] = 0;
+  m_ha.mqtt.generic.baseTopic[0] = 0;
 };
 //------------------------------------------
 //Parse JSON object into configuration properties
-void WebPalaControl::ParseConfigJSON(DynamicJsonDocument &doc){
-    //TODO
-    //if (!doc["prop1"].isNull()) property1 = doc[F("prop1")];
-    //if (!doc["prop2"].isNull()) strlcpy(property2, doc["prop2"], sizeof(property2));
+void WebPalaControl::ParseConfigJSON(DynamicJsonDocument &doc)
+{
+  if (!doc[F("haproto")].isNull())
+    m_ha.protocol = doc[F("haproto")];
+  if (!doc[F("hahost")].isNull())
+    strlcpy(m_ha.hostname, doc[F("hahost")], sizeof(m_ha.hostname));
+  if (!doc[F("haupperiod")].isNull())
+    m_ha.uploadPeriod = doc[F("haupperiod")];
+
+  if (!doc[F("hamtype")].isNull())
+    m_ha.mqtt.type = doc[F("hamtype")];
+  if (!doc[F("hamport")].isNull())
+    m_ha.mqtt.port = doc[F("hamport")];
+  if (!doc[F("hamu")].isNull())
+    strlcpy(m_ha.mqtt.username, doc[F("hamu")], sizeof(m_ha.mqtt.username));
+  if (!doc[F("hamp")].isNull())
+    strlcpy(m_ha.mqtt.password, doc[F("hamp")], sizeof(m_ha.mqtt.password));
+
+  if (!doc[F("hamgbt")].isNull())
+    strlcpy(m_ha.mqtt.generic.baseTopic, doc[F("hamgbt")], sizeof(m_ha.mqtt.generic.baseTopic));
 };
 //------------------------------------------
 //Parse HTTP POST parameters in request into configuration properties
 bool WebPalaControl::ParseConfigWebRequest(AsyncWebServerRequest *request)
 {
-  //TODO
-  // if (!request->hasParam(F("prop1"), true))
-  // {
-  //     request->send(400, F("text/html"), F("prop1 missing"));
-  //     return false;
-  // }
-  //if (request->hasParam(F("prop1"), true)) property1 = request->getParam(F("prop1"), true)->value().toInt();
-  //if (request->hasParam(F("prop2"), true) && request->getParam(F("prop2"), true)->value().length() < sizeof(property2)) strcpy(property2, request->getParam(F("prop2"), true)->value().c_str());
 
+  //Parse HA protocol
+  if (request->hasParam(F("haproto"), true))
+    m_ha.protocol = request->getParam(F("haproto"), true)->value().toInt();
+
+  //if an home Automation protocol has been selected then get common param
+  if (m_ha.protocol != HA_PROTO_DISABLED)
+  {
+    if (request->hasParam(F("hahost"), true) && request->getParam(F("hahost"), true)->value().length() < sizeof(m_ha.hostname))
+      strcpy(m_ha.hostname, request->getParam(F("hahost"), true)->value().c_str());
+    if (request->hasParam(F("haupperiod"), true))
+      m_ha.uploadPeriod = request->getParam(F("haupperiod"), true)->value().toInt();
+  }
+
+  //Now get specific param
+  switch (m_ha.protocol)
+  {
+
+  case HA_PROTO_MQTT:
+
+    if (request->hasParam(F("hamtype"), true))
+      m_ha.mqtt.type = request->getParam(F("hamtype"), true)->value().toInt();
+    if (request->hasParam(F("hamport"), true))
+      m_ha.mqtt.port = request->getParam(F("hamport"), true)->value().toInt();
+    if (request->hasParam(F("hamu"), true) && request->getParam(F("hamu"), true)->value().length() < sizeof(m_ha.mqtt.username))
+      strcpy(m_ha.mqtt.username, request->getParam(F("hamu"), true)->value().c_str());
+    char tempPassword[64 + 1] = {0};
+    //put MQTT password into temporary one for predefpassword
+    if (request->hasParam(F("hamp"), true) && request->getParam(F("hamp"), true)->value().length() < sizeof(tempPassword))
+      strcpy(tempPassword, request->getParam(F("hamp"), true)->value().c_str());
+    //check for previous password (there is a predefined special password that mean to keep already saved one)
+    if (strcmp_P(tempPassword, appDataPredefPassword))
+      strcpy(m_ha.mqtt.password, tempPassword);
+
+    switch (m_ha.mqtt.type)
+    {
+    case HA_MQTT_GENERIC:
+      if (request->hasParam(F("hamgbt"), true) && request->getParam(F("hamgbt"), true)->value().length() < sizeof(m_ha.mqtt.generic.baseTopic))
+        strcpy(m_ha.mqtt.generic.baseTopic, request->getParam(F("hamgbt"), true)->value().c_str());
+
+      if (!m_ha.hostname[0] || !m_ha.mqtt.generic.baseTopic[0])
+        m_ha.protocol = HA_PROTO_DISABLED;
+      break;
+    }
+    break;
+  }
   return true;
 };
 //------------------------------------------
@@ -78,9 +219,24 @@ bool WebPalaControl::ParseConfigWebRequest(AsyncWebServerRequest *request)
 String WebPalaControl::GenerateConfigJSON(bool forSaveFile = false)
 {
   String gc('{');
-  //TODO
-  // gc = gc + F("\"p1\":") + (property1 ? true : false);
-  // gc = gc + F("\"p2\":\"") + property2 + '"';
+
+  gc = gc + F("\"haproto\":") + m_ha.protocol;
+  gc = gc + F(",\"hahost\":\"") + m_ha.hostname + '"';
+  gc = gc + F(",\"haupperiod\":") + m_ha.uploadPeriod;
+
+  //if for WebPage or protocol selected is MQTT
+  if (!forSaveFile || m_ha.protocol == HA_PROTO_MQTT)
+  {
+    gc = gc + F(",\"hamtype\":") + m_ha.mqtt.type;
+    gc = gc + F(",\"hamport\":") + m_ha.mqtt.port;
+    gc = gc + F(",\"hamu\":\"") + m_ha.mqtt.username + '"';
+    if (forSaveFile)
+      gc = gc + F(",\"hamp\":\"") + m_ha.mqtt.password + '"';
+    else
+      gc = gc + F(",\"hamp\":\"") + (__FlashStringHelper *)appDataPredefPassword + '"'; //predefined special password (mean to keep already saved one)
+
+    gc = gc + F(",\"hamgbt\":\"") + m_ha.mqtt.generic.baseTopic + '"';
+  }
 
   gc += '}';
 
@@ -92,9 +248,51 @@ String WebPalaControl::GenerateStatusJSON()
 {
   String gs('{');
 
-  //TODO
-  // gs = gs + F("\"p1\":") + (property1 ? true : false);
-  // gs = gs + F(",\"p2\":\"") + property2 + '"';
+  gs = gs + F("\"has1\":\"");
+  switch (m_ha.protocol)
+  {
+  case HA_PROTO_DISABLED:
+    gs = gs + F("Disabled");
+    break;
+  case HA_PROTO_MQTT:
+    gs = gs + F("MQTT Connection State : ");
+    switch (m_mqttMan.state())
+    {
+    case MQTT_CONNECTION_TIMEOUT:
+      gs = gs + F("Timed Out");
+      break;
+    case MQTT_CONNECTION_LOST:
+      gs = gs + F("Lost");
+      break;
+    case MQTT_CONNECT_FAILED:
+      gs = gs + F("Failed");
+      break;
+    case MQTT_CONNECTED:
+      gs = gs + F("Connected");
+      break;
+    case MQTT_CONNECT_BAD_PROTOCOL:
+      gs = gs + F("Bad Protocol Version");
+      break;
+    case MQTT_CONNECT_BAD_CLIENT_ID:
+      gs = gs + F("Incorrect ClientID ");
+      break;
+    case MQTT_CONNECT_UNAVAILABLE:
+      gs = gs + F("Server Unavailable");
+      break;
+    case MQTT_CONNECT_BAD_CREDENTIALS:
+      gs = gs + F("Bad Credentials");
+      break;
+    case MQTT_CONNECT_UNAUTHORIZED:
+      gs = gs + F("Connection Unauthorized");
+      break;
+    }
+
+    if (m_mqttMan.state() == MQTT_CONNECTED)
+      gs = gs + F("\",\"has2\":\"Last Publish Result : ") + (m_haSendResult ? F("OK") : F("Failed"));
+
+    break;
+  }
+  gs += '"';
 
   gs += '}';
 
@@ -104,6 +302,30 @@ String WebPalaControl::GenerateStatusJSON()
 //code to execute during initialization and reinitialization of the app
 bool WebPalaControl::AppInit(bool reInit)
 {
+  //Stop Publish
+  m_publishTicker.detach();
+
+  //Stop MQTT
+  m_mqttMan.disconnect();
+
+  //if MQTT used so configure it
+  if (m_ha.protocol == HA_PROTO_MQTT)
+  {
+    //prepare will topic
+    String willTopic = m_ha.mqtt.generic.baseTopic;
+    MQTTMan::prepareTopic(willTopic);
+    willTopic += F("connected");
+
+    //setup MQTT
+    m_mqttMan.setClient(m_wifiClient).setServer(m_ha.hostname, m_ha.mqtt.port);
+    m_mqttMan.setConnectedAndWillTopic(willTopic.c_str());
+    m_mqttMan.setConnectedCallback(std::bind(&WebPalaControl::mqttConnectedCallback, this, std::placeholders::_1, std::placeholders::_2));
+    m_mqttMan.setCallback(std::bind(&WebPalaControl::mqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
+    //Connect
+    m_mqttMan.connect(m_ha.mqtt.username, m_ha.mqtt.password);
+  }
+
   bool res = true;
   res &= m_Pala.initialize(
       std::bind(&WebPalaControl::myOpenSerial, this, std::placeholders::_1),
@@ -119,6 +341,15 @@ bool WebPalaControl::AppInit(bool reInit)
   res &= m_Pala.getSetPoint(&setPoint);
   if (res)
     LOG_SERIAL.printf("setpoint=%.2f", setPoint);
+
+  //if no HA, then use default period for Convert
+  if (m_ha.protocol != HA_PROTO_DISABLED)
+  {
+    if (res)
+      publishTick(); //if configuration changed, publish immediately
+    m_publishTicker.attach(m_ha.uploadPeriod, [this]() { this->m_needPublish = true; });
+  }
+
   return res;
 };
 //------------------------------------------
@@ -954,7 +1185,15 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
 //Run for timer
 void WebPalaControl::AppRun()
 {
-  //TODO : implement run tasks (receive from serial, run timer, etc.)
+  if (m_ha.protocol == HA_PROTO_MQTT)
+    m_mqttMan.loop();
+
+  if (m_needPublish)
+  {
+    m_needPublish = false;
+    LOG_SERIAL.println(F("PublishTick"));
+    publishTick();
+  }
 }
 
 //------------------------------------------
