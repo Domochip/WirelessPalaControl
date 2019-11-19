@@ -404,6 +404,33 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
+      if (cmd == F("GET TIME"))
+      {
+        bool res = true;
+
+        char STOVE_DATETIME[20];
+        byte STOVE_WDAY;
+        res &= m_Pala.getDateTime(STOVE_DATETIME, &STOVE_WDAY);
+
+        if (res)
+        {
+          DynamicJsonDocument doc(100);
+          String jsonToReturn;
+          JsonObject data = doc.createNestedObject(F("DATA"));
+          data[F("STOVE_DATETIME")] = STOVE_DATETIME;
+          data[F("STOVE_WDAY")] = STOVE_WDAY;
+          serializeJson(doc, jsonToReturn);
+
+          request->send(200, F("text/json"), jsonToReturn);
+          return;
+        }
+        else
+        {
+          request->send(500, F("text/html"), F("Stove communication failed"));
+          return;
+        }
+      }
+
       if (cmd.startsWith(F("GET PARM ")))
       {
         bool res = true;
