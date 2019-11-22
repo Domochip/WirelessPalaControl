@@ -163,6 +163,11 @@ void Application::InitWebServer(AsyncWebServer &server, bool &shouldReboot, bool
       request->send(500, F("text/html"), F("Configuration hasn't been saved"));
   });
 
+#if ENABLE_STATUS_EVENTSOURCE
+  //register status EventSource
+  server.addHandler(&m_statusEventSource);
+#endif
+
   //Execute Specific Application Web Server initialization
   AppInitWebServer(server, shouldReboot, pauseApplication);
 }

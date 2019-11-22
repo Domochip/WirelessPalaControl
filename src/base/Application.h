@@ -13,8 +13,8 @@
 class Application
 {
 protected:
-
-  typedef enum{
+  typedef enum
+  {
     status,
     config,
     fw,
@@ -24,6 +24,10 @@ protected:
   char _appId;
   String _appName;
   bool _reInit = false;
+
+#if ENABLE_STATUS_EVENTSOURCE
+  AsyncEventSource m_statusEventSource; //initialized during Constructor
+#endif
 
   //already built methods
   bool SaveConfig();
@@ -36,14 +40,18 @@ protected:
   virtual String GenerateConfigJSON(bool forSaveFile = false) = 0;
   virtual String GenerateStatusJSON() = 0;
   virtual bool AppInit(bool reInit = false) = 0;
-  virtual const uint8_t* GetHTMLContent(WebPageForPlaceHolder wp) = 0;
+  virtual const uint8_t *GetHTMLContent(WebPageForPlaceHolder wp) = 0;
   virtual size_t GetHTMLContentSize(WebPageForPlaceHolder wp) = 0;
   virtual void AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication) = 0;
   virtual void AppRun() = 0;
 
 public:
   //already built methods
+#if ENABLE_STATUS_EVENTSOURCE
+  Application(char appId, String appName) : m_statusEventSource(String(F("/statusEvt")) + appId)
+#else
   Application(char appId, String appName)
+#endif
   {
     _appId = appId;
     _appName = appName;
