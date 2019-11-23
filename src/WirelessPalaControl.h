@@ -42,16 +42,16 @@ private:
     MQTT mqtt;
   } HomeAutomation;
 
-  HomeAutomation m_ha;
-  int m_haSendResult = 0;
-  WiFiClient m_wifiClient;
+  HomeAutomation _ha;
+  int _haSendResult = 0;
+  WiFiClient _wifiClient;
 
-  Palazzetti m_Pala;
+  Palazzetti _Pala;
 
-  bool m_needPublish = false;
-  Ticker m_publishTicker;
+  bool _needPublish = false;
+  Ticker _publishTicker;
 
-  MQTTMan m_mqttMan;
+  MQTTMan _mqttMan;
 
   int myOpenSerial(uint32_t baudrate);
   void myCloseSerial();
