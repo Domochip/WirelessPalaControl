@@ -1,6 +1,6 @@
 #include "WifiMan.h"
 
-void WifiMan::EnableAP(bool force = false)
+void WifiMan::enableAP(bool force = false)
 {
   if (!(WiFi.getMode() & WIFI_AP) || force)
   {
@@ -9,13 +9,13 @@ void WifiMan::EnableAP(bool force = false)
   }
 }
 
-void WifiMan::RefreshWiFi()
+void WifiMan::refreshWiFi()
 {
   if (ssid[0]) //if STA configured
   {
     if (!WiFi.isConnected() || WiFi.SSID() != ssid || WiFi.psk() != password)
     {
-      EnableAP();
+      enableAP();
 #ifdef LOG_SERIAL
       LOG_SERIAL.print(F("Connect"));
 #endif
@@ -61,7 +61,7 @@ void WifiMan::RefreshWiFi()
   else //else if AP is configured
   {
     _refreshTicker.detach();
-    EnableAP();
+    enableAP();
     WiFi.disconnect();
 #ifdef STATUS_LED_GOOD
     STATUS_LED_GOOD
@@ -75,7 +75,7 @@ void WifiMan::RefreshWiFi()
   }
 }
 
-void WifiMan::SetConfigDefaultValues()
+void WifiMan::setConfigDefaultValues()
 {
   ssid[0] = 0;
   password[0] = 0;
@@ -87,7 +87,7 @@ void WifiMan::SetConfigDefaultValues()
   dns2 = 0;
 }
 
-void WifiMan::ParseConfigJSON(DynamicJsonDocument &doc)
+void WifiMan::parseConfigJSON(DynamicJsonDocument &doc)
 {
   if (!doc["s"].isNull())
     strlcpy(ssid, doc["s"], sizeof(ssid));
@@ -110,7 +110,7 @@ void WifiMan::ParseConfigJSON(DynamicJsonDocument &doc)
     dns2 = doc["dns2"];
 }
 
-bool WifiMan::ParseConfigWebRequest(AsyncWebServerRequest *request)
+bool WifiMan::parseConfigWebRequest(AsyncWebServerRequest *request)
 {
 
   //basic control
@@ -173,7 +173,7 @@ bool WifiMan::ParseConfigWebRequest(AsyncWebServerRequest *request)
 
   return true;
 }
-String WifiMan::GenerateConfigJSON(bool forSaveFile = false)
+String WifiMan::generateConfigJSON(bool forSaveFile = false)
 {
 
   String gc('{');
@@ -218,7 +218,7 @@ String WifiMan::GenerateConfigJSON(bool forSaveFile = false)
   return gc;
 }
 
-String WifiMan::GenerateStatusJSON()
+String WifiMan::generateStatusJSON()
 {
 
   String gs('{');
@@ -243,7 +243,7 @@ String WifiMan::GenerateStatusJSON()
   return gs;
 }
 
-bool WifiMan::AppInit(bool reInit = false)
+bool WifiMan::appInit(bool reInit = false)
 {
   if (!reInit)
   {
@@ -267,7 +267,7 @@ bool WifiMan::AppInit(bool reInit = false)
   WiFi.persistent(true);
 
   //Enable AP at start
-  EnableAP(true);
+  enableAP(true);
 
   //Stop RefreshWiFi and disconnect before WiFi operations -----
   _refreshTicker.detach();
@@ -332,7 +332,7 @@ bool WifiMan::AppInit(bool reInit = false)
   WiFi.hostname(hostname);
 
   //Call RefreshWiFi to initiate configuration
-  RefreshWiFi();
+  refreshWiFi();
 
   //right config so no need to touch again flash
   WiFi.persistent(false);
@@ -340,7 +340,7 @@ bool WifiMan::AppInit(bool reInit = false)
   return (ssid[0] ? WiFi.isConnected() : true);
 };
 
-const uint8_t *WifiMan::GetHTMLContent(WebPageForPlaceHolder wp)
+const uint8_t *WifiMan::getHTMLContent(WebPageForPlaceHolder wp)
 {
   switch (wp)
   {
@@ -356,7 +356,7 @@ const uint8_t *WifiMan::GetHTMLContent(WebPageForPlaceHolder wp)
   };
   return nullptr;
 };
-size_t WifiMan::GetHTMLContentSize(WebPageForPlaceHolder wp)
+size_t WifiMan::getHTMLContentSize(WebPageForPlaceHolder wp)
 {
   switch (wp)
   {
@@ -373,7 +373,7 @@ size_t WifiMan::GetHTMLContentSize(WebPageForPlaceHolder wp)
   return 0;
 };
 
-void WifiMan::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
+void WifiMan::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
 
   server.on("/wnl", HTTP_GET, [this](AsyncWebServerRequest *request) {
@@ -410,12 +410,12 @@ void WifiMan::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool 
   });
 }
 
-void WifiMan::AppRun()
+void WifiMan::appRun()
 {
   //if refreshWifi is required and no client is connected to the softAP
   if (_needRefreshWifi && !_stationConnectedToSoftAP)
   {
     _needRefreshWifi = false;
-    RefreshWiFi();
+    refreshWiFi();
   }
 };

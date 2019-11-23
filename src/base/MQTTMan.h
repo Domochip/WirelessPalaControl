@@ -11,13 +11,13 @@
 class MQTTMan : private PubSubClient
 {
 private:
-    char m_username[64] = {0};
-    char m_password[64] = {0};
-    char m_connectedAndWillTopic[96] = {0};
-    bool m_needMqttReconnect = false;
-    Ticker m_mqttReconnectTicker;
+    char _username[64] = {0};
+    char _password[64] = {0};
+    char _connectedAndWillTopic[96] = {0};
+    bool _needMqttReconnect = false;
+    Ticker _mqttReconnectTicker;
 
-    CONNECTED_CALLBACK_SIGNATURE m_connectedCallBack = nullptr;
+    CONNECTED_CALLBACK_SIGNATURE _connectedCallBack = nullptr;
 
     bool connect(bool firstConnection);
 

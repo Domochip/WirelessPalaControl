@@ -9,11 +9,11 @@
 #include "data\side-menu.css.gz.h"
 #include "data\side-menu.js.gz.h"
 
-void Core::SetConfigDefaultValues(){};
-void Core::ParseConfigJSON(DynamicJsonDocument &doc){};
-bool Core::ParseConfigWebRequest(AsyncWebServerRequest *request) { return true; };
-String Core::GenerateConfigJSON(bool clearPassword = false) { return String(); };
-String Core::GenerateStatusJSON()
+void Core::setConfigDefaultValues(){};
+void Core::parseConfigJSON(DynamicJsonDocument &doc){};
+bool Core::parseConfigWebRequest(AsyncWebServerRequest *request) { return true; };
+String Core::generateConfigJSON(bool clearPassword = false) { return String(); };
+String Core::generateStatusJSON()
 {
   String gs('{');
 
@@ -31,8 +31,8 @@ String Core::GenerateStatusJSON()
 
   return gs;
 };
-bool Core::AppInit(bool reInit = false) { return true; };
-const uint8_t *Core::GetHTMLContent(WebPageForPlaceHolder wp)
+bool Core::appInit(bool reInit = false) { return true; };
+const uint8_t *Core::getHTMLContent(WebPageForPlaceHolder wp)
 {
   switch (wp)
   {
@@ -52,7 +52,7 @@ const uint8_t *Core::GetHTMLContent(WebPageForPlaceHolder wp)
   return nullptr;
 };
 //and his Size
-size_t Core::GetHTMLContentSize(WebPageForPlaceHolder wp)
+size_t Core::getHTMLContentSize(WebPageForPlaceHolder wp)
 {
   switch (wp)
   {
@@ -71,7 +71,7 @@ size_t Core::GetHTMLContentSize(WebPageForPlaceHolder wp)
   };
   return 0;
 };
-void Core::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
+void Core::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   //root is index
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {

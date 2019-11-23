@@ -33,20 +33,20 @@ bool MQTTMan::connect(bool firstConnection)
     clientID += sn;
 
     //Connect
-    char *username = (m_username[0] ? m_username : nullptr);
-    char *password = (m_username[0] ? m_password : nullptr);
-    char *willTopic = (m_connectedAndWillTopic[0] ? m_connectedAndWillTopic : nullptr);
-    const char *willMessage = (m_connectedAndWillTopic[0] ? "0" : nullptr);
+    char *username = (_username[0] ? _username : nullptr);
+    char *password = (_username[0] ? _password : nullptr);
+    char *willTopic = (_connectedAndWillTopic[0] ? _connectedAndWillTopic : nullptr);
+    const char *willMessage = (_connectedAndWillTopic[0] ? "0" : nullptr);
     PubSubClient::connect(clientID.c_str(), username, password, willTopic, 0, false, willMessage);
 
     if (connected())
     {
-        if (m_connectedAndWillTopic[0])
-            publish(m_connectedAndWillTopic, "1");
+        if (_connectedAndWillTopic[0])
+            publish(_connectedAndWillTopic, "1");
 
         //Subscribe to needed topic
-        if (m_connectedCallBack)
-            m_connectedCallBack(this, firstConnection);
+        if (_connectedCallBack)
+            _connectedCallBack(this, firstConnection);
     }
 
     return connected();
@@ -55,36 +55,36 @@ bool MQTTMan::connect(bool firstConnection)
 MQTTMan &MQTTMan::setConnectedAndWillTopic(const char *topic)
 {
     if (!topic)
-        m_connectedAndWillTopic[0] = 0;
-    else if (strlen(topic) < sizeof(m_connectedAndWillTopic))
-        strcpy(m_connectedAndWillTopic, topic);
+        _connectedAndWillTopic[0] = 0;
+    else if (strlen(topic) < sizeof(_connectedAndWillTopic))
+        strcpy(_connectedAndWillTopic, topic);
 
     return *this;
 }
 
 MQTTMan &MQTTMan::setConnectedCallback(CONNECTED_CALLBACK_SIGNATURE connectedCallback)
 {
-    m_connectedCallBack = connectedCallback;
+    _connectedCallBack = connectedCallback;
     return *this;
 }
 
 bool MQTTMan::connect(const char *username, const char *password)
 {
     //check logins
-    if (username && strlen(username) >= sizeof(m_username))
+    if (username && strlen(username) >= sizeof(_username))
         return false;
-    if (password && strlen(password) >= sizeof(m_password))
+    if (password && strlen(password) >= sizeof(_password))
         return false;
 
     if (username)
-        strcpy(m_username, username);
+        strcpy(_username, username);
     else
-        m_username[0] = 0;
+        _username[0] = 0;
 
     if (password)
-        strcpy(m_password, password);
+        strcpy(_password, password);
     else
-        m_password[0] = 0;
+        _password[0] = 0;
 
     return connect(true);
 }
@@ -92,11 +92,11 @@ bool MQTTMan::connect(const char *username, const char *password)
 void MQTTMan::disconnect()
 {
     //publish disconnected just before disconnect...
-    if (m_connectedAndWillTopic[0])
-        publish(m_connectedAndWillTopic, "0");
+    if (_connectedAndWillTopic[0])
+        publish(_connectedAndWillTopic, "0");
 
     //Stop MQTT Reconnect
-    m_mqttReconnectTicker.detach();
+    _mqttReconnectTicker.detach();
     //Disconnect
     if (connected()) //Issue #598 : disconnect() crash if client not yet set
         PubSubClient::disconnect();
@@ -104,9 +104,9 @@ void MQTTMan::disconnect()
 
 bool MQTTMan::loop()
 {
-    if (m_needMqttReconnect)
+    if (_needMqttReconnect)
     {
-        m_needMqttReconnect = false;
+        _needMqttReconnect = false;
         LOG_SERIAL.print(F("MQTT Reconnection : "));
         if (connect(false))
             LOG_SERIAL.println(F("OK"));
@@ -115,11 +115,11 @@ bool MQTTMan::loop()
     }
 
     //if not connected and reconnect ticker not started
-    if (!connected() && !m_mqttReconnectTicker.active())
+    if (!connected() && !_mqttReconnectTicker.active())
     {
         LOG_SERIAL.println(F("MQTT Disconnected"));
         //set Ticker to reconnect after 20 or 60 sec (Wifi connected or not)
-        m_mqttReconnectTicker.once_scheduled((WiFi.isConnected() ? 20 : 60), [this]() { m_needMqttReconnect = true; m_mqttReconnectTicker.detach(); });
+        _mqttReconnectTicker.once_scheduled((WiFi.isConnected() ? 20 : 60), [this]() { _needMqttReconnect = true; _mqttReconnectTicker.detach(); });
     }
 
     return PubSubClient::loop();

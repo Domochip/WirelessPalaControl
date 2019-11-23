@@ -1,6 +1,6 @@
 #include "Application.h"
 
-bool Application::SaveConfig()
+bool Application::saveConfig()
 {
   File configFile = SPIFFS.open(String('/') + _appName + F(".json"), "w");
   if (!configFile)
@@ -11,12 +11,12 @@ bool Application::SaveConfig()
     return false;
   }
 
-  configFile.print(GenerateConfigJSON(true));
+  configFile.print(generateConfigJSON(true));
   configFile.close();
   return true;
 }
 
-bool Application::LoadConfig()
+bool Application::loadConfig()
 {
   //special exception for Core, there is no Core.json file to Load
   if (_appId == '0')
@@ -39,7 +39,7 @@ bool Application::LoadConfig()
       //if parsing OK, pass it to application then stop loop
       if (deserializeJsonError.code() == DeserializationError::Ok)
       {
-        ParseConfigJSON(jsonDoc);
+        parseConfigJSON(jsonDoc);
         result = true;
         break;
       }
@@ -62,12 +62,12 @@ bool Application::LoadConfig()
 
   //if loading failed, then run a Save to write a good one
   if (!result)
-    SaveConfig();
+    saveConfig();
 
   return result;
 }
 
-void Application::Init(bool skipExistingConfig)
+void Application::init(bool skipExistingConfig)
 {
   bool result = true;
 
@@ -77,13 +77,13 @@ void Application::Init(bool skipExistingConfig)
   LOG_SERIAL.print(F(" : "));
 #endif
 
-  SetConfigDefaultValues();
+  setConfigDefaultValues();
 
   if (!skipExistingConfig)
-    result = LoadConfig();
+    result = loadConfig();
 
   //Execute specific Application Init Code
-  result = AppInit() && result;
+  result = appInit() && result;
 
 #ifdef LOG_SERIAL
   if (result)
@@ -93,14 +93,14 @@ void Application::Init(bool skipExistingConfig)
 #endif
 }
 
-void Application::InitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
+void Application::initWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   char url[16];
 
   //HTML Status handler
   sprintf_P(url, PSTR("/status%c.html"), _appId);
   server.on(url, HTTP_GET, [this](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse_P(200, F("text/html"), GetHTMLContent(status), GetHTMLContentSize(status));
+    AsyncWebServerResponse *response = request->beginResponse_P(200, F("text/html"), getHTMLContent(status), getHTMLContentSize(status));
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
   });
@@ -108,7 +108,7 @@ void Application::InitWebServer(AsyncWebServer &server, bool &shouldReboot, bool
   //HTML Config handler
   sprintf_P(url, PSTR("/config%c.html"), _appId);
   server.on(url, HTTP_GET, [this](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse_P(200, F("text/html"), GetHTMLContent(config), GetHTMLContentSize(config));
+    AsyncWebServerResponse *response = request->beginResponse_P(200, F("text/html"), getHTMLContent(config), getHTMLContentSize(config));
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
   });
@@ -116,7 +116,7 @@ void Application::InitWebServer(AsyncWebServer &server, bool &shouldReboot, bool
   //HTML fw handler
   sprintf_P(url, PSTR("/fw%c.html"), _appId);
   server.on(url, HTTP_GET, [this](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse_P(200, F("text/html"), GetHTMLContent(fw), GetHTMLContentSize(fw));
+    AsyncWebServerResponse *response = request->beginResponse_P(200, F("text/html"), getHTMLContent(fw), getHTMLContentSize(fw));
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
   });
@@ -124,7 +124,7 @@ void Application::InitWebServer(AsyncWebServer &server, bool &shouldReboot, bool
   //HTML discover handler
   sprintf_P(url, PSTR("/discover%c.html"), _appId);
   server.on(url, HTTP_GET, [this](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse_P(200, F("text/html"), GetHTMLContent(discover), GetHTMLContentSize(discover));
+    AsyncWebServerResponse *response = request->beginResponse_P(200, F("text/html"), getHTMLContent(discover), getHTMLContentSize(discover));
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
   });
@@ -132,7 +132,7 @@ void Application::InitWebServer(AsyncWebServer &server, bool &shouldReboot, bool
   //JSON Status handler
   sprintf_P(url, PSTR("/gs%c"), _appId);
   server.on(url, HTTP_GET, [this](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse(200, F("text/json"), GenerateStatusJSON());
+    AsyncWebServerResponse *response = request->beginResponse(200, F("text/json"), generateStatusJSON());
     response->addHeader("Cache-Control", "no-cache");
     request->send(response);
   });
@@ -140,18 +140,18 @@ void Application::InitWebServer(AsyncWebServer &server, bool &shouldReboot, bool
   //JSON Config handler
   sprintf_P(url, PSTR("/gc%c"), _appId);
   server.on(url, HTTP_GET, [this](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse(200, F("text/json"), GenerateConfigJSON());
+    AsyncWebServerResponse *response = request->beginResponse(200, F("text/json"), generateConfigJSON());
     response->addHeader("Cache-Control", "no-cache");
     request->send(response);
   });
 
   sprintf_P(url, PSTR("/sc%c"), _appId);
   server.on(url, HTTP_POST, [this](AsyncWebServerRequest *request) {
-    if (!ParseConfigWebRequest(request))
+    if (!parseConfigWebRequest(request))
       return;
 
     //then save
-    bool result = SaveConfig();
+    bool result = saveConfig();
 
     //Send client answer
     if (result)
@@ -165,14 +165,14 @@ void Application::InitWebServer(AsyncWebServer &server, bool &shouldReboot, bool
 
 #if ENABLE_STATUS_EVENTSOURCE
   //register status EventSource
-  server.addHandler(&m_statusEventSource);
+  server.addHandler(&_statusEventSource);
 #endif
 
   //Execute Specific Application Web Server initialization
-  AppInitWebServer(server, shouldReboot, pauseApplication);
+  appInitWebServer(server, shouldReboot, pauseApplication);
 }
 
-void Application::Run()
+void Application::run()
 {
   if (_reInit)
   {
@@ -182,7 +182,7 @@ void Application::Run()
     LOG_SERIAL.print(F(" : "));
 #endif
 
-    if (AppInit(true))
+    if (appInit(true))
     {
 #ifdef LOG_SERIAL
       LOG_SERIAL.println(F("OK"));
@@ -196,5 +196,5 @@ void Application::Run()
     _reInit = false;
   }
 
-  AppRun();
+  appRun();
 }

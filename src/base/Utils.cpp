@@ -2,14 +2,14 @@
 
 //------------------------------------------
 //simple function that convert an hexadecimal char to byte
-byte Utils::AsciiToHex(char c)
+byte Utils::asciiToHex(char c)
 {
   return (c < 0x3A) ? (c - 0x30) : (c > 0x60 ? c - 0x57 : c - 0x37);
 }
 
 //------------------------------------------
 // Function that return true if all byte of fingerprint are empty
-bool Utils::IsFingerPrintEmpty(byte *fingerPrintArray)
+bool Utils::isFingerPrintEmpty(byte *fingerPrintArray)
 {
   bool ret = true;
   for (byte i = 0; i < 20; i++)
@@ -19,7 +19,7 @@ bool Utils::IsFingerPrintEmpty(byte *fingerPrintArray)
 
 //------------------------------------------
 // Function to decode https FingerPrint String into array of 20 bytes
-bool Utils::FingerPrintS2A(byte *fingerPrintArray, const char *fingerPrintToDecode)
+bool Utils::fingerPrintS2A(byte *fingerPrintArray, const char *fingerPrintToDecode)
 {
 
   if (strlen(fingerPrintToDecode) < 40)
@@ -34,7 +34,7 @@ bool Utils::FingerPrintS2A(byte *fingerPrintArray, const char *fingerPrintToDeco
 
     if (fingerPrintToDecode[i] != ' ' && fingerPrintToDecode[i] != ':' && fingerPrintToDecode[i] != '-')
     {
-      fingerPrintArray[arrayPos / 2] += AsciiToHex(fingerPrintToDecode[i]);
+      fingerPrintArray[arrayPos / 2] += asciiToHex(fingerPrintToDecode[i]);
       if (arrayPos % 2 == 0)
         fingerPrintArray[arrayPos / 2] *= 0x10;
       arrayPos++;
@@ -47,7 +47,7 @@ bool Utils::FingerPrintS2A(byte *fingerPrintArray, const char *fingerPrintToDeco
 }
 //------------------------------------------
 // Function that convert fingerprint Array to char array (with separator) (char array need to be provided)
-char *Utils::FingerPrintA2S(char *fpBuffer, byte *fingerPrintArray, char separator)
+char *Utils::fingerPrintA2S(char *fpBuffer, byte *fingerPrintArray, char separator)
 {
 
   fpBuffer[0] = 0;

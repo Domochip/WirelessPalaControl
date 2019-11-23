@@ -37,19 +37,19 @@ private:
   uint8_t _refreshPeriod = 60; //try to reconnect as station mode every 60 seconds
   uint8_t _reconnectDuration = 20; //duration to try to connect to Wifi in seconds
 
-  void EnableAP(bool force);
-  void RefreshWiFi();
+  void enableAP(bool force);
+  void refreshWiFi();
 
-  void SetConfigDefaultValues();
-  void ParseConfigJSON(DynamicJsonDocument &doc);
-  bool ParseConfigWebRequest(AsyncWebServerRequest *request);
-  String GenerateConfigJSON(bool forSaveFile);
-  String GenerateStatusJSON();
-  bool AppInit(bool reInit);
-  const uint8_t *GetHTMLContent(WebPageForPlaceHolder wp);
-  size_t GetHTMLContentSize(WebPageForPlaceHolder wp);
-  void AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication);
-  void AppRun();
+  void setConfigDefaultValues();
+  void parseConfigJSON(DynamicJsonDocument &doc);
+  bool parseConfigWebRequest(AsyncWebServerRequest *request);
+  String generateConfigJSON(bool forSaveFile);
+  String generateStatusJSON();
+  bool appInit(bool reInit);
+  const uint8_t *getHTMLContent(WebPageForPlaceHolder wp);
+  size_t getHTMLContentSize(WebPageForPlaceHolder wp);
+  void appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication);
+  void appRun();
 
 public:
   WifiMan(char appId, String appName) : Application(appId, appName) {}

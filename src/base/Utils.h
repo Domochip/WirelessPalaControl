@@ -5,10 +5,10 @@
 
 class Utils {
   public:
-    static byte AsciiToHex(char c); //Utils
-    static bool IsFingerPrintEmpty(byte* fingerPrintArray);
-    static bool FingerPrintS2A(byte* fingerPrintArray, const char* fingerPrintToDecode);
-    static char* FingerPrintA2S(char* fpBuffer, byte* fingerPrintArray, char separator = 0);
+    static byte asciiToHex(char c); //Utils
+    static bool isFingerPrintEmpty(byte* fingerPrintArray);
+    static bool fingerPrintS2A(byte* fingerPrintArray, const char* fingerPrintToDecode);
+    static char* fingerPrintA2S(char* fpBuffer, byte* fingerPrintArray, char separator = 0);
 };
 
 #endif

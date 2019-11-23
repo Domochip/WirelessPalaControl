@@ -196,7 +196,7 @@ void WebPalaControl::publishTick()
 
 //------------------------------------------
 //Used to initialize configuration properties to default values
-void WebPalaControl::SetConfigDefaultValues()
+void WebPalaControl::setConfigDefaultValues()
 {
   _ha.protocol = HA_PROTO_DISABLED;
   _ha.hostname[0] = 0;
@@ -210,7 +210,7 @@ void WebPalaControl::SetConfigDefaultValues()
 };
 //------------------------------------------
 //Parse JSON object into configuration properties
-void WebPalaControl::ParseConfigJSON(DynamicJsonDocument &doc)
+void WebPalaControl::parseConfigJSON(DynamicJsonDocument &doc)
 {
   if (!doc[F("haproto")].isNull())
     _ha.protocol = doc[F("haproto")];
@@ -233,7 +233,7 @@ void WebPalaControl::ParseConfigJSON(DynamicJsonDocument &doc)
 };
 //------------------------------------------
 //Parse HTTP POST parameters in request into configuration properties
-bool WebPalaControl::ParseConfigWebRequest(AsyncWebServerRequest *request)
+bool WebPalaControl::parseConfigWebRequest(AsyncWebServerRequest *request)
 {
 
   //Parse HA protocol
@@ -285,7 +285,7 @@ bool WebPalaControl::ParseConfigWebRequest(AsyncWebServerRequest *request)
 };
 //------------------------------------------
 //Generate JSON from configuration properties
-String WebPalaControl::GenerateConfigJSON(bool forSaveFile = false)
+String WebPalaControl::generateConfigJSON(bool forSaveFile = false)
 {
   String gc('{');
 
@@ -313,7 +313,7 @@ String WebPalaControl::GenerateConfigJSON(bool forSaveFile = false)
 };
 //------------------------------------------
 //Generate JSON of application status
-String WebPalaControl::GenerateStatusJSON()
+String WebPalaControl::generateStatusJSON()
 {
   String gs('{');
 
@@ -369,7 +369,7 @@ String WebPalaControl::GenerateStatusJSON()
 };
 //------------------------------------------
 //code to execute during initialization and reinitialization of the app
-bool WebPalaControl::AppInit(bool reInit)
+bool WebPalaControl::appInit(bool reInit)
 {
   //Stop Publish
   _publishTicker.detach();
@@ -423,7 +423,7 @@ bool WebPalaControl::AppInit(bool reInit)
 };
 //------------------------------------------
 //Return HTML Code to insert into Status Web page
-const uint8_t *WebPalaControl::GetHTMLContent(WebPageForPlaceHolder wp)
+const uint8_t *WebPalaControl::getHTMLContent(WebPageForPlaceHolder wp)
 {
   switch (wp)
   {
@@ -440,7 +440,7 @@ const uint8_t *WebPalaControl::GetHTMLContent(WebPageForPlaceHolder wp)
   return nullptr;
 };
 //and his Size
-size_t WebPalaControl::GetHTMLContentSize(WebPageForPlaceHolder wp)
+size_t WebPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
 {
   switch (wp)
   {
@@ -459,7 +459,7 @@ size_t WebPalaControl::GetHTMLContentSize(WebPageForPlaceHolder wp)
 
 //------------------------------------------
 //code to register web request answer to the web server
-void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
+void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
 
   server.on("/cgi-bin/sendmsg.lua", HTTP_GET, [this](AsyncWebServerRequest *request) {
@@ -1252,7 +1252,7 @@ void WebPalaControl::AppInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
 //------------------------------------------
 //Run for timer
-void WebPalaControl::AppRun()
+void WebPalaControl::appRun()
 {
   if (_ha.protocol == HA_PROTO_MQTT)
     _mqttMan.loop();

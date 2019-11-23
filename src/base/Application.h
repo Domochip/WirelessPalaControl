@@ -26,29 +26,29 @@ protected:
   bool _reInit = false;
 
 #if ENABLE_STATUS_EVENTSOURCE
-  AsyncEventSource m_statusEventSource; //initialized during Constructor
+  AsyncEventSource _statusEventSource; //initialized during Constructor
 #endif
 
   //already built methods
-  bool SaveConfig();
-  bool LoadConfig();
+  bool saveConfig();
+  bool loadConfig();
 
   //specialization required from the application
-  virtual void SetConfigDefaultValues() = 0;
-  virtual void ParseConfigJSON(DynamicJsonDocument &doc) = 0;
-  virtual bool ParseConfigWebRequest(AsyncWebServerRequest *request) = 0;
-  virtual String GenerateConfigJSON(bool forSaveFile = false) = 0;
-  virtual String GenerateStatusJSON() = 0;
-  virtual bool AppInit(bool reInit = false) = 0;
-  virtual const uint8_t *GetHTMLContent(WebPageForPlaceHolder wp) = 0;
-  virtual size_t GetHTMLContentSize(WebPageForPlaceHolder wp) = 0;
-  virtual void AppInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication) = 0;
-  virtual void AppRun() = 0;
+  virtual void setConfigDefaultValues() = 0;
+  virtual void parseConfigJSON(DynamicJsonDocument &doc) = 0;
+  virtual bool parseConfigWebRequest(AsyncWebServerRequest *request) = 0;
+  virtual String generateConfigJSON(bool forSaveFile = false) = 0;
+  virtual String generateStatusJSON() = 0;
+  virtual bool appInit(bool reInit = false) = 0;
+  virtual const uint8_t *getHTMLContent(WebPageForPlaceHolder wp) = 0;
+  virtual size_t getHTMLContentSize(WebPageForPlaceHolder wp) = 0;
+  virtual void appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication) = 0;
+  virtual void appRun() = 0;
 
 public:
   //already built methods
 #if ENABLE_STATUS_EVENTSOURCE
-  Application(char appId, String appName) : m_statusEventSource(String(F("/statusEvt")) + appId)
+  Application(char appId, String appName) : _statusEventSource(String(F("/statusEvt")) + appId)
 #else
   Application(char appId, String appName)
 #endif
@@ -56,9 +56,9 @@ public:
     _appId = appId;
     _appName = appName;
   }
-  void Init(bool skipExistingConfig);
-  void InitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication);
-  void Run();
+  void init(bool skipExistingConfig);
+  void initWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication);
+  void run();
 };
 
 #endif

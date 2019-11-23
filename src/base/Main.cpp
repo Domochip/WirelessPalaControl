@@ -120,14 +120,14 @@ void setup()
   }
 
   //Init Core
-  core.Init(skipExistingConfig);
+  core.init(skipExistingConfig);
 
   //Init WiFi
-  wifiMan.Init(skipExistingConfig);
+  wifiMan.init(skipExistingConfig);
 
 //Init Application
 #ifdef APPLICATION1_CLASS
-  application1.Init(skipExistingConfig);
+  application1.init(skipExistingConfig);
 #endif
 #ifdef APPLICATION2_CLASS
   application2.Init(skipExistingConfig);
@@ -139,16 +139,16 @@ void setup()
 #ifdef LOG_SERIAL
   LOG_SERIAL.print(F("Start WebServer : "));
 #endif
-  core.InitWebServer(server, shouldReboot, pauseApplication);
-  wifiMan.InitWebServer(server, shouldReboot, pauseApplication);
+  core.initWebServer(server, shouldReboot, pauseApplication);
+  wifiMan.initWebServer(server, shouldReboot, pauseApplication);
 #ifdef APPLICATION1_CLASS
-  application1.InitWebServer(server, shouldReboot, pauseApplication);
+  application1.initWebServer(server, shouldReboot, pauseApplication);
 #endif
 #ifdef APPLICATION2_CLASS
-  application2.InitWebServer(server, shouldReboot, pauseApplication);
+  application2.initWebServer(server, shouldReboot, pauseApplication);
 #endif
 #ifdef APPLICATION3_CLASS
-  application3.InitWebServer(server, shouldReboot, pauseApplication);
+  application3.initWebServer(server, shouldReboot, pauseApplication);
 #endif
   server.begin();
 #ifdef LOG_SERIAL
@@ -167,17 +167,17 @@ void loop(void)
   if (!pauseApplication)
   {
 #ifdef APPLICATION1_CLASS
-    application1.Run();
+    application1.run();
 #endif
 #ifdef APPLICATION2_CLASS
-    application2.Run();
+    application2.run();
 #endif
 #ifdef APPLICATION3_CLASS
-    application3.Run();
+    application3.run();
 #endif
   }
 
-  wifiMan.Run();
+  wifiMan.run();
 
   if (shouldReboot)
   {
