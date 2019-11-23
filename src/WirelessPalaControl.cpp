@@ -122,7 +122,9 @@ void WebPalaControl::publishTick()
       if ((_haSendResult &= _Pala.getStatus(&STATUS, &LSTATUS)))
       {
         _haSendResult &= _mqttMan.publish((baseTopic + F("STATUS")).c_str(), String(STATUS).c_str());
+        _statusEventSource.send((String("{\"STATUS\":") + STATUS + '}').c_str());
         _haSendResult &= _mqttMan.publish((baseTopic + F("LSTATUS")).c_str(), String(LSTATUS).c_str());
+        _statusEventSource.send((String("{\"LSTATUS\":") + LSTATUS + '}').c_str());
       }
       else
         return;
@@ -131,10 +133,15 @@ void WebPalaControl::publishTick()
       if ((_haSendResult &= _Pala.getAllTemps(&T1, &T2, &T3, &T4, &T5)))
       {
         _haSendResult &= _mqttMan.publish((baseTopic + F("T1")).c_str(), String(T1).c_str());
+        _statusEventSource.send((String("{\"T1\":") + T1 + '}').c_str());
         _haSendResult &= _mqttMan.publish((baseTopic + F("T2")).c_str(), String(T2).c_str());
+        _statusEventSource.send((String("{\"T2\":") + T2 + '}').c_str());
         _haSendResult &= _mqttMan.publish((baseTopic + F("T3")).c_str(), String(T3).c_str());
+        _statusEventSource.send((String("{\"T3\":") + T3 + '}').c_str());
         _haSendResult &= _mqttMan.publish((baseTopic + F("T4")).c_str(), String(T4).c_str());
+        _statusEventSource.send((String("{\"T4\":") + T4 + '}').c_str());
         _haSendResult &= _mqttMan.publish((baseTopic + F("T5")).c_str(), String(T5).c_str());
+        _statusEventSource.send((String("{\"T5\":") + T5 + '}').c_str());
       }
       else
         return;
@@ -144,13 +151,19 @@ void WebPalaControl::publishTick()
       if ((_haSendResult &= _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3LF4LValid, &F3L, &F4L)))
       {
         _haSendResult &= _mqttMan.publish((baseTopic + F("F1V")).c_str(), String(F1V).c_str());
+        _statusEventSource.send((String("{\"F1V\":") + F1V + '}').c_str());
         _haSendResult &= _mqttMan.publish((baseTopic + F("F2V")).c_str(), String(F2V).c_str());
+        _statusEventSource.send((String("{\"F2V\":") + F2V + '}').c_str());
         _haSendResult &= _mqttMan.publish((baseTopic + F("F2L")).c_str(), String(F2L).c_str());
+        _statusEventSource.send((String("{\"F2L\":") + F2L + '}').c_str());
         _haSendResult &= _mqttMan.publish((baseTopic + F("F2LF")).c_str(), String(F2LF).c_str());
+        _statusEventSource.send((String("{\"F2LF\":") + F2LF + '}').c_str());
         if (isF3LF4LValid)
         {
           _haSendResult &= _mqttMan.publish((baseTopic + F("F3L")).c_str(), String(F3L).c_str());
+          _statusEventSource.send((String("{\"F3L\":") + F3L + '}').c_str());
           _haSendResult &= _mqttMan.publish((baseTopic + F("F4L")).c_str(), String(F4L).c_str());
+          _statusEventSource.send((String("{\"F4L\":") + F4L + '}').c_str());
         }
       }
       else
@@ -160,6 +173,7 @@ void WebPalaControl::publishTick()
       if ((_haSendResult &= _Pala.getSetPoint(&SETP)))
       {
         _haSendResult &= _mqttMan.publish((baseTopic + F("SETP")).c_str(), String(SETP).c_str());
+        _statusEventSource.send((String("{\"SETP\":") + SETP + '}').c_str());
       }
       else
         return;
@@ -168,6 +182,7 @@ void WebPalaControl::publishTick()
       if ((_haSendResult &= _Pala.getPelletQtUsed(&PQT)))
       {
         _haSendResult &= _mqttMan.publish((baseTopic + F("PQT")).c_str(), String(PQT).c_str());
+        _statusEventSource.send((String("{\"PQT\":") + PQT + '}').c_str());
       }
       else
         return;
@@ -177,7 +192,9 @@ void WebPalaControl::publishTick()
       if ((_haSendResult &= _Pala.getPower(&PWR, &FDR)))
       {
         _haSendResult &= _mqttMan.publish((baseTopic + F("PWR")).c_str(), String(PWR).c_str());
+        _statusEventSource.send((String("{\"PWR\":") + PWR + '}').c_str());
         _haSendResult &= _mqttMan.publish((baseTopic + F("FDR")).c_str(), String(FDR).c_str());
+        _statusEventSource.send((String("{\"FDR\":") + FDR + '}').c_str());
       }
       else
         return;
@@ -186,7 +203,9 @@ void WebPalaControl::publishTick()
       if ((_haSendResult &= _Pala.getDPressData(&DP_TARGET, &DP_PRESS)))
       {
         _haSendResult &= _mqttMan.publish((baseTopic + F("DP_TARGET")).c_str(), String(DP_TARGET).c_str());
+        _statusEventSource.send((String("{\"DP_TARGET\":") + DP_TARGET + '}').c_str());
         _haSendResult &= _mqttMan.publish((baseTopic + F("DP_PRESS")).c_str(), String(DP_PRESS).c_str());
+        _statusEventSource.send((String("{\"DP_PRESS\":") + DP_PRESS + '}').c_str());
       }
       else
         return;

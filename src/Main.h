@@ -12,13 +12,13 @@
 #define APPLICATION1_DESC "DomoChip Wireless Palazzetti Control"
 #define APPLICATION1_CLASS WebPalaControl
 
-#define VERSION_NUMBER "1.2.2"
+#define VERSION_NUMBER "1.2.3"
 
 #define DEFAULT_AP_SSID "WirelessPalaControl"
 #define DEFAULT_AP_PSK "PasswordPalaControl"
 
 //Enable status webpage EventSource
-#define ENABLE_STATUS_EVENTSOURCE 0
+#define ENABLE_STATUS_EVENTSOURCE 1
 
 //Enable developper mode (SPIFFS editor)
 #define DEVELOPPER_MODE 0
