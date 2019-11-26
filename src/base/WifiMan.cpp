@@ -69,6 +69,8 @@ void WifiMan::refreshWiFi()
 
 #ifdef LOG_SERIAL
     LOG_SERIAL.print(F(" AP mode("));
+    LOG_SERIAL.print(_apSsid);
+    LOG_SERIAL.print(F(" - "));
     LOG_SERIAL.print(WiFi.softAPIP());
     LOG_SERIAL.print(F(") "));
 #endif
