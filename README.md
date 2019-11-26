@@ -2,6 +2,7 @@
 
 This project use a D1 Mini to control Palazzetti/Fumis stove using :
  - HTTP GET requests
+ - MQTT
 
 D1 mini is cabled to the stove using a special adapter.
 
@@ -55,32 +56,44 @@ WirelessPalaControl offers you some webpages in order to configure it :
 TODO
 
 ![status screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status.png)
+![status2 screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status2.png)
 
 - `Config` allows you to change configuration :
 
 TODO
 
-![config screenshot](https://raw.github.com/Domochip/WirelessDS18B20/master/img/config.png)
+![config screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/config.png)
 
 - **ssid & password** : IDs of your Wifi Network
 - **hostname** : name of ESP on the network
 - **IP,GW,NetMask,DNS1&2** : Fixed IP configuration
 
+![configMQTT screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/configMQTT.png)
+
 - `Firmware` allows you to flash a new firmware version :
 
-![firmware screenshot](https://raw.github.com/Domochip/WirelessDS18B20/master/img/firmware.png)
+![firmware screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/firmware.png)
 
 - `Discover` allows you to find all DomoChip devices on your network :
 
-![discover screenshot](https://raw.github.com/Domochip/WirelessDS18B20/master/img/discover.png)
+![discover screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/discover.png)
 
 ## Use it
 
-### Basics
+### MQTT
 
-requests should follow this syntax : **http://*{IP}*/cgi-bin/sendmsg.lua?cmd=*{command}***
+MQTT requests can be send to /command topic once MQTT is configured
 
-Command list : 
+MQTT Command list : 
+- `CMD+ON` will turn stove ON
+- `CMD+OFF` will turn stove OFF
+- `SET+SETP+20` will set Set Point (desired temperature)
+
+### HTTP
+
+HTTP GET requests can be send directly and should follow this syntax : **http://*{IP}*/cgi-bin/sendmsg.lua?cmd=*{command}***
+
+HTTP GET Command list : 
 
 - `GET+STAT` will return status of the stove
 - `GET+TMPS` will return temperatures of the stove
