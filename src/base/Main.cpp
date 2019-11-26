@@ -130,10 +130,10 @@ void setup()
   application1.init(skipExistingConfig);
 #endif
 #ifdef APPLICATION2_CLASS
-  application2.Init(skipExistingConfig);
+  application2.init(skipExistingConfig);
 #endif
 #ifdef APPLICATION3_CLASS
-  application3.Init(skipExistingConfig);
+  application3.init(skipExistingConfig);
 #endif
 
 #ifdef LOG_SERIAL
