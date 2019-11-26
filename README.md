@@ -53,14 +53,10 @@ WirelessPalaControl offers you some webpages in order to configure it :
 
 - `Status` return you the current status of the module :
 
-TODO
-
 ![status screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status.png)
 ![status2 screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status2.png)
 
 - `Config` allows you to change configuration :
-
-TODO
 
 ![config screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/config.png)
 
