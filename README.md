@@ -4,14 +4,13 @@ This project use a D1 Mini to control Palazzetti/Fumis stove using :
  - HTTP GET requests
  - MQTT
 
-D1 mini is cabled to the stove using a special adapter.
-
+D1 mini is cabled to the stove using a special adapter.  
 It communicates using Serial protocol on ESP8266 alternative pins : D7(GPIO13) as RX / D8(GPIO15) as TX
 
 
 ## Build your adapter
 
-It is designed by Palazzetti using a Si8621 (Silicon Labs Isolator) to provide electrical isolation between uControler and Stove electronic
+It is designed by Palazzetti using a Si8621 (Silicon Labs Isolator) to provide electrical isolation between uControler and Stove electronic.  
 This adapter uses exact same components...
 
 ## Build your WirelessPalaControl
@@ -26,15 +25,21 @@ All files are inside schematic subfolder and has been designed with KiCad
 
 ![WirelessPalaControl PCB](https://raw.github.com/Domochip/WirelessPalaControl/master/img/pcb-top.png)![WirelessPalaControl PCB2](https://raw.github.com/Domochip/WirelessPalaControl/master/img/pcb-bottom.png)
 
-### Code/Compile
-
-Source code can be compiled using VisualStudioCode/Platformio and flashed onto a D1 Mini
-
 ### Print your box
 
 Box project (Fusion 360) can be found into `box` folder
 
 TODO
+
+### Code/Compile
+
+Source code can be compiled using VisualStudioCode/Platformio and flashed onto a D1 Mini
+
+### Connect
+
+/!\ You need to use an RJ11 standard phone cable. /!\   
+Those are **crossed**  
+![WirelessPalaControl rj11](https://raw.github.com/Domochip/WirelessPalaControl/master/img/rj11-pinout.png)
 
 ## Run
 
@@ -103,6 +108,7 @@ HTTP GET Command list :
 - `GET+PARM+92` will return parameter (ex : 92=pellet type (1-3))
 - `GET+HPAR+57` will return hidden parameter (ex : 57=%of pellet to feed for pellet type 3)
 ---
+**WirelessPalaControl specific commands**
 - `BKP+PARM+CSV` will return all parameters in CSV format
 - `BKP+PARM+JSON` will return all parameters in JSON format
 - `BKP+PARM+CSV` will return all hidden parameters in CSV format
@@ -112,9 +118,11 @@ HTTP GET Command list :
 - `CMD+OFF` will turn stove OFF
 - `SET+POWR+3` will set power (1-5)
 - `SET+SETP+20` will set Set Point (desired temperature)
-- `SET+STPF+19.8` will set Set Point with a 0.2° precision (depend of your stove model)
 - `SET+RFAN+7` will set Room Fan value (0-5;6=Max;7=Auto)
 - `SET+FN3L+0` will set Room Fan 3 value (0-5)
 - `SET+FN4L+0` will set Room Fan 4 value (0-5)
 - `SET+PARM+92+2` will set parameter 92 to value 2 (ex : 92=pellet type (1-3))
 - `SET+HPAR+57+95` will set hidden parameter 57 to value 95 (ex : 57=%of pellet to feed for pellet type 3)
+---
+**WirelessPalaControl specific commands**
+- `SET+STPF+19.8` will set Set Point with a 0.2° precision (depend of your stove model)
