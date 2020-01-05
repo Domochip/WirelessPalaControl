@@ -1,6 +1,6 @@
 # WirelessPalaControl
 
-This project use a D1 Mini to control Palazzetti/Fumis stove using :
+This project uses "palazzetti library" and a D1 Mini to control Palazzetti/Fumis stove using :
  - HTTP GET requests
  - MQTT
 
@@ -9,10 +9,17 @@ It communicates using Serial protocol on ESP8266 alternative pins : D7(GPIO13) a
 
 ## Build your adapter
 
-It is designed by Palazzetti using a Si8621 (Silicon Labs Isolator) to provide electrical isolation between uControler and Stove electronic.  
-This adapter uses exact same components.
+You can use this adapter with:
+ - a D1 Mini to build a WirelessPalaControl
+ - another controller with serial interface
+ - an USB-Serial adapter and a computer to monitor or upgrade your stove
 
-## Build your WirelessPalaControl
+*We will produce a small batch of this adapter for test/debugging and our personal use.
+If you are interested, please PM.*
+
+It is designed by Palazzetti using a Si8621 (Silicon Labs Isolator) to provide electrical isolation between uController and Stove electronic.  
+This design uses exact same schematic and components.
+
 
 All files are inside `schematic` subfolder and has been designed with KiCad (free and open source)
 
