@@ -4,18 +4,17 @@ This project use a D1 Mini to control Palazzetti/Fumis stove using :
  - HTTP GET requests
  - MQTT
 
-D1 mini is cabled to the stove using a special adapter.  
+D1 mini is cabled to the stove using an adapter board.  
 It communicates using Serial protocol on ESP8266 alternative pins : D7(GPIO13) as RX / D8(GPIO15) as TX
-
 
 ## Build your adapter
 
 It is designed by Palazzetti using a Si8621 (Silicon Labs Isolator) to provide electrical isolation between uControler and Stove electronic.  
-This adapter uses exact same components...
+This adapter uses exact same components.
 
 ## Build your WirelessPalaControl
 
-All files are inside schematic subfolder and has been designed with KiCad
+All files are inside `schematic` subfolder and has been designed with KiCad (free and open source)
 
 ### Schematic
 
@@ -37,7 +36,7 @@ Source code can be compiled using VisualStudioCode/Platformio and flashed onto a
 
 ### Connect
 
-/!\ You need to use an RJ11 standard phone cable. /!\   
+/!\ **You need to use an RJ11 standard phone cable.** /!\  
 Those are **crossed**  
 ![WirelessPalaControl rj11](https://raw.github.com/Domochip/WirelessPalaControl/master/img/rj11-pinout.png)
 
@@ -57,27 +56,22 @@ Connect to this network and then configure it.
 
 WirelessPalaControl offers you some webpages in order to configure it :
 
-- `Status` return you the current status of the module :
-
+- `Status` return you the current status of the module :  
 ![status screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status.png)
 ![status2 screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status2.png)
 
-- `Config` allows you to change configuration :
+- `Config` allows you to change configuration :  
+![config screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/config.png)  
+  **ssid & password** : IDs of your Wifi Network  
+  **hostname** : name of ESP on the network  
+  **IP,GW,NetMask,DNS1&2** : Fixed IP configuration  
+![configMQTT screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/configMQTT.png)  
+  Fill-in MQTT broker information
 
-![config screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/config.png)
-
-- **ssid & password** : IDs of your Wifi Network
-- **hostname** : name of ESP on the network
-- **IP,GW,NetMask,DNS1&2** : Fixed IP configuration
-
-![configMQTT screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/configMQTT.png)
-
-- `Firmware` allows you to flash a new firmware version :
-
+- `Firmware` allows you to flash a new firmware version :  
 ![firmware screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/firmware.png)
 
-- `Discover` allows you to find all DomoChip devices on your network :
-
+- `Discover` allows you to find all DomoChip devices on your network :  
 ![discover screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/discover.png)
 
 ## Use it
