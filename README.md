@@ -11,7 +11,8 @@ It communicates using Serial protocol on ESP8266 alternative pins : D7(GPIO13) a
 
 ## Build your adapter
 
-TODO
+It is designed by Palazzetti using a Si8621 (Silicon Labs Isolator) to provide electrical isolation between uControler and Stove electronic
+This adapter uses exact same components...
 
 ## Build your WirelessPalaControl
 
@@ -19,11 +20,11 @@ All files are inside schematic subfolder and has been designed with KiCad
 
 ### Schematic
 
-TODO
+![WirelessPalaControl schematic](https://raw.github.com/Domochip/WirelessPalaControl/master/img/schematic.png)
 
 ### PCB
 
-TODO
+![WirelessPalaControl PCB](https://raw.github.com/Domochip/WirelessPalaControl/master/img/pcb-top.png)![WirelessPalaControl PCB2](https://raw.github.com/Domochip/WirelessPalaControl/master/img/pcb-bottom.png)
 
 ### Code/Compile
 
