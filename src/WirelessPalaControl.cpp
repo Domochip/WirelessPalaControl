@@ -71,19 +71,21 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
   //if topic is basetopic/cmd
   //commented because only this topic is subscribed
 
-  if (length == 6 && !memcmp_P(payload, F("CMD+ON"), length))
+  bool isCmdExecuted = false;
+
+  if (!isCmdExecuted && length == 6 && !memcmp_P(payload, F("CMD+ON"), length))
   {
     _Pala.powerOn();
-    return;
+    isCmdExecuted = true;
   }
 
-  if (length == 7 && !memcmp_P(payload, F("CMD+OFF"), length))
+  if (!isCmdExecuted && length == 7 && !memcmp_P(payload, F("CMD+OFF"), length))
   {
     _Pala.powerOff();
-    return;
+    isCmdExecuted = true;
   }
 
-  if (length > 9 && length <= 14 && !memcmp_P(payload, F("SET+SETP+"), 9))
+  if (!isCmdExecuted && length > 9 && length <= 14 && !memcmp_P(payload, F("SET+SETP+"), 9))
   {
     char strSetPoint[6];
     memcpy(strSetPoint, payload + 9, length - 9);
@@ -92,10 +94,15 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
     float setPointFloat = atof(strSetPoint);
 
     if (setPointFloat != 0.0f)
+    {
       _Pala.setSetpoint(setPointFloat);
-
-    return;
+      isCmdExecuted = true;
+    }
   }
+
+  //Finally if Cmd has been executed, Run a Publish to push back to HA
+  if (isCmdExecuted)
+    publishTick();
 }
 
 void WebPalaControl::publishTick()
