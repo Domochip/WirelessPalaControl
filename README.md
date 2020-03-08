@@ -14,9 +14,6 @@ You can use this adapter with:
  - another controller with serial interface
  - an USB-Serial adapter and a computer to monitor or upgrade your stove
 
-*We will produce a small batch of this adapter for test/debugging and our personal use.
-If you are interested, please PM.*
-
 It is designed by Palazzetti using a Si8621 (Silicon Labs Isolator) to provide electrical isolation between uController and Stove electronic.  
 This design uses exact same schematic and components.
 
@@ -31,20 +28,27 @@ All files are inside `schematic` subfolder and has been designed with KiCad (fre
 
 ![WirelessPalaControl PCB](https://raw.github.com/Domochip/WirelessPalaControl/master/img/pcb-top.png)![WirelessPalaControl PCB2](https://raw.github.com/Domochip/WirelessPalaControl/master/img/pcb-bottom.png)
 
+![WirelessPalaControl 3boards](https://raw.github.com/Domochip/WirelessPalaControl/master/img/3boards.png)
+
+*We produced a small batch of this adapter for test/debugging and our personal use.
+If you are interested, please PM.*
+
 ### Print your box
 
 Box project (Fusion 360) can be found into `box` folder
 
 TODO
 
-### Code/Compile
+### Code/Compile/Flash
 
-Source code can be compiled using VisualStudioCode/Platformio and flashed onto a D1 Mini
+Source code can be compiled using VisualStudioCode/Platformio and flashed onto a D1 Mini  
+Or  
+Download latest release in Release section
 
 ### Connect
 
 /!\ **You need to use an RJ11 standard phone cable.** /!\  
-Those are **crossed**  
+Those are **crossed** like this  
 ![WirelessPalaControl rj11](https://raw.github.com/Domochip/WirelessPalaControl/master/img/rj11-pinout.png)
 
 ## Run
