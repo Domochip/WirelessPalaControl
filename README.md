@@ -35,9 +35,9 @@ If you are interested, please PM.*
 
 ### Print your box
 
-Box project (Fusion 360) can be found into `box` folder
+Box project (Fusion 360 & STL) can be found into `box` folder
 
-TODO
+![WirelessPalaControl box](https://raw.github.com/Domochip/WirelessPalaControl/master/img/box.png)
 
 ### Code/Compile/Flash
 
