@@ -2,7 +2,7 @@
 
 bool Application::saveConfig()
 {
-  File configFile = SPIFFS.open(String('/') + _appName + F(".json"), "w");
+  File configFile = LittleFS.open(String('/') + _appName + F(".json"), "w");
   if (!configFile)
   {
 #ifdef LOG_SERIAL
@@ -23,7 +23,7 @@ bool Application::loadConfig()
     return true;
 
   bool result = false;
-  File configFile = SPIFFS.open(String('/') + _appName + F(".json"), "r");
+  File configFile = LittleFS.open(String('/') + _appName + F(".json"), "r");
   if (configFile)
   {
 

@@ -5,7 +5,11 @@ void MQTTMan::prepareTopic(String &topic)
     if (topic.indexOf(F("$sn$")) != -1)
     {
         char sn[9];
+#ifdef ESP8266
         sprintf_P(sn, PSTR("%08x"), ESP.getChipId());
+#else
+        sprintf_P(sn, PSTR("%08x"), (uint32_t)(ESP.getEfuseMac() << 40 >> 40));
+#endif
         topic.replace(F("$sn$"), sn);
     }
 
@@ -26,7 +30,11 @@ bool MQTTMan::connect(bool firstConnection)
         return false;
 
     char sn[9];
+#ifdef ESP8266
     sprintf_P(sn, PSTR("%08x"), ESP.getChipId());
+#else
+    sprintf_P(sn, PSTR("%08x"), (uint32_t)(ESP.getEfuseMac() << 40 >> 40));
+#endif
 
     //generate clientID
     String clientID(F(APPLICATION1_NAME));

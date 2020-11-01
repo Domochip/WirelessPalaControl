@@ -2,7 +2,12 @@
 #define MQTTMan_h
 
 #include "..\Main.h"
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
+#else
+#include <WiFi.h>
+#endif
+
 #include <Ticker.h>
 #include <PubSubClient.h>
 

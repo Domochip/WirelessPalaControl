@@ -1,6 +1,6 @@
 #include "Core.h"
 #include <EEPROM.h>
-#include <SPIFFSEditor.h>
+// #include <SPIFFSEditor.h>
 #include "..\Main.h" //for VERSION define
 #include "Version.h" //for BASE_VERSION define
 
@@ -18,14 +18,20 @@ String Core::generateStatusJSON()
   String gs('{');
 
   char sn[9];
-  snprintf_P(sn, sizeof(sn), PSTR("%08x"), ESP.getChipId());
+#ifdef ESP8266
+  sprintf_P(sn, PSTR("%08x"), ESP.getChipId());
+#else
+  sprintf_P(sn, PSTR("%08x"), (uint32_t)(ESP.getEfuseMac() << 40 >> 40));
+#endif
   unsigned long minutes = millis() / 60000;
 
   gs = gs + F("\"sn\":\"") + sn + '"';
   gs = gs + F(",\"b\":\"") + BASE_VERSION + '/' + VERSION + '"';
   gs = gs + F(",\"u\":\"") + (byte)(minutes / 1440) + 'd' + (byte)(minutes / 60 % 24) + 'h' + (byte)(minutes % 60) + 'm' + '"';
   gs = gs + F(",\"f\":") + ESP.getFreeHeap();
+#ifdef ESP8266
   gs = gs + F(",\"fcrs\":") + ESP.getFlashChipRealSize();
+#endif
 
   gs = gs + '}';
 
@@ -82,10 +88,18 @@ void Core::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pa
 
   //sn url is a way to find module on network
   char discoURL[10];
+#ifdef ESP8266
   sprintf_P(discoURL, PSTR("/%08x"), ESP.getChipId());
+#else
+  sprintf_P(discoURL, PSTR("/%08x"), (uint32_t)(ESP.getEfuseMac() << 40 >> 40));
+#endif
   server.on(discoURL, HTTP_GET, [](AsyncWebServerRequest *request) {
     char chipID[9];
+#ifdef ESP8266
     sprintf_P(chipID, PSTR("%08x"), ESP.getChipId());
+#else
+    sprintf_P(chipID, PSTR("%08x"), (uint32_t)(ESP.getEfuseMac() << 40 >> 40));
+#endif
     AsyncWebServerResponse *response = request->beginResponse(200, "text/html", chipID);
     response->addHeader("Access-Control-Allow-Origin", "*"); //allow this URL to be requested from everywhere
     response->addHeader("Cache-Control", "no-cache");
@@ -96,7 +110,11 @@ void Core::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pa
   server.on("/ffffffff", HTTP_GET, [](AsyncWebServerRequest *request) {
     //answer with a JSON string containing sn, model and version numbers
     char discoJSON[128];
+#ifdef ESP8266
     sprintf_P(discoJSON, PSTR("{\"sn\":\"%08x\",\"m\":\"%s\",\"v\":\"%s\"}"), ESP.getChipId(), APPLICATION1_NAME, BASE_VERSION "/" VERSION);
+#else
+    sprintf_P(discoJSON, PSTR("{\"sn\":\"%08x\",\"m\":\"%s\",\"v\":\"%s\"}"), (uint32_t)(ESP.getEfuseMac() << 40 >> 40), APPLICATION1_NAME, BASE_VERSION "/" VERSION);
+#endif
     AsyncWebServerResponse *response = request->beginResponse(200, "text/json", discoJSON);
     response->addHeader("Access-Control-Allow-Origin", "*"); //allow this URL to be requested from everywhere
     response->addHeader("Cache-Control", "no-cache");
@@ -117,6 +135,7 @@ void Core::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pa
       //Prepare response
       String errorMsg(Update.getError());
       errorMsg+=' ';
+#ifdef ESP8266
       switch(Update.getError()){
         case UPDATE_ERROR_WRITE:
           errorMsg=F("Flash Write Failed");
@@ -155,6 +174,9 @@ void Core::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pa
           errorMsg=F("Unknown error");
           break;
       }
+#else
+      errorMsg=Update.errorString();
+#endif
       AsyncWebServerResponse *response = request->beginResponse(500, F("text/html"), errorMsg);
       response->addHeader("Connection", "close");
       request->send(response);
@@ -165,16 +187,22 @@ void Core::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pa
 #ifdef LOG_SERIAL
       LOG_SERIAL.printf("Update Start: %s\n", filename.c_str());
 #endif
+#ifdef ESP8266
       Update.runAsync(true);
       if (!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000)) {
+#else
+      if (!Update.begin()) {
+#endif
 #ifdef LOG_SERIAL
         Update.printError(LOG_SERIAL);
 #endif
       }
     }
     if (!Update.hasError()) {
+#ifdef ESP8266
       //Feed the dog otherwise big firmware won't pass
       ESP.wdtFeed();
+#endif
       if (Update.write(data, len) != len) {
 #ifdef LOG_SERIAL
         Update.printError(LOG_SERIAL);
@@ -228,9 +256,10 @@ void Core::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pa
   });
 
   //Special Developper pages
-#if DEVELOPPER_MODE
-  server.addHandler(new SPIFFSEditor("TODO", "TODO"));
-#endif
+  // wait for LittleFSEditor
+// #if DEVELOPPER_MODE
+//   server.addHandler(new SPIFFSEditor("TODO", "TODO"));
+// #endif
 
   //404 on not found
   server.onNotFound([](AsyncWebServerRequest *request) {
