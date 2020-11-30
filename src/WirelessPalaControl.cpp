@@ -100,6 +100,15 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
     }
   }
 
+  if (!isCmdExecuted && length == 10 && !memcmp_P(payload, F("SET+POWR+"), 9))
+  {
+    if (payload[9] >= '1' && payload[9] <= '5')
+    {
+      _Pala.setPower(payload[9] - '0');
+      isCmdExecuted = true;
+    }
+  }
+
   //Finally if Cmd has been executed, Run a Publish to push back to HA
   if (isCmdExecuted)
     publishTick();

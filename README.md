@@ -94,6 +94,7 @@ MQTT requests can be send to /command topic once MQTT is configured
 MQTT Command list : 
 - `CMD+ON` will turn stove ON
 - `CMD+OFF` will turn stove OFF
+- `SET+POWR+3` will set power (1-5)
 - `SET+SETP+20` will set Set Point (desired temperature)
 
 ### HTTP
@@ -111,7 +112,7 @@ HTTP GET Command list :
 - `GET+CNTR` will return some counters (same as GET+CUNT)
 - `GET+DPRS` will return delta pressure data
 - `GET+PARM+92` will return parameter (ex : 92=pellet type (1-3))
-- `GET+HPAR+57` will return hidden parameter (ex : 57=%of pellet to feed for pellet type 3)
+- `GET+HPAR+57` will return hidden parameter (ex : 57=% of pellet to feed for pellet type 3)
 ---
 **WirelessPalaControl specific commands**
 - `BKP+PARM+CSV` will return all parameters in CSV format
@@ -127,7 +128,7 @@ HTTP GET Command list :
 - `SET+FN3L+0` will set Room Fan 3 value (0-5)
 - `SET+FN4L+0` will set Room Fan 4 value (0-5)
 - `SET+PARM+92+2` will set parameter 92 to value 2 (ex : 92=pellet type (1-3))
-- `SET+HPAR+57+95` will set hidden parameter 57 to value 95 (ex : 57=%of pellet to feed for pellet type 3)
+- `SET+HPAR+57+95` will set hidden parameter 57 to value 95 (ex : 57=% of pellet to feed for pellet type 3)
 ---
 **WirelessPalaControl specific commands**
 - `SET+STPF+19.8` will set Set Point with a 0.2° precision (depend of your stove model)
