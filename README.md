@@ -116,8 +116,8 @@ HTTP GET Command list :
 **WirelessPalaControl specific commands**
 - `BKP+PARM+CSV` will return all parameters in CSV format
 - `BKP+PARM+JSON` will return all parameters in JSON format
-- `BKP+PARM+CSV` will return all hidden parameters in CSV format
-- `BKP+PARM+JSON` will return all hidden parameters in JSON format
+- `BKP+HPAR+CSV` will return all hidden parameters in CSV format
+- `BKP+HPAR+JSON` will return all hidden parameters in JSON format
 ---
 - `CMD+ON` will turn stove ON
 - `CMD+OFF` will turn stove OFF
