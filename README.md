@@ -89,7 +89,7 @@ WirelessPalaControl offers you some webpages in order to configure it :
 
 ### MQTT
 
-MQTT requests can be send to /command topic once MQTT is configured
+MQTT requests can be send to /cmd topic once MQTT is configured
 
 MQTT Command list : 
 - `CMD+ON` will turn stove ON
