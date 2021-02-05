@@ -7,6 +7,20 @@ This project uses "palazzetti library" and a D1 Mini to control Palazzetti/Fumis
 D1 mini is cabled to the stove using an adapter board.  
 It communicates using Serial protocol on ESP8266 alternative pins : D7(GPIO13) as RX / D8(GPIO15) as TX
 
+## Compatibility
+
+It appears that Fumis Controller is used by those brand for their stoves : 
+
+* Palazzetti
+* Jotul
+* TurboFonte
+* Godin
+* Fonte Flamme
+* Invicta
+
+If you have this controller in your stove, it's likely to be compatible.
+![Fumis Controller](https://raw.github.com/Domochip/WirelessPalaControl/master/img/fumis.png)
+
 ## Build your adapter
 
 You can use this adapter with:
