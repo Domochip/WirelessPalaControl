@@ -1,6 +1,6 @@
 # WirelessPalaControl
 
-This project uses "palazzetti library" and a D1 Mini to control Palazzetti/Fumis stove using :
+This project uses "palazzetti library" and a D1 Mini to control Fumis based stove using :
  - HTTP GET requests
  - MQTT
 
@@ -9,10 +9,10 @@ It communicates using Serial protocol on ESP8266 alternative pins : D7(GPIO13) a
 
 ## Compatibility
 
-It appears that Fumis Controller is used by those brand for their stoves : 
+It appears that Fumis Controller is used by those brands for their stoves : 
 
-* Palazzetti
-* Jotul
+* Palazzetti (All)
+* Jotul (tested successfully on a PF620)
 * TurboFonte
 * Godin
 * Fonte Flamme
