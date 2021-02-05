@@ -18,7 +18,7 @@ It appears that Fumis Controller is used by those brand for their stoves :
 * Fonte Flamme
 * Invicta
 
-If you have this controller in your stove, it's likely to be compatible.
+If you have this controller in your stove, it's likely to be compatible.  
 ![Fumis Controller](https://raw.github.com/Domochip/WirelessPalaControl/master/img/fumis.png)
 
 ## Build your adapter
