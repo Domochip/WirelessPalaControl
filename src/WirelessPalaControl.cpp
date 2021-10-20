@@ -108,6 +108,15 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
       isCmdExecuted = true;
     }
   }
+  
+  if (!isCmdExecuted && length == 10 && !memcmp_P(payload, F("SET+RFAN+"), 9))
+  {
+    if (payload[9] >= '0' && payload[9] <= '7')
+    {
+      _Pala.setRoomFan(payload[9] - '0');
+      isCmdExecuted = true;
+    }
+  }
 
   //Finally if Cmd has been executed, Run a Publish to push back to HA
   if (isCmdExecuted)
