@@ -12,7 +12,7 @@ It communicates using Serial protocol on ESP8266 alternative pins : D7(GPIO13) a
 It appears that Fumis Controller is used by those brands for their stoves : 
 
 * Palazzetti (All)
-* Jotul (tested successfully on a PF620)
+* Jotul (tested successfully on a PF 720)
 * TurboFonte
 * Godin
 * Fonte Flamme
@@ -110,6 +110,37 @@ MQTT Command list :
 - `CMD+OFF` will turn stove OFF
 - `SET+POWR+3` will set power (1-5)
 - `SET+SETP+20` will set Set Point (desired temperature)
+- `SET+RFAN+2` will set Room Fan value (0-5;6=Max;7=Auto)
+
+MQTT publishing :
+- `STATUS` will return status of the stove
+- `LSTATUS` will return status of the stove
+- `T1` will return temperature of the stove
+- `T2` will return temperature of the stove
+- `T3` will return temperature of the stove
+- `T4` will return temperature of the stove
+- `T5` will return temperature of the stove
+- `F1V` will return Fan value
+- `F2V`will return Fan value
+- `F2L` will return Fan value
+- `F2LF` will return Fan value
+- `F3L` will return Fan value
+- `F4L` will return Fan value
+- `IGN` will return ignition counter
+- `IGNERRORS` will return ignition error counter
+- `POWERTIME` will return counter
+- `HEATTIME` will return counter
+- `SERVICETIME` will return counter
+- `ONTIME` will return counter
+- `OVERTMPERRORS` will return overtemperature error counter
+- `STOVE_DATETIME` will return date of the stove
+- `STOVE_WDAY` will return day of the stove
+- `SETP` will return current Set Point (desired temperature)
+- `PQT` will return wood pellet consumption
+- `PWR` will return current power (1-5)
+- `FDR` ???
+- `DP_TARGET` will return delta pressure target
+- `DP_PRESS` will return actual delta pressure
 
 ### HTTP
 
