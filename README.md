@@ -12,7 +12,7 @@ It communicates using Serial protocol on ESP8266 alternative pins : D7(GPIO13) a
 It appears that Fumis Controller is used by those brands for their stoves : 
 
 * Palazzetti (All)
-* Jotul (tested successfully on a PF 720)
+* Jotul (tested successfully on PF 620 & 720)
 * TurboFonte
 * Godin
 * Fonte Flamme
@@ -112,35 +112,35 @@ MQTT Command list :
 - `SET+SETP+20` will set Set Point (desired temperature)
 - `SET+RFAN+2` will set Room Fan value (0-5;6=Max;7=Auto)
 
-MQTT publishing :
-- `STATUS` will return status of the stove
-- `LSTATUS` will return status of the stove
-- `T1` will return temperature of the stove
-- `T2` will return temperature of the stove
-- `T3` will return temperature of the stove
-- `T4` will return temperature of the stove
-- `T5` will return temperature of the stove
-- `F1V` will return Fan value
-- `F2V`will return Fan value
-- `F2L` will return Fan value
-- `F2LF` will return Fan value
-- `F3L` will return Fan value
-- `F4L` will return Fan value
-- `IGN` will return ignition counter
-- `IGNERRORS` will return ignition error counter
-- `POWERTIME` will return counter
-- `HEATTIME` will return counter
-- `SERVICETIME` will return counter
-- `ONTIME` will return counter
-- `OVERTMPERRORS` will return overtemperature error counter
-- `STOVE_DATETIME` will return date of the stove
-- `STOVE_WDAY` will return day of the stove
-- `SETP` will return current Set Point (desired temperature)
-- `PQT` will return wood pellet consumption
-- `PWR` will return current power (1-5)
-- `FDR` ???
-- `DP_TARGET` will return delta pressure target
-- `DP_PRESS` will return actual delta pressure
+MQTT infos published every "Upload Period":
+- `STATUS` status of the stove
+- `LSTATUS` status of the stove
+- `T1` temperature of the stove
+- `T2` temperature of the stove
+- `T3` temperature of the stove
+- `T4` temperature of the stove
+- `T5` temperature of the stove
+- `F1V` fan value
+- `F2V` fan value
+- `F2L` fan value
+- `F2LF` fan value
+- `F3L` fan value
+- `F4L` fan value
+- `IGN` ignition counter
+- `IGNERRORS` ignition error counter
+- `POWERTIME` total heating time (hour)
+- `HEATTIME` ??? (hour)
+- `SERVICETIME` heating time since last maintenance (hour)
+- `ONTIME` time from last power ON (hour)
+- `OVERTMPERRORS` overtemperature error counter
+- `STOVE_DATETIME` date of the stove
+- `STOVE_WDAY` week day of the stove
+- `SETP` current Set Point (desired temperature)
+- `PQT` wood pellet consumption
+- `PWR` current power (1-5)
+- `FDR` feeder
+- `DP_TARGET` delta pressure target
+- `DP_PRESS` actual delta pressure
 
 ### HTTP
 
