@@ -45,12 +45,12 @@ bool MQTTMan::connect(bool firstConnection)
     char *password = (_username[0] ? _password : nullptr);
     char *willTopic = (_connectedAndWillTopic[0] ? _connectedAndWillTopic : nullptr);
     const char *willMessage = (_connectedAndWillTopic[0] ? "0" : nullptr);
-    PubSubClient::connect(clientID.c_str(), username, password, willTopic, 0, false, willMessage);
+    PubSubClient::connect(clientID.c_str(), username, password, willTopic, 0, true, willMessage);
 
     if (connected())
     {
         if (_connectedAndWillTopic[0])
-            publish(_connectedAndWillTopic, "1");
+            publish(_connectedAndWillTopic, "1", true);
 
         //Subscribe to needed topic
         if (_connectedCallBack)
