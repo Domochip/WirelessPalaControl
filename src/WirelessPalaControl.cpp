@@ -201,14 +201,14 @@ void WebPalaControl::publishTick()
         _statusEventSource.send((String("{\"IGN\":") + IGN + '}').c_str());
         _haSendResult &= _mqttMan.publish((baseTopic + F("IGNERRORS")).c_str(), String(IGNERRORS).c_str());
         _statusEventSource.send((String("{\"IGNERRORS\":") + IGNERRORS + '}').c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("POWERTIME")).c_str(), (String(POWERTIMEh) + ':' + (POWERTIMEm / 10) + (POWERTIMEm % 10)).c_str());
-        _statusEventSource.send((String("{\"POWERTIME\":") + String(POWERTIMEh) + ':' + (POWERTIMEm / 10) + (POWERTIMEm % 10) + '}').c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("HEATTIME")).c_str(), (String(HEATTIMEh) + ':' + (HEATTIMEm / 10) + (HEATTIMEm % 10)).c_str());
-        _statusEventSource.send((String("{\"HEATTIME\":") + String(HEATTIMEh) + ':' + (HEATTIMEm / 10) + (HEATTIMEm % 10) + '}').c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("SERVICETIME")).c_str(), (String(SERVICETIMEh) + ':' + (SERVICETIMEm / 10) + (SERVICETIMEm % 10)).c_str());
-        _statusEventSource.send((String("{\"SERVICETIME\":") + String(SERVICETIMEh) + ':' + (SERVICETIMEm / 10) + (SERVICETIMEm % 10) + '}').c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("ONTIME")).c_str(), (String(ONTIMEh) + ':' + (ONTIMEm / 10) + (ONTIMEm % 10)).c_str());
-        _statusEventSource.send((String("{\"ONTIME\":") + String(ONTIMEh) + ':' + (ONTIMEm / 10) + (ONTIMEm % 10) + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("POWERTIME")).c_str(), String(POWERTIMEh).c_str());
+        _statusEventSource.send((String("{\"POWERTIME\":") + POWERTIMEh + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("HEATTIME")).c_str(), String(HEATTIMEh).c_str());
+        _statusEventSource.send((String("{\"HEATTIME\":") + HEATTIMEh + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("SERVICETIME")).c_str(), String(SERVICETIMEh).c_str());
+        _statusEventSource.send((String("{\"SERVICETIME\":") + SERVICETIMEh + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ONTIME")).c_str(), String(ONTIMEh).c_str());
+        _statusEventSource.send((String("{\"ONTIME\":") + ONTIMEh + '}').c_str());
         _haSendResult &= _mqttMan.publish((baseTopic + F("OVERTMPERRORS")).c_str(), String(OVERTMPERRORS).c_str());
         _statusEventSource.send((String("{\"OVERTMPERRORS\":") + OVERTMPERRORS + '}').c_str());
       }
