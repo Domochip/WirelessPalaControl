@@ -108,6 +108,15 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
       isCmdExecuted = true;
     }
   }
+  
+  if (!isCmdExecuted && length == 10 && !memcmp_P(payload, F("SET+RFAN+"), 9))
+  {
+    if (payload[9] >= '0' && payload[9] <= '7')
+    {
+      _Pala.setRoomFan(payload[9] - '0');
+      isCmdExecuted = true;
+    }
+  }
 
   //Finally if Cmd has been executed, Run a Publish to push back to HA
   if (isCmdExecuted)
@@ -181,6 +190,39 @@ void WebPalaControl::publishTick()
           _haSendResult &= _mqttMan.publish((baseTopic + F("F4L")).c_str(), String(F4L).c_str());
           _statusEventSource.send((String("{\"F4L\":") + F4L + '}').c_str());
         }
+      }
+      else
+        return;
+
+      uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQTn;
+      if ((_haSendResult &= _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQTn)))
+      {
+        _haSendResult &= _mqttMan.publish((baseTopic + F("IGN")).c_str(), String(IGN).c_str());
+        _statusEventSource.send((String("{\"IGN\":") + IGN + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("IGNERRORS")).c_str(), String(IGNERRORS).c_str());
+        _statusEventSource.send((String("{\"IGNERRORS\":") + IGNERRORS + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("POWERTIME")).c_str(), (String(POWERTIMEh) + ':' + (POWERTIMEm / 10) + (POWERTIMEm % 10)).c_str());
+        _statusEventSource.send((String("{\"POWERTIME\":") + String(POWERTIMEh) + ':' + (POWERTIMEm / 10) + (POWERTIMEm % 10) + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("HEATTIME")).c_str(), (String(HEATTIMEh) + ':' + (HEATTIMEm / 10) + (HEATTIMEm % 10)).c_str());
+        _statusEventSource.send((String("{\"HEATTIME\":") + String(HEATTIMEh) + ':' + (HEATTIMEm / 10) + (HEATTIMEm % 10) + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("SERVICETIME")).c_str(), (String(SERVICETIMEh) + ':' + (SERVICETIMEm / 10) + (SERVICETIMEm % 10)).c_str());
+        _statusEventSource.send((String("{\"SERVICETIME\":") + String(SERVICETIMEh) + ':' + (SERVICETIMEm / 10) + (SERVICETIMEm % 10) + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ONTIME")).c_str(), (String(ONTIMEh) + ':' + (ONTIMEm / 10) + (ONTIMEm % 10)).c_str());
+        _statusEventSource.send((String("{\"ONTIME\":") + String(ONTIMEh) + ':' + (ONTIMEm / 10) + (ONTIMEm % 10) + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("OVERTMPERRORS")).c_str(), String(OVERTMPERRORS).c_str());
+        _statusEventSource.send((String("{\"OVERTMPERRORS\":") + OVERTMPERRORS + '}').c_str());
+      }
+      else
+        return;
+
+      char STOVE_DATETIME[20];
+      byte STOVE_WDAY;
+      if ((_haSendResult &= _Pala.getDateTime(STOVE_DATETIME, &STOVE_WDAY)))
+      {
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STOVE_DATETIME")).c_str(), String(STOVE_DATETIME).c_str());
+        _statusEventSource.send((String("{\"STOVE_DATETIME\":") + STOVE_DATETIME + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STOVE_WDAY")).c_str(), String(STOVE_WDAY).c_str());
+        _statusEventSource.send((String("{\"STOVE_WDAY\":") + STOVE_WDAY + '}').c_str());
       }
       else
         return;
