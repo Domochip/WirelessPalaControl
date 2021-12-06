@@ -17,6 +17,9 @@ It appears that Fumis Controller is used by those brands for their stoves :
 * Godin
 * Fonte Flamme
 * Invicta
+* Alpis
+* Faizen
+* HETA
 
 If you have this controller in your stove, it's likely to be compatible.  
 ![Fumis Controller](https://raw.github.com/Domochip/WirelessPalaControl/master/img/fumis.png)
