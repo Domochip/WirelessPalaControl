@@ -68,6 +68,14 @@ Download latest release in Release section
 Those are **crossed** like this  
 ![WirelessPalaControl rj11](https://raw.github.com/Domochip/WirelessPalaControl/master/img/rj11-pinout.png)
 
+Most of stove have an RJ11/RJ12 connector for PalaControl connection.  
+If you don't have it, you need to cable it using a splitter to connect screen and palaControl at the same time :  
+![WirelessPalaControl cabling](https://raw.github.com/Domochip/WirelessPalaControl/master/img/cabling.png)
+
+Splitter and additional cable can be found on Aliexpress (search for "6p6c splitter" and "rj12 cable").  
+The splitter should correspond to this small schematic :  
+![WirelessPalaControl schematic-splitter](https://raw.github.com/Domochip/WirelessPalaControl/master/img/schematic-splitter.png)
+
 ## Run
 
 ### First Boot
