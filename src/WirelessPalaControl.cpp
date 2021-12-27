@@ -564,6 +564,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         {
           DynamicJsonDocument doc(500);
           String jsonToReturn;
+          doc[F("SUCCESS")] = true;
           JsonObject data = doc.createNestedObject(F("DATA"));
           data[F("STATUS")] = STATUS;
           data[F("T1")] = T1;
@@ -592,6 +593,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         {
           DynamicJsonDocument doc(100);
           String jsonToReturn;
+          doc[F("SUCCESS")] = true;
           JsonObject data = doc.createNestedObject(F("DATA"));
           data[F("STATUS")] = STATUS;
           data[F("LSTATUS")] = LSTATUS;
@@ -618,6 +620,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         {
           DynamicJsonDocument doc(500);
           String jsonToReturn;
+          doc[F("SUCCESS")] = true;
           JsonObject data = doc.createNestedObject(F("DATA"));
           data[F("T1")] = T1;
           data[F("T2")] = T2;
@@ -648,6 +651,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         {
           DynamicJsonDocument doc(500);
           String jsonToReturn;
+          doc[F("SUCCESS")] = true;
           JsonObject data = doc.createNestedObject(F("DATA"));
           data[F("F1V")] = F1V;
           data[F("F2V")] = F2V;
@@ -682,6 +686,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         {
           DynamicJsonDocument doc(100);
           String jsonToReturn;
+          doc[F("SUCCESS")] = true;
           JsonObject data = doc.createNestedObject(F("DATA"));
           data[F("SETP")] = SETP;
           serializeJson(doc, jsonToReturn);
@@ -708,6 +713,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         {
           DynamicJsonDocument doc(100);
           String jsonToReturn;
+          doc[F("SUCCESS")] = true;
           JsonObject data = doc.createNestedObject(F("DATA"));
           data[F("PWR")] = PWR;
           data[F("FDR")] = FDR;
@@ -734,6 +740,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         {
           DynamicJsonDocument doc(500);
           String jsonToReturn;
+          doc[F("SUCCESS")] = true;
           JsonObject data = doc.createNestedObject(F("DATA"));
           data[F("IGN")] = IGN;
           data[F("POWERTIME")] = String(POWERTIMEh) + ':' + (POWERTIMEm / 10) + (POWERTIMEm % 10);
@@ -766,6 +773,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         {
           DynamicJsonDocument doc(500);
           String jsonToReturn;
+          doc[F("SUCCESS")] = true;
           JsonObject data = doc.createNestedObject(F("DATA"));
           data[F("DP_TARGET")] = DP_TARGET;
           data[F("DP_PRESS")] = DP_PRESS;
@@ -793,6 +801,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         {
           DynamicJsonDocument doc(100);
           String jsonToReturn;
+          doc[F("SUCCESS")] = true;
           JsonObject data = doc.createNestedObject(F("DATA"));
           data[F("STOVE_DATETIME")] = STOVE_DATETIME;
           data[F("STOVE_WDAY")] = STOVE_WDAY;
@@ -831,6 +840,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         {
           DynamicJsonDocument doc(100);
           String jsonToReturn;
+          doc[F("SUCCESS")] = true;
           JsonObject data = doc.createNestedObject(F("DATA"));
           data[F("PAR")] = paramValue;
           serializeJson(doc, jsonToReturn);
@@ -868,6 +878,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         {
           DynamicJsonDocument doc(100);
           String jsonToReturn;
+          doc[F("SUCCESS")] = true;
           JsonObject data = doc.createNestedObject(F("DATA"));
           data[F("HPAR")] = hiddenParamValue;
           serializeJson(doc, jsonToReturn);
