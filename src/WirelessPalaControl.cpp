@@ -577,7 +577,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -604,7 +604,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -634,7 +634,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -670,7 +670,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -696,7 +696,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -724,7 +724,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -757,7 +757,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -784,7 +784,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -812,7 +812,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -850,7 +850,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -888,7 +888,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -954,7 +954,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -1020,7 +1020,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -1043,7 +1043,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -1071,7 +1071,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -1101,7 +1101,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -1131,7 +1131,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -1161,7 +1161,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -1189,7 +1189,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -1217,7 +1217,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -1245,7 +1245,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -1286,7 +1286,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
@@ -1327,7 +1327,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(500, F("text/html"), F("Stove communication failed"));
+          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
           return;
         }
       }
