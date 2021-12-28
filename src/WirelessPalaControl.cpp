@@ -827,9 +827,10 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
         if (paramNumber == 0 && strParamNumber[0] != '0')
         {
-          String ret(F("Incorrect Parameter Number : "));
+          String ret(F("{\"INFO\":{\"CMD\":\"GET PARM\",\"MSG\":\"Incorrect Parameter Number : "));
           ret += strParamNumber;
-          request->send(400, F("text/html"), ret);
+          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+          request->send(200, F("text/json"), ret);
           return;
         }
 
@@ -865,9 +866,10 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
         if (hiddenParamNumber == 0 && strHiddenParamNumber[0] != '0')
         {
-          String ret(F("Incorrect Hidden Parameter Number : "));
+          String ret(F("{\"INFO\":{\"CMD\":\"GET HPAR\",\"MSG\":\"Incorrect Hidden Parameter Number : "));
           ret += strHiddenParamNumber;
-          request->send(400, F("text/html"), ret);
+          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+          request->send(200, F("text/json"), ret);
           return;
         }
 
@@ -907,9 +909,10 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
           fileType = 1;
         else
         {
-          String ret(F("Incorrect File Type : "));
-          ret += cmd.substring(9);
-          request->send(400, F("text/html"), ret);
+          String ret(F("{\"INFO\":{\"CMD\":\"BKP PARM\",\"MSG\":\"Incorrect File Type : "));
+          ret += strFileType;
+          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+          request->send(200, F("text/json"), ret);
           return;
         }
 
@@ -973,9 +976,10 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
           fileType = 1;
         else
         {
-          String ret(F("Incorrect File Type : "));
-          ret += cmd.substring(9);
-          request->send(400, F("text/html"), ret);
+          String ret(F("{\"INFO\":{\"CMD\":\"BKP HPAR\",\"MSG\":\"Incorrect File Type : "));
+          ret += strFileType;
+          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+          request->send(200, F("text/json"), ret);
           return;
         }
 
@@ -1056,9 +1060,10 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
         if (powerLevel == 0)
         {
-          String ret(F("Incorrect Power value : "));
-          ret += cmd;
-          request->send(400, F("text/html"), ret);
+          String ret(F("{\"INFO\":{\"CMD\":\"SET POWR\",\"MSG\":\"Incorrect Power value : "));
+          ret += cmd.substring(9);
+          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+          request->send(200, F("text/json"), ret);
           return;
         }
 
@@ -1086,9 +1091,10 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
         if (roomFanLevel == 0 && strRoomFanLevel[0] != '0')
         {
-          String ret(F("Incorrect Room Fan value : "));
-          ret += cmd;
-          request->send(400, F("text/html"), ret);
+          String ret(F("{\"INFO\":{\"CMD\":\"SET RFAN\",\"MSG\":\"Incorrect Room Fan value : "));
+          ret += strRoomFanLevel;
+          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+          request->send(200, F("text/json"), ret);
           return;
         }
 
@@ -1116,9 +1122,10 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
         if (roomFan3Level == 0 && strRoomFan3Level[0] != '0')
         {
-          String ret(F("Incorrect Room Fan 3 value : "));
-          ret += cmd;
-          request->send(400, F("text/html"), ret);
+          String ret(F("{\"INFO\":{\"CMD\":\"SET FN3L\",\"MSG\":\"Incorrect Room Fan 3 value : "));
+          ret += strRoomFan3Level;
+          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+          request->send(200, F("text/json"), ret);
           return;
         }
 
@@ -1146,9 +1153,10 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
         if (roomFan4Level == 0 && strRoomFan4Level[0] != '0')
         {
-          String ret(F("Incorrect Room Fan 4 value : "));
-          ret += cmd;
-          request->send(400, F("text/html"), ret);
+          String ret(F("{\"INFO\":{\"CMD\":\"SET FN4L\",\"MSG\":\"Incorrect Room Fan 4 value : "));
+          ret += strRoomFan4Level;
+          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+          request->send(200, F("text/json"), ret);
           return;
         }
 
@@ -1170,13 +1178,16 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
       {
         bool res = true;
 
-        byte silentMode = cmd.substring(9).toInt();
+        String strSilentMode = cmd.substring(9);
 
-        if (silentMode == 0)
+        byte silentMode = strSilentMode.toInt();
+
+        if (silentMode == 0 && strSilentMode[0] != '0')
         {
-          String ret(F("Incorrect Silent Mode value : "));
-          ret += cmd;
-          request->send(400, F("text/html"), ret);
+          String ret(F("{\"INFO\":{\"CMD\":\"SET SLNT\",\"MSG\":\"Incorrect Silent Mode value : "));
+          ret += strSilentMode;
+          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+          request->send(200, F("text/json"), ret);
           return;
         }
 
@@ -1202,9 +1213,10 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
         if (setPoint == 0)
         {
-          String ret(F("Incorrect SetPoint value : "));
-          ret += cmd;
-          request->send(400, F("text/html"), ret);
+          String ret(F("{\"INFO\":{\"CMD\":\"SET SETP\",\"MSG\":\"Incorrect SetPoint value : "));
+          ret += cmd.substring(9);
+          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+          request->send(200, F("text/json"), ret);
           return;
         }
 
@@ -1230,9 +1242,10 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
         if (setPointFloat == 0.0f)
         {
-          String ret(F("Incorrect SetPoint Float value : "));
-          ret += cmd;
-          request->send(400, F("text/html"), ret);
+          String ret(F("{\"INFO\":{\"CMD\":\"SET STPF\",\"MSG\":\"Incorrect SetPoint Float value : "));
+          ret += cmd.substring(9);
+          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+          request->send(200, F("text/json"), ret);
           return;
         }
 
@@ -1261,9 +1274,10 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
         if (paramNumber == 0 && strParamNumber[0] != '0')
         {
-          String ret(F("Incorrect Parameter Number : "));
+          String ret(F("{\"INFO\":{\"CMD\":\"SET PARM\",\"MSG\":\"Incorrect Parameter Number : "));
           ret += strParamNumber;
-          request->send(400, F("text/html"), ret);
+          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+          request->send(200, F("text/json"), ret);
           return;
         }
 
@@ -1271,9 +1285,10 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
         if (paramValue == 0 && strParamValue[0] != '0')
         {
-          String ret(F("Incorrect Parameter Value : "));
+          String ret(F("{\"INFO\":{\"CMD\":\"SET PARM\",\"MSG\":\"Incorrect Parameter Value : "));
           ret += strParamValue;
-          request->send(400, F("text/html"), ret);
+          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+          request->send(200, F("text/json"), ret);
           return;
         }
 
@@ -1302,9 +1317,10 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
         if (hiddenParamNumber == 0 && strHiddenParamNumber[0] != '0')
         {
-          String ret(F("Incorrect Hidden Parameter Number : "));
+          String ret(F("{\"INFO\":{\"CMD\":\"SET HPAR\",\"MSG\":\"Incorrect Hidden Parameter Number : "));
           ret += strHiddenParamNumber;
-          request->send(400, F("text/html"), ret);
+          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+          request->send(200, F("text/json"), ret);
           return;
         }
 
@@ -1312,9 +1328,10 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
         if (hiddenParamValue == 0 && strHiddenParamValue[0] != '0')
         {
-          String ret(F("Incorrect Hidden Parameter Value : "));
+          String ret(F("{\"INFO\":{\"CMD\":\"SET HPAR\",\"MSG\":\"Incorrect Hidden Parameter Value : "));
           ret += strHiddenParamValue;
-          request->send(400, F("text/html"), ret);
+          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+          request->send(200, F("text/json"), ret);
           return;
         }
 
@@ -1334,7 +1351,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
     }
 
     //answer with error and return
-    request->send(400, F("text/html"), F("No valid request received"));
+    request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"UNKNOWN\",\"MSG\":\"No valid request received\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
   });
 };
 
