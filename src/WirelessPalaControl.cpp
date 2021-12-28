@@ -577,7 +577,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET ALLS\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -604,7 +604,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET STAT\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -634,7 +634,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET TMPS\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -670,7 +670,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET FAND\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -696,7 +696,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET SETP\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -724,7 +724,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET POWR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -757,7 +757,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET CNTR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -784,7 +784,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET DPRS\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -812,7 +812,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET TIME\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -850,7 +850,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET PARM\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -888,7 +888,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET HPAR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -954,7 +954,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP PARM\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -1020,7 +1020,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP HPAR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -1043,7 +1043,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"CMD ON/OFF\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -1071,7 +1071,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET POWR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -1101,7 +1101,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET RFAN\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -1131,7 +1131,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET FN3L\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -1161,7 +1161,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET FN4L\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -1189,7 +1189,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET SLNT\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -1217,7 +1217,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET SETP\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -1245,7 +1245,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET STPF\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -1286,7 +1286,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET PARM\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
@@ -1327,7 +1327,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
         else
         {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":false,\"DATA\":{\"NODATA\":true,\"ERROR\":\"Stove communication failed\"}}"));
+          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET HPAR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
           return;
         }
       }
