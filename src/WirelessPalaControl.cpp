@@ -271,6 +271,78 @@ void WebPalaControl::publishTick()
   }
 }
 
+String WebPalaControl::executePalaCmd(const String &cmd){
+  String jsonToReturn;
+  bool cmdProcessed = false; //cmd has been processed
+  bool cmdSuccess = true; //Palazzetti function calls successful
+
+  //Prepare successful answer
+  DynamicJsonDocument jsonDoc(500);
+  JsonObject info = jsonDoc.createNestedObject(F("INFO"));
+  info[F("CMD")] = cmd;
+  info[F("RSP")] = F("OK");
+  jsonDoc[F("SUCCESS")] = true;
+  JsonObject data = jsonDoc.createNestedObject(F("DATA"));
+
+
+  if (!cmdProcessed && cmd == F("GET ALLS"))
+  {
+    uint16_t STATUS;
+    cmdSuccess &= _Pala.getStatus(&STATUS, nullptr);
+
+    float T1;
+    cmdSuccess &= _Pala.getAllTemps(&T1, nullptr, nullptr, nullptr, nullptr);
+
+    float setPoint;
+    cmdSuccess &= _Pala.getSetPoint(&setPoint);
+
+    uint16_t PQT;
+    cmdSuccess &= _Pala.getPelletQtUsed(&PQT);
+
+    if (cmdSuccess)
+    {
+      data[F("STATUS")] = STATUS;
+      data[F("T1")] = T1;
+      data[F("SETP")] = setPoint;
+      data[F("PQT")] = PQT;
+    }
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd == F("GET STAT"))
+  {
+    uint16_t STATUS, LSTATUS;
+    cmdSuccess &= _Pala.getStatus(&STATUS, &LSTATUS);
+
+    if (cmdSuccess)
+    {
+      data[F("STATUS")] = STATUS;
+      data[F("LSTATUS")] = LSTATUS;
+    }
+    cmdProcessed = true;
+  }
+
+  // if command has been processed
+  if (cmdProcessed)
+  {
+    //successfully
+    if (cmdSuccess) serializeJson(jsonDoc, jsonToReturn); //serialize jsonToReturn
+    else
+    {
+      //stove communication failed
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"");
+      jsonToReturn += cmd;
+      jsonToReturn += F("\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+    }
+  }
+  else{
+    // command is unknown and not processed
+    jsonToReturn = F("{\"INFO\":{\"CMD\":\"UNKNOWN\",\"MSG\":\"No valid request received\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+  }
+
+  return jsonToReturn;
+}
+
 //------------------------------------------
 //Used to initialize configuration properties to default values
 void WebPalaControl::setConfigDefaultValues()
@@ -546,67 +618,14 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
       if (cmd == F("GET ALLS"))
       {
-        bool res = true;
-
-        uint16_t STATUS;
-        res &= _Pala.getStatus(&STATUS, nullptr);
-
-        float T1;
-        res &= _Pala.getAllTemps(&T1, nullptr, nullptr, nullptr, nullptr);
-
-        float setPoint;
-        res &= _Pala.getSetPoint(&setPoint);
-
-        uint16_t PQT;
-        res &= _Pala.getPelletQtUsed(&PQT);
-
-        if (res)
-        {
-          DynamicJsonDocument doc(500);
-          String jsonToReturn;
-          doc[F("SUCCESS")] = true;
-          JsonObject data = doc.createNestedObject(F("DATA"));
-          data[F("STATUS")] = STATUS;
-          data[F("T1")] = T1;
-          data[F("SETP")] = setPoint;
-          data[F("PQT")] = PQT;
-          serializeJson(doc, jsonToReturn);
-
-          request->send(200, F("text/json"), jsonToReturn);
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET ALLS\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd == F("GET STAT"))
       {
-        bool res = true;
-
-        uint16_t STATUS, LSTATUS;
-        res &= _Pala.getStatus(&STATUS, &LSTATUS);
-
-        if (res)
-        {
-          DynamicJsonDocument doc(100);
-          String jsonToReturn;
-          doc[F("SUCCESS")] = true;
-          JsonObject data = doc.createNestedObject(F("DATA"));
-          data[F("STATUS")] = STATUS;
-          data[F("LSTATUS")] = LSTATUS;
-          serializeJson(doc, jsonToReturn);
-
-          request->send(200, F("text/json"), jsonToReturn);
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET STAT\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd == F("GET TMPS"))
