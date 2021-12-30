@@ -285,6 +285,20 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   JsonObject data = jsonDoc.createNestedObject(F("DATA"));
 
 
+  //TODO complete STDT answer
+  if (!cmdProcessed && cmd == F("GET STDT"))
+  {
+
+    if (cmdSuccess)
+    {
+      data["LABEL"] = WiFi.getHostname();
+      data["ICONN"] = 0; //internet connected
+      data["APLCONN"] = 1; //appliance connected
+      data["GWDEVICE"] = F("wlan0"); //always wifi
+    }
+    cmdProcessed = true;
+  }
+
   if (!cmdProcessed && cmd == F("GET ALLS"))
   {
     uint16_t STATUS;
@@ -321,6 +335,363 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
     cmdProcessed = true;
   }
+
+  if (!cmdProcessed && cmd == F("GET TMPS"))
+  {
+    float T1, T2, T3, T4, T5;
+    cmdSuccess &= _Pala.getAllTemps(&T1, &T2, &T3, &T4, &T5);
+
+    if (cmdSuccess)
+    {
+      data[F("T1")] = T1;
+      data[F("T2")] = T2;
+      data[F("T3")] = T3;
+      data[F("T4")] = T4;
+      data[F("T5")] = T5;
+    }
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd == F("GET FAND"))
+  {
+    uint16_t F1V, F2V, F1RPM, F2L, F2LF, F3L, F4L;
+    bool isF3LF4LValid;
+    cmdSuccess &= _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3LF4LValid, &F3L, &F4L);
+
+    if (cmdSuccess)
+    {
+      data[F("F1V")] = F1V;
+      data[F("F2V")] = F2V;
+      data[F("F1RPM")] = F1RPM;
+      data[F("F2L")] = F2L;
+      data[F("F2LF")] = F2LF;
+      if (isF3LF4LValid)
+      {
+        data[F("F3L")] = F3L;
+        data[F("F4L")] = F4L;
+      }
+    }
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd == F("GET SETP"))
+  {
+    float SETP;
+    cmdSuccess &= _Pala.getSetPoint(&SETP);
+
+    if (cmdSuccess)
+    {
+      data[F("SETP")] = SETP;
+    }
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd == F("GET POWR"))
+  {
+    byte PWR;
+    float FDR;
+    cmdSuccess &= _Pala.getPower(&PWR, &FDR);
+
+    if (cmdSuccess)
+    {
+      data[F("PWR")] = PWR;
+      data[F("FDR")] = FDR;
+    }
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && (cmd == F("GET CUNT") || cmd == F("GET CNTR")))
+  {
+    uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQT;
+    cmdSuccess &= _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQT);
+
+    if (cmdSuccess)
+    {
+      data[F("IGN")] = IGN;
+      data[F("POWERTIME")] = String(POWERTIMEh) + ':' + (POWERTIMEm / 10) + (POWERTIMEm % 10);
+      data[F("HEATTIME")] = String(HEATTIMEh) + ':' + (HEATTIMEm / 10) + (HEATTIMEm % 10);
+      data[F("SERVICETIME")] = String(SERVICETIMEh) + ':' + (SERVICETIMEm / 10) + (SERVICETIMEm % 10);
+      data[F("ONTIME")] = String(ONTIMEh) + ':' + (ONTIMEm / 10) + (ONTIMEm % 10);
+      data[F("OVERTMPERRORS")] = OVERTMPERRORS;
+      data[F("IGNERRORS")] = IGNERRORS;
+      data[F("PQT")] = PQT;
+    }
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd == F("GET DPRS"))
+  {
+    uint16_t DP_TARGET, DP_PRESS;
+    cmdSuccess &= _Pala.getDPressData(&DP_TARGET, &DP_PRESS);
+
+    if (cmdSuccess)
+    {
+      data[F("DP_TARGET")] = DP_TARGET;
+      data[F("DP_PRESS")] = DP_PRESS;
+    }
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd == F("GET TIME"))
+  {
+    char STOVE_DATETIME[20];
+    byte STOVE_WDAY;
+    cmdSuccess &= _Pala.getDateTime(STOVE_DATETIME, &STOVE_WDAY);
+
+    if (cmdSuccess)
+    {
+      data[F("STOVE_DATETIME")] = STOVE_DATETIME;
+      data[F("STOVE_WDAY")] = STOVE_WDAY;
+    }
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("GET PARM ")))
+  {
+    String strParamNumber(cmd.substring(9));
+
+    byte paramNumber = strParamNumber.toInt();
+
+    if (paramNumber == 0 && strParamNumber[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"GET PARM\",\"MSG\":\"Incorrect Parameter Number : ");
+      jsonToReturn += strParamNumber;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    byte paramValue;
+    cmdSuccess &= _Pala.getParameter(paramNumber, &paramValue);
+
+    if (cmdSuccess)
+    {
+      data[F("PAR")] = paramValue;
+    }
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("GET HPAR ")))
+  {
+    String strHiddenParamNumber(cmd.substring(9));
+
+    byte hiddenParamNumber = strHiddenParamNumber.toInt();
+
+    if (hiddenParamNumber == 0 && strHiddenParamNumber[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"GET HPAR\",\"MSG\":\"Incorrect Hidden Parameter Number : ");
+      jsonToReturn += strHiddenParamNumber;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    uint16_t hiddenParamValue;
+    cmdSuccess &= _Pala.getHiddenParameter(hiddenParamNumber, &hiddenParamValue);
+
+    if (cmdSuccess)
+    {
+      data[F("HPAR")] = hiddenParamValue;
+    }
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("CMD ")))
+  {
+    String strOrder(cmd.substring(4));
+
+    if (strOrder != F("ON") && strOrder != F("OFF"))
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"CMD\",\"MSG\":\"Incorrect ON/OFF value : ");
+      jsonToReturn += cmd.substring(4);
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    if (strOrder == F("ON"))
+      cmdSuccess &= _Pala.powerOn();
+    else if (strOrder == F("OFF"))
+      cmdSuccess &= _Pala.powerOff();
+
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET POWR ")))
+  {
+    byte powerLevel = cmd.substring(9).toInt();
+
+    if (powerLevel == 0)
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET POWR\",\"MSG\":\"Incorrect Power value : ");
+      jsonToReturn += cmd.substring(9);
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    cmdSuccess &= _Pala.setPower(powerLevel);
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET RFAN ")))
+  {
+    String strRoomFanLevel(cmd.substring(9));
+
+    byte roomFanLevel = strRoomFanLevel.toInt();
+
+    if (roomFanLevel == 0 && strRoomFanLevel[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET RFAN\",\"MSG\":\"Incorrect Room Fan value : ");
+      jsonToReturn += strRoomFanLevel;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    cmdSuccess &= _Pala.setRoomFan(roomFanLevel);
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET FN3L ")))
+  {
+    String strRoomFan3Level(cmd.substring(9));
+
+    byte roomFan3Level = strRoomFan3Level.toInt();
+
+    if (roomFan3Level == 0 && strRoomFan3Level[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET FN3L\",\"MSG\":\"Incorrect Room Fan 3 value : ");
+      jsonToReturn += strRoomFan3Level;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    cmdSuccess &= _Pala.setRoomFan3(roomFan3Level);
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET FN4L ")))
+  {
+    String strRoomFan4Level(cmd.substring(9));
+
+    byte roomFan4Level = strRoomFan4Level.toInt();
+
+    if (roomFan4Level == 0 && strRoomFan4Level[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET FN4L\",\"MSG\":\"Incorrect Room Fan 4 value : ");
+      jsonToReturn += strRoomFan4Level;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    cmdSuccess &= _Pala.setRoomFan4(roomFan4Level);
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET SLNT ")))
+  {
+    String strSilentMode = cmd.substring(9);
+
+    byte silentMode = strSilentMode.toInt();
+
+    if (silentMode == 0 && strSilentMode[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET SLNT\",\"MSG\":\"Incorrect Silent Mode value : ");
+      jsonToReturn += strSilentMode;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    cmdSuccess &= _Pala.setSilentMode(silentMode);
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET SETP ")))
+  {
+    byte setPoint = cmd.substring(9).toInt();
+
+    if (setPoint == 0)
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET SETP\",\"MSG\":\"Incorrect SetPoint value : ");
+      jsonToReturn += cmd.substring(9);
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    cmdSuccess &= _Pala.setSetpoint(setPoint);
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET STPF ")))
+  {
+    float setPointFloat = cmd.substring(9).toFloat();
+
+    if (setPointFloat == 0.0f)
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET STPF\",\"MSG\":\"Incorrect SetPoint Float value : ");
+      jsonToReturn += cmd.substring(9);
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    cmdSuccess &= _Pala.setSetpoint(setPointFloat);
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET PARM ")))
+  {
+    String strParamNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
+    String strParamValue(cmd.substring(cmd.indexOf(' ', 9) + 1));
+
+    byte paramNumber = strParamNumber.toInt();
+
+    if (paramNumber == 0 && strParamNumber[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET PARM\",\"MSG\":\"Incorrect Parameter Number : ");
+      jsonToReturn += strParamNumber;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    byte paramValue = strParamValue.toInt();
+
+    if (paramValue == 0 && strParamValue[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET PARM\",\"MSG\":\"Incorrect Parameter Value : ");
+      jsonToReturn += strParamValue;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    cmdSuccess &= _Pala.setParameter(paramNumber, paramValue);
+    cmdProcessed = true;
+  }
+
+if (!cmdProcessed && cmd.startsWith(F("SET HPAR ")))
+  {
+    String strHiddenParamNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
+    String strHiddenParamValue(cmd.substring(cmd.indexOf(' ', 9) + 1));
+
+    byte hiddenParamNumber = strHiddenParamNumber.toInt();
+
+    if (hiddenParamNumber == 0 && strHiddenParamNumber[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET HPAR\",\"MSG\":\"Incorrect Hidden Parameter Number : ");
+      jsonToReturn += strHiddenParamNumber;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    uint16_t hiddenParamValue = strHiddenParamValue.toInt();
+
+    if (hiddenParamValue == 0 && strHiddenParamValue[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET HPAR\",\"MSG\":\"Incorrect Hidden Parameter Value : ");
+      jsonToReturn += strHiddenParamValue;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    cmdSuccess &= _Pala.setHiddenParameter(hiddenParamNumber, hiddenParamValue);
+    cmdProcessed = true;
+  }
+
 
   // if command has been processed
   if (cmdProcessed)
@@ -616,6 +987,12 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
     {
       const String &cmd = request->getParam(F("cmd"))->value();
 
+      if (cmd == F("GET STDT"))
+      {
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
+      }
+
       if (cmd == F("GET ALLS"))
       {
         request->send(200, F("text/json"), executePalaCmd(cmd));
@@ -630,288 +1007,56 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
       if (cmd == F("GET TMPS"))
       {
-        bool res = true;
-
-        float T1, T2, T3, T4, T5;
-        res &= _Pala.getAllTemps(&T1, &T2, &T3, &T4, &T5);
-
-        if (res)
-        {
-          DynamicJsonDocument doc(500);
-          String jsonToReturn;
-          doc[F("SUCCESS")] = true;
-          JsonObject data = doc.createNestedObject(F("DATA"));
-          data[F("T1")] = T1;
-          data[F("T2")] = T2;
-          data[F("T3")] = T3;
-          data[F("T4")] = T4;
-          data[F("T5")] = T5;
-          serializeJson(doc, jsonToReturn);
-
-          request->send(200, F("text/json"), jsonToReturn);
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET TMPS\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd == F("GET FAND"))
       {
-        bool res = true;
-
-        uint16_t F1V, F2V, F1RPM, F2L, F2LF, F3L, F4L;
-        bool isF3LF4LValid;
-        res &= _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3LF4LValid, &F3L, &F4L);
-
-        if (res)
-        {
-          DynamicJsonDocument doc(500);
-          String jsonToReturn;
-          doc[F("SUCCESS")] = true;
-          JsonObject data = doc.createNestedObject(F("DATA"));
-          data[F("F1V")] = F1V;
-          data[F("F2V")] = F2V;
-          data[F("F1RPM")] = F1RPM;
-          data[F("F2L")] = F2L;
-          data[F("F2LF")] = F2LF;
-          if (isF3LF4LValid)
-          {
-            data[F("F3L")] = F3L;
-            data[F("F4L")] = F4L;
-          }
-          serializeJson(doc, jsonToReturn);
-
-          request->send(200, F("text/json"), jsonToReturn);
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET FAND\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd == F("GET SETP"))
       {
-        bool res = true;
-
-        float SETP;
-        res &= _Pala.getSetPoint(&SETP);
-
-        if (res)
-        {
-          DynamicJsonDocument doc(100);
-          String jsonToReturn;
-          doc[F("SUCCESS")] = true;
-          JsonObject data = doc.createNestedObject(F("DATA"));
-          data[F("SETP")] = SETP;
-          serializeJson(doc, jsonToReturn);
-
-          request->send(200, F("text/json"), jsonToReturn);
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET SETP\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd == F("GET POWR"))
       {
-        bool res = true;
-
-        byte PWR;
-        float FDR;
-        res &= _Pala.getPower(&PWR, &FDR);
-
-        if (res)
-        {
-          DynamicJsonDocument doc(100);
-          String jsonToReturn;
-          doc[F("SUCCESS")] = true;
-          JsonObject data = doc.createNestedObject(F("DATA"));
-          data[F("PWR")] = PWR;
-          data[F("FDR")] = FDR;
-          serializeJson(doc, jsonToReturn);
-
-          request->send(200, F("text/json"), jsonToReturn);
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET POWR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd == F("GET CUNT") || cmd == F("GET CNTR"))
       {
-        bool res = true;
-
-        uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQT;
-        res &= _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQT);
-
-        if (res)
-        {
-          DynamicJsonDocument doc(500);
-          String jsonToReturn;
-          doc[F("SUCCESS")] = true;
-          JsonObject data = doc.createNestedObject(F("DATA"));
-          data[F("IGN")] = IGN;
-          data[F("POWERTIME")] = String(POWERTIMEh) + ':' + (POWERTIMEm / 10) + (POWERTIMEm % 10);
-          data[F("HEATTIME")] = String(HEATTIMEh) + ':' + (HEATTIMEm / 10) + (HEATTIMEm % 10);
-          data[F("SERVICETIME")] = String(SERVICETIMEh) + ':' + (SERVICETIMEm / 10) + (SERVICETIMEm % 10);
-          data[F("ONTIME")] = String(ONTIMEh) + ':' + (ONTIMEm / 10) + (ONTIMEm % 10);
-          data[F("OVERTMPERRORS")] = OVERTMPERRORS;
-          data[F("IGNERRORS")] = IGNERRORS;
-          data[F("PQT")] = PQT;
-          serializeJson(doc, jsonToReturn);
-
-          request->send(200, F("text/json"), jsonToReturn);
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET CNTR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd == F("GET DPRS"))
       {
-        bool res = true;
-
-        uint16_t DP_TARGET, DP_PRESS;
-        res &= _Pala.getDPressData(&DP_TARGET, &DP_PRESS);
-
-        if (res)
-        {
-          DynamicJsonDocument doc(500);
-          String jsonToReturn;
-          doc[F("SUCCESS")] = true;
-          JsonObject data = doc.createNestedObject(F("DATA"));
-          data[F("DP_TARGET")] = DP_TARGET;
-          data[F("DP_PRESS")] = DP_PRESS;
-          serializeJson(doc, jsonToReturn);
-
-          request->send(200, F("text/json"), jsonToReturn);
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET DPRS\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd == F("GET TIME"))
       {
-        bool res = true;
-
-        char STOVE_DATETIME[20];
-        byte STOVE_WDAY;
-        res &= _Pala.getDateTime(STOVE_DATETIME, &STOVE_WDAY);
-
-        if (res)
-        {
-          DynamicJsonDocument doc(100);
-          String jsonToReturn;
-          doc[F("SUCCESS")] = true;
-          JsonObject data = doc.createNestedObject(F("DATA"));
-          data[F("STOVE_DATETIME")] = STOVE_DATETIME;
-          data[F("STOVE_WDAY")] = STOVE_WDAY;
-          serializeJson(doc, jsonToReturn);
-
-          request->send(200, F("text/json"), jsonToReturn);
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET TIME\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd.startsWith(F("GET PARM ")))
       {
-        bool res = true;
-
-        String strParamNumber(cmd.substring(9));
-
-        byte paramNumber = strParamNumber.toInt();
-
-        if (paramNumber == 0 && strParamNumber[0] != '0')
-        {
-          String ret(F("{\"INFO\":{\"CMD\":\"GET PARM\",\"MSG\":\"Incorrect Parameter Number : "));
-          ret += strParamNumber;
-          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-          request->send(200, F("text/json"), ret);
-          return;
-        }
-
-        byte paramValue;
-        res &= _Pala.getParameter(paramNumber, &paramValue);
-
-        if (res)
-        {
-          DynamicJsonDocument doc(100);
-          String jsonToReturn;
-          doc[F("SUCCESS")] = true;
-          JsonObject data = doc.createNestedObject(F("DATA"));
-          data[F("PAR")] = paramValue;
-          serializeJson(doc, jsonToReturn);
-
-          request->send(200, F("text/json"), jsonToReturn);
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET PARM\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd.startsWith(F("GET HPAR ")))
       {
-        bool res = true;
-
-        String strHiddenParamNumber(cmd.substring(9));
-
-        byte hiddenParamNumber = strHiddenParamNumber.toInt();
-
-        if (hiddenParamNumber == 0 && strHiddenParamNumber[0] != '0')
-        {
-          String ret(F("{\"INFO\":{\"CMD\":\"GET HPAR\",\"MSG\":\"Incorrect Hidden Parameter Number : "));
-          ret += strHiddenParamNumber;
-          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-          request->send(200, F("text/json"), ret);
-          return;
-        }
-
-        uint16_t hiddenParamValue;
-        res &= _Pala.getHiddenParameter(hiddenParamNumber, &hiddenParamValue);
-
-        if (res)
-        {
-          DynamicJsonDocument doc(100);
-          String jsonToReturn;
-          doc[F("SUCCESS")] = true;
-          JsonObject data = doc.createNestedObject(F("DATA"));
-          data[F("HPAR")] = hiddenParamValue;
-          serializeJson(doc, jsonToReturn);
-
-          request->send(200, F("text/json"), jsonToReturn);
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"GET HPAR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd.startsWith(F("BKP PARM ")))
@@ -1050,322 +1195,62 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
       if (cmd.startsWith(F("CMD ")))
       {
-        bool res = true;
-
-        if (cmd.substring(4) == F("ON"))
-          res &= _Pala.powerOn();
-        else if (cmd.substring(4) == F("OFF"))
-          res &= _Pala.powerOff();
-        else
-          res = false;
-
-        if (res)
-        {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"CMD ON/OFF\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd.startsWith(F("SET POWR ")))
       {
-        bool res = true;
-
-        byte powerLevel = cmd.substring(9).toInt();
-
-        if (powerLevel == 0)
-        {
-          String ret(F("{\"INFO\":{\"CMD\":\"SET POWR\",\"MSG\":\"Incorrect Power value : "));
-          ret += cmd.substring(9);
-          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-          request->send(200, F("text/json"), ret);
-          return;
-        }
-
-        res &= _Pala.setPower(powerLevel);
-
-        if (res)
-        {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET POWR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd.startsWith(F("SET RFAN ")))
       {
-        bool res = true;
-
-        String strRoomFanLevel(cmd.substring(9));
-
-        byte roomFanLevel = strRoomFanLevel.toInt();
-
-        if (roomFanLevel == 0 && strRoomFanLevel[0] != '0')
-        {
-          String ret(F("{\"INFO\":{\"CMD\":\"SET RFAN\",\"MSG\":\"Incorrect Room Fan value : "));
-          ret += strRoomFanLevel;
-          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-          request->send(200, F("text/json"), ret);
-          return;
-        }
-
-        res &= _Pala.setRoomFan(roomFanLevel);
-
-        if (res)
-        {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET RFAN\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd.startsWith(F("SET FN3L ")))
       {
-        bool res = true;
-
-        String strRoomFan3Level(cmd.substring(9));
-
-        byte roomFan3Level = strRoomFan3Level.toInt();
-
-        if (roomFan3Level == 0 && strRoomFan3Level[0] != '0')
-        {
-          String ret(F("{\"INFO\":{\"CMD\":\"SET FN3L\",\"MSG\":\"Incorrect Room Fan 3 value : "));
-          ret += strRoomFan3Level;
-          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-          request->send(200, F("text/json"), ret);
-          return;
-        }
-
-        res &= _Pala.setRoomFan3(roomFan3Level);
-
-        if (res)
-        {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET FN3L\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd.startsWith(F("SET FN4L ")))
       {
-        bool res = true;
-
-        String strRoomFan4Level(cmd.substring(9));
-
-        byte roomFan4Level = strRoomFan4Level.toInt();
-
-        if (roomFan4Level == 0 && strRoomFan4Level[0] != '0')
-        {
-          String ret(F("{\"INFO\":{\"CMD\":\"SET FN4L\",\"MSG\":\"Incorrect Room Fan 4 value : "));
-          ret += strRoomFan4Level;
-          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-          request->send(200, F("text/json"), ret);
-          return;
-        }
-
-        res &= _Pala.setRoomFan4(roomFan4Level);
-
-        if (res)
-        {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET FN4L\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd.startsWith(F("SET SLNT ")))
       {
-        bool res = true;
-
-        String strSilentMode = cmd.substring(9);
-
-        byte silentMode = strSilentMode.toInt();
-
-        if (silentMode == 0 && strSilentMode[0] != '0')
-        {
-          String ret(F("{\"INFO\":{\"CMD\":\"SET SLNT\",\"MSG\":\"Incorrect Silent Mode value : "));
-          ret += strSilentMode;
-          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-          request->send(200, F("text/json"), ret);
-          return;
-        }
-
-        res &= _Pala.setSilentMode(silentMode);
-
-        if (res)
-        {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET SLNT\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd.startsWith(F("SET SETP ")))
       {
-        bool res = true;
-
-        byte setPoint = cmd.substring(9).toInt();
-
-        if (setPoint == 0)
-        {
-          String ret(F("{\"INFO\":{\"CMD\":\"SET SETP\",\"MSG\":\"Incorrect SetPoint value : "));
-          ret += cmd.substring(9);
-          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-          request->send(200, F("text/json"), ret);
-          return;
-        }
-
-        res &= _Pala.setSetpoint(setPoint);
-
-        if (res)
-        {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET SETP\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd.startsWith(F("SET STPF ")))
       {
-        bool res = true;
-
-        float setPointFloat = cmd.substring(9).toFloat();
-
-        if (setPointFloat == 0.0f)
-        {
-          String ret(F("{\"INFO\":{\"CMD\":\"SET STPF\",\"MSG\":\"Incorrect SetPoint Float value : "));
-          ret += cmd.substring(9);
-          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-          request->send(200, F("text/json"), ret);
-          return;
-        }
-
-        res &= _Pala.setSetpoint(setPointFloat);
-
-        if (res)
-        {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET STPF\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd.startsWith(F("SET PARM ")))
       {
-        bool res = true;
-
-        String strParamNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
-        String strParamValue(cmd.substring(cmd.indexOf(' ', 9) + 1));
-
-        byte paramNumber = strParamNumber.toInt();
-
-        if (paramNumber == 0 && strParamNumber[0] != '0')
-        {
-          String ret(F("{\"INFO\":{\"CMD\":\"SET PARM\",\"MSG\":\"Incorrect Parameter Number : "));
-          ret += strParamNumber;
-          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-          request->send(200, F("text/json"), ret);
-          return;
-        }
-
-        byte paramValue = strParamValue.toInt();
-
-        if (paramValue == 0 && strParamValue[0] != '0')
-        {
-          String ret(F("{\"INFO\":{\"CMD\":\"SET PARM\",\"MSG\":\"Incorrect Parameter Value : "));
-          ret += strParamValue;
-          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-          request->send(200, F("text/json"), ret);
-          return;
-        }
-
-        res &= _Pala.setParameter(paramNumber, paramValue);
-
-        if (res)
-        {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET PARM\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
 
       if (cmd.startsWith(F("SET HPAR ")))
       {
-        bool res = true;
-
-        String strHiddenParamNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
-        String strHiddenParamValue(cmd.substring(cmd.indexOf(' ', 9) + 1));
-
-        byte hiddenParamNumber = strHiddenParamNumber.toInt();
-
-        if (hiddenParamNumber == 0 && strHiddenParamNumber[0] != '0')
-        {
-          String ret(F("{\"INFO\":{\"CMD\":\"SET HPAR\",\"MSG\":\"Incorrect Hidden Parameter Number : "));
-          ret += strHiddenParamNumber;
-          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-          request->send(200, F("text/json"), ret);
-          return;
-        }
-
-        uint16_t hiddenParamValue = strHiddenParamValue.toInt();
-
-        if (hiddenParamValue == 0 && strHiddenParamValue[0] != '0')
-        {
-          String ret(F("{\"INFO\":{\"CMD\":\"SET HPAR\",\"MSG\":\"Incorrect Hidden Parameter Value : "));
-          ret += strHiddenParamValue;
-          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-          request->send(200, F("text/json"), ret);
-          return;
-        }
-
-        res &= _Pala.setHiddenParameter(hiddenParamNumber, hiddenParamValue);
-
-        if (res)
-        {
-          request->send(200, F("text/json"), F("{\"SUCCESS\":true}"));
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"SET HPAR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        request->send(200, F("text/json"), executePalaCmd(cmd));
+        return;
       }
     }
 
