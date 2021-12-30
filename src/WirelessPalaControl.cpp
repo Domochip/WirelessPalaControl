@@ -277,7 +277,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   bool cmdSuccess = true; //Palazzetti function calls successful
 
   //Prepare successful answer
-  DynamicJsonDocument jsonDoc(500);
+  DynamicJsonDocument jsonDoc(512);
   JsonObject info = jsonDoc.createNestedObject(F("INFO"));
   info[F("CMD")] = cmd;
   info[F("RSP")] = F("OK");
@@ -663,7 +663,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     cmdProcessed = true;
   }
 
-if (!cmdProcessed && cmd.startsWith(F("SET HPAR ")))
+  if (!cmdProcessed && cmd.startsWith(F("SET HPAR ")))
   {
     String strHiddenParamNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     String strHiddenParamValue(cmd.substring(cmd.indexOf(' ', 9) + 1));
@@ -1005,155 +1005,186 @@ size_t WebPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
 //code to register web request answer to the web server
 void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
-
+  // Handle HTTP GET requests
   server.on("/cgi-bin/sendmsg.lua", HTTP_GET, [this](AsyncWebServerRequest *request) {
-    if (request->hasParam(F("cmd")))
+    String cmd;
+
+    if (request->hasParam(F("cmd"))) cmd = request->getParam(F("cmd"))->value();
+
+    // WPalaControl specific command
+    if (cmd.startsWith(F("BKP PARM ")))
     {
-      const String &cmd = request->getParam(F("cmd"))->value();
+      bool res = true;
 
-      // WPalaControl specific command
-      if (cmd.startsWith(F("BKP PARM ")))
+      byte fileType;
+
+      String strFileType(cmd.substring(9));
+
+      if (strFileType == F("CSV"))
+        fileType = 0;
+      else if (strFileType == F("JSON"))
+        fileType = 1;
+      else
       {
-        bool res = true;
-
-        byte fileType;
-
-        String strFileType(cmd.substring(9));
-
-        if (strFileType == F("CSV"))
-          fileType = 0;
-        else if (strFileType == F("JSON"))
-          fileType = 1;
-        else
-        {
-          String ret(F("{\"INFO\":{\"CMD\":\"BKP PARM\",\"MSG\":\"Incorrect File Type : "));
-          ret += strFileType;
-          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-          request->send(200, F("text/json"), ret);
-          return;
-        }
-
-        byte params[0x6A];
-        res &= _Pala.getAllParameters(params);
-
-        if (res)
-        {
-          String toReturn;
-          AsyncWebServerResponse *response;
-
-          switch (fileType)
-          {
-          case 0: //CSV
-            toReturn += F("PARM;VALUE\r\n");
-            for (byte i = 0; i < 0x6A; i++)
-              toReturn += String(i) + ';' + params[i] + '\r' + '\n';
-
-            response = request->beginResponse(200, F("text/csv"), toReturn);
-            response->addHeader("Content-Disposition", "attachment; filename=\"PARM.csv\"");
-            request->send(response);
-
-            break;
-          case 1: //JSON
-            toReturn += F("{\"PARM\":[");
-            for (byte i = 0; i < 0x6A; i++)
-            {
-              if (i)
-                toReturn += F(",\r\n");
-              toReturn += params[i];
-            }
-            toReturn += F("]}");
-
-            response = request->beginResponse(200, F("text/json"), toReturn);
-            response->addHeader("Content-Disposition", "attachment; filename=\"PARM.json\"");
-            request->send(response);
-
-            break;
-          }
-
-          return;
-        }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP PARM\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+        String ret(F("{\"INFO\":{\"CMD\":\"BKP PARM\",\"MSG\":\"Incorrect File Type : "));
+        ret += strFileType;
+        ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+        request->send(200, F("text/json"), ret);
+        return;
       }
 
-      // WPalaControl specific command
-      if (cmd.startsWith(F("BKP HPAR ")))
+      byte params[0x6A];
+      res &= _Pala.getAllParameters(params);
+
+      if (res)
       {
-        bool res = true;
+        String toReturn;
+        AsyncWebServerResponse *response;
 
-        byte fileType;
-
-        String strFileType(cmd.substring(9));
-
-        if (strFileType == F("CSV"))
-          fileType = 0;
-        else if (strFileType == F("JSON"))
-          fileType = 1;
-        else
+        switch (fileType)
         {
-          String ret(F("{\"INFO\":{\"CMD\":\"BKP HPAR\",\"MSG\":\"Incorrect File Type : "));
-          ret += strFileType;
-          ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-          request->send(200, F("text/json"), ret);
-          return;
-        }
+        case 0: //CSV
+          toReturn += F("PARM;VALUE\r\n");
+          for (byte i = 0; i < 0x6A; i++)
+            toReturn += String(i) + ';' + params[i] + '\r' + '\n';
 
-        uint16_t hiddenParams[0x6F];
-        res &= _Pala.getAllHiddenParameters(hiddenParams);
+          response = request->beginResponse(200, F("text/csv"), toReturn);
+          response->addHeader("Content-Disposition", "attachment; filename=\"PARM.csv\"");
+          request->send(response);
 
-        if (res)
-        {
-          String toReturn;
-          AsyncWebServerResponse *response;
-
-          switch (fileType)
+          break;
+        case 1: //JSON
+          toReturn += F("{\"PARM\":[");
+          for (byte i = 0; i < 0x6A; i++)
           {
-          case 0: //CSV
-            toReturn += F("HPAR;VALUE\r\n");
-            for (byte i = 0; i < 0x6F; i++)
-              toReturn += String(i) + ';' + hiddenParams[i] + '\r' + '\n';
-
-            response = request->beginResponse(200, F("text/csv"), toReturn);
-            response->addHeader("Content-Disposition", "attachment; filename=\"HPAR.csv\"");
-            request->send(response);
-
-            break;
-          case 1: //JSON
-            toReturn += F("{\"HPAR\":[");
-            for (byte i = 0; i < 0x6F; i++)
-            {
-              if (i)
-                toReturn += F(",\r\n");
-              toReturn += hiddenParams[i];
-            }
-            toReturn += F("]}");
-
-            response = request->beginResponse(200, F("text/json"), toReturn);
-            response->addHeader("Content-Disposition", "attachment; filename=\"HPAR.json\"");
-            request->send(response);
-
-            break;
+            if (i)
+              toReturn += F(",\r\n");
+            toReturn += params[i];
           }
+          toReturn += F("]}");
 
-          return;
+          response = request->beginResponse(200, F("text/json"), toReturn);
+          response->addHeader("Content-Disposition", "attachment; filename=\"PARM.json\"");
+          request->send(response);
+
+          break;
         }
-        else
-        {
-          request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP HPAR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
-          return;
-        }
+
+        return;
       }
-
-      // Other commands processed using normal Palazzetti logic
-      request->send(200, F("text/json"), executePalaCmd(cmd));
-      return;
+      else
+      {
+        request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP PARM\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
+        return;
+      }
     }
 
-    //if there is no cmd in GET Param, answer with error and return
-    request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"UNKNOWN\",\"MSG\":\"No valid request received\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
+    // WPalaControl specific command
+    if (cmd.startsWith(F("BKP HPAR ")))
+    {
+      bool res = true;
+
+      byte fileType;
+
+      String strFileType(cmd.substring(9));
+
+      if (strFileType == F("CSV"))
+        fileType = 0;
+      else if (strFileType == F("JSON"))
+        fileType = 1;
+      else
+      {
+        String ret(F("{\"INFO\":{\"CMD\":\"BKP HPAR\",\"MSG\":\"Incorrect File Type : "));
+        ret += strFileType;
+        ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+        request->send(200, F("text/json"), ret);
+        return;
+      }
+
+      uint16_t hiddenParams[0x6F];
+      res &= _Pala.getAllHiddenParameters(hiddenParams);
+
+      if (res)
+      {
+        String toReturn;
+        AsyncWebServerResponse *response;
+
+        switch (fileType)
+        {
+        case 0: //CSV
+          toReturn += F("HPAR;VALUE\r\n");
+          for (byte i = 0; i < 0x6F; i++)
+            toReturn += String(i) + ';' + hiddenParams[i] + '\r' + '\n';
+
+          response = request->beginResponse(200, F("text/csv"), toReturn);
+          response->addHeader("Content-Disposition", "attachment; filename=\"HPAR.csv\"");
+          request->send(response);
+
+          break;
+        case 1: //JSON
+          toReturn += F("{\"HPAR\":[");
+          for (byte i = 0; i < 0x6F; i++)
+          {
+            if (i)
+              toReturn += F(",\r\n");
+            toReturn += hiddenParams[i];
+          }
+          toReturn += F("]}");
+
+          response = request->beginResponse(200, F("text/json"), toReturn);
+          response->addHeader("Content-Disposition", "attachment; filename=\"HPAR.json\"");
+          request->send(response);
+
+          break;
+        }
+
+        return;
+      }
+      else
+      {
+        request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP HPAR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
+        return;
+      }
+    }
+
+    // Other commands processed using normal Palazzetti logic
+    request->send(200, F("text/json"), executePalaCmd(cmd));
+  });
+
+  // Commented best method because of issue : https://github.com/me-no-dev/ESPAsyncWebServer/pull/1105
+  // // Handle HTTP POST requests (Body contains a JSON)
+  // server.addHandler(new AsyncCallbackJsonWebHandler("/cgi-bin/sendmsg.lua", [this](AsyncWebServerRequest *request, JsonVariant &json) {
+  //   String cmd;
+    
+  //   if (!json[F("command")].isNull()) {
+  //     cmd = json[F("command")].as<String>();
+  //   }
+    
+  //   // process cmd
+  //   request->send(200, F("text/json"), executePalaCmd(cmd));
+  //   return;
+  // }, 128)); // last param is DynamicJsonDocument size
+
+  // Handle HTTP POST requests (Body contains a JSON)
+  server.on("/cgi-bin/sendmsg.lua", HTTP_POST,[this](AsyncWebServerRequest *request) {
+    DynamicJsonDocument jsonBuffer(128);
+    String cmd;
+
+    DeserializationError error = deserializeJson(jsonBuffer, (char*)(request->_tempObject));
+
+    if (!error && !jsonBuffer[F("command")].isNull()) cmd = jsonBuffer[F("command")].as<String>();
+
+    // process cmd
+    request->send(200, F("text/json"), executePalaCmd(cmd));
+
+  }, nullptr, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+    if (total > 0 && request->_tempObject == NULL) {
+      request->_tempObject = malloc(total+1);
+      if (request->_tempObject != NULL) ((char*)(request->_tempObject))[total] = 0;
+    }
+    if (request->_tempObject != NULL) {
+      memcpy((uint8_t*)(request->_tempObject) + index, data, len);
+    }
   });
 };
 

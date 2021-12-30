@@ -14,6 +14,7 @@ const char appDataPredefPassword[] PROGMEM = "ewcXoCt4HHjZUvY1";
 #include <PolledTimeout.h>
 #include <Palazzetti.h>
 #include <ESPAsyncUDP.h>
+#include <AsyncJson.h>
 
 class WebPalaControl : public Application
 {
