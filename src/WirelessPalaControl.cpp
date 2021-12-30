@@ -987,78 +987,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
     {
       const String &cmd = request->getParam(F("cmd"))->value();
 
-      if (cmd == F("GET STDT"))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd == F("GET ALLS"))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd == F("GET STAT"))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd == F("GET TMPS"))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd == F("GET FAND"))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd == F("GET SETP"))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd == F("GET POWR"))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd == F("GET CUNT") || cmd == F("GET CNTR"))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd == F("GET DPRS"))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd == F("GET TIME"))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd.startsWith(F("GET PARM ")))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd.startsWith(F("GET HPAR ")))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
+      // WPalaControl specific command
       if (cmd.startsWith(F("BKP PARM ")))
       {
         bool res = true;
@@ -1126,6 +1055,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
+      // WPalaControl specific command
       if (cmd.startsWith(F("BKP HPAR ")))
       {
         bool res = true;
@@ -1193,68 +1123,12 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
         }
       }
 
-      if (cmd.startsWith(F("CMD ")))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd.startsWith(F("SET POWR ")))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd.startsWith(F("SET RFAN ")))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd.startsWith(F("SET FN3L ")))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd.startsWith(F("SET FN4L ")))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd.startsWith(F("SET SLNT ")))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd.startsWith(F("SET SETP ")))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd.startsWith(F("SET STPF ")))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd.startsWith(F("SET PARM ")))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
-
-      if (cmd.startsWith(F("SET HPAR ")))
-      {
-        request->send(200, F("text/json"), executePalaCmd(cmd));
-        return;
-      }
+      // Other commands processed using normal Palazzetti logic
+      request->send(200, F("text/json"), executePalaCmd(cmd));
+      return;
     }
 
-    //answer with error and return
+    //if there is no cmd in GET Param, answer with error and return
     request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"UNKNOWN\",\"MSG\":\"No valid request received\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
   });
 };
