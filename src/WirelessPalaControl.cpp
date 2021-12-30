@@ -277,7 +277,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   bool cmdSuccess = true; //Palazzetti function calls successful
 
   //Prepare successful answer
-  DynamicJsonDocument jsonDoc(512);
+  DynamicJsonDocument jsonDoc(1536);
   JsonObject info = jsonDoc.createNestedObject(F("INFO"));
   info[F("CMD")] = cmd;
   info[F("RSP")] = F("OK");
@@ -291,10 +291,50 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     if (cmdSuccess)
     {
-      data["LABEL"] = WiFi.getHostname();
-      data["ICONN"] = 0; //internet connected
-      data["APLCONN"] = 1; //appliance connected
-      data["GWDEVICE"] = F("wlan0"); //always wifi
+      //Real calculated values
+      data[F("LABEL")] = WiFi.getHostname();
+
+      data[F("GWDEVICE")] = F("wlan0"); //always wifi
+      data[F("MAC")] = WiFi.macAddress();
+      data[F("GATEWAY")] = WiFi.gatewayIP().toString();
+      JsonArray dns = data.createNestedArray("DNS");
+      dns.add(WiFi.dnsIP().toString());
+
+      data[F("WMAC")] = WiFi.macAddress();
+      data[F("WMODE")] = (WiFi.getMode() & WIFI_STA) ? F("sta") : F("ap");
+      data[F("WADR")] = (WiFi.getMode() & WIFI_STA) ? WiFi.localIP().toString() : WiFi.softAPIP().toString();
+      data[F("WGW")] = WiFi.gatewayIP().toString();
+      data[F("WENC")] = F("psk2");
+      data[F("WPWR")] = WiFi.RSSI(); //need conversion to dBm?
+      data[F("WSSID")] = WiFi.SSID();
+      data[F("WPR")] = (true) ? F("dhcp") : F("static");
+      data[F("WMSK")] = WiFi.subnetMask().toString();
+      data[F("WBCST")] = WiFi.broadcastIP().toString();
+      data[F("WCH")] = WiFi.channel();
+      
+      data[F("EPR")] = F("dhcp");
+      data[F("EGW")] = F("0.0.0.0");
+      data[F("EMSK")] = F("0.0.0.0");
+      data[F("EADR")] = F("0.0.0.0");
+      data[F("EMAC")] = WiFi.macAddress();
+      data[F("ECBL")] = F("down");
+      data[F("EBCST")] = "";
+
+
+      //Fake/emulated values
+      data[F("ICONN")] = 0; //internet connected
+      data[F("APLCONN")] = 1; //appliance connected
+      
+      data[F("CBTYPE")] = F("miniembplug"); //CBox model
+      data[F("sendmsg")] = F("2.1.2 2018-03-28 10:19:09");
+      data[F("plzbridge")] = F("2.2.1 2021-10-08 09:30:45");
+      data[F("SYSTEM")] = F("2.5.3 2021-10-08 10:30:20 (657c8cf)");
+
+      data[F("CLOUD_ENABLED")] = true;
+      // BLE USB dongle mode?
+      data[F("BLEMBMODE")] = 1;
+      data[F("BLEDSPMODE")] = 1;
+      
     }
     cmdProcessed = true;
   }
