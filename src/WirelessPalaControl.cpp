@@ -891,6 +891,9 @@ String WebPalaControl::generateStatusJSON()
 //code to execute during initialization and reinitialization of the app
 bool WebPalaControl::appInit(bool reInit)
 {
+  //Stop UdpServer
+  _udpServer.close();
+
   //Stop Publish
   _publishTicker.detach();
 
@@ -931,13 +934,34 @@ bool WebPalaControl::appInit(bool reInit)
   if (res)
     LOG_SERIAL.printf("setpoint=%.2f", setPoint);
 
-  //if no HA, then use default period for Convert
+  //if no HA, then use default period for Publish
   if (_ha.protocol != HA_PROTO_DISABLED)
   {
     if (res)
       publishTick(); //if configuration changed, publish immediately
     _publishTicker.attach(_ha.uploadPeriod, [this]() { this->_needPublish = true; });
   }
+
+  //Start UDP Server
+  _udpServer.listen(54549);
+  _udpServer.onPacket([this](AsyncUDPPacket packet){
+    String strData;
+    strData.reserve(packet.length()+1);
+    String strAnswer;
+
+    uint8_t* data = packet.data();
+
+    // read request received through UDP
+    for (size_t i = 0; i < packet.length(); i++) strData += (char)data[i];
+
+    // process request
+    if (strData.endsWith(F("bridge?"))) strAnswer = executePalaCmd(F("GET STDT"));
+    else if (strData.endsWith(F("bridge?GET ALLS"))) strAnswer = executePalaCmd(F("GET ALLS"));
+    else strAnswer = executePalaCmd("");
+
+    // answer to the requester
+    packet.write((const uint8_t *)strAnswer.c_str(), strAnswer.length());
+  });
 
   return res;
 };

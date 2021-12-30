@@ -13,6 +13,7 @@ const char appDataPredefPassword[] PROGMEM = "ewcXoCt4HHjZUvY1";
 
 #include <PolledTimeout.h>
 #include <Palazzetti.h>
+#include <ESPAsyncUDP.h>
 
 class WebPalaControl : public Application
 {
@@ -45,13 +46,13 @@ private:
   HomeAutomation _ha;
   int _haSendResult = 0;
   WiFiClient _wifiClient;
+  MQTTMan _mqttMan;
+  AsyncUDP _udpServer;
 
   Palazzetti _Pala;
 
   bool _needPublish = false;
   Ticker _publishTicker;
-
-  MQTTMan _mqttMan;
 
   int myOpenSerial(uint32_t baudrate);
   void myCloseSerial();
