@@ -339,6 +339,11 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     cmdProcessed = true;
   }
 
+  if (!cmdProcessed && cmd == F("GET LABL"))
+  {
+    data[F("LABEL")] = WiFi.getHostname();
+  }
+
   if (!cmdProcessed && cmd == F("GET ALLS"))
   {
     uint16_t STATUS;
