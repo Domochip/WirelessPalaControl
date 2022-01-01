@@ -288,30 +288,53 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   //TODO complete STDT answer
   if (!cmdProcessed && cmd == F("GET STDT"))
   {
-
+    int MBTYPE;
+    uint16_t MOD, VER, CORE;
+    char FWDATE[11];
+    uint16_t FLUID;
+    uint16_t SPLMIN, SPLMAX;
+    byte UICONFIG;
+    uint16_t HWTYPE;
+    uint16_t DSPFWVER;
+    byte CONFIG;
+    byte PELLETTYPE;
+    uint16_t PSENSTYPE;
+    byte PSENSLMAX, PSENSLTSH, PSENSLMIN;
+    byte MAINTPROBE;
+    byte STOVETYPE;
+    byte FAN2TYPE;
+    byte FAN2MOD;
+    byte CHRONOTYPE;
+    byte AUTONOMYTYPE;
+    byte NOMINALPWR;
+    cmdSuccess &= _Pala.getStaticData(&MBTYPE, &MOD, &VER, &CORE, FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MOD, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
+    
     if (cmdSuccess)
     {
-      //Real calculated values
+      // ----- WPalaControl generated values -----
       data[F("LABEL")] = WiFi.getHostname();
 
+      // Network infos
       data[F("GWDEVICE")] = F("wlan0"); //always wifi
       data[F("MAC")] = WiFi.macAddress();
       data[F("GATEWAY")] = WiFi.gatewayIP().toString();
       JsonArray dns = data.createNestedArray("DNS");
       dns.add(WiFi.dnsIP().toString());
 
+      // Wifi infos
       data[F("WMAC")] = WiFi.macAddress();
       data[F("WMODE")] = (WiFi.getMode() & WIFI_STA) ? F("sta") : F("ap");
       data[F("WADR")] = (WiFi.getMode() & WIFI_STA) ? WiFi.localIP().toString() : WiFi.softAPIP().toString();
       data[F("WGW")] = WiFi.gatewayIP().toString();
       data[F("WENC")] = F("psk2");
-      data[F("WPWR")] = WiFi.RSSI(); //need conversion to dBm?
+      data[F("WPWR")] = String(WiFi.RSSI()) + F(" dBm"); //need conversion to dBm?
       data[F("WSSID")] = WiFi.SSID();
       data[F("WPR")] = (true) ? F("dhcp") : F("static");
       data[F("WMSK")] = WiFi.subnetMask().toString();
       data[F("WBCST")] = WiFi.broadcastIP().toString();
       data[F("WCH")] = WiFi.channel();
-      
+
+      // Ethernet infos
       data[F("EPR")] = F("dhcp");
       data[F("EGW")] = F("0.0.0.0");
       data[F("EMSK")] = F("0.0.0.0");
@@ -320,10 +343,8 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("ECBL")] = F("down");
       data[F("EBCST")] = "";
 
-
-      //Fake/emulated values
-      data[F("ICONN")] = 0; //internet connected
       data[F("APLCONN")] = 1; //appliance connected
+      data[F("ICONN")] = 0; //internet connected
       
       data[F("CBTYPE")] = F("miniembplug"); //CBox model
       data[F("sendmsg")] = F("2.1.2 2018-03-28 10:19:09");
@@ -334,7 +355,36 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       // BLE USB dongle mode?
       data[F("BLEMBMODE")] = 1;
       data[F("BLEDSPMODE")] = 1;
-      
+
+      data[F("SN")] = F("000000000000000000000000000");
+      data[F("SNCHK")] = 0; //SN is not valid so 0
+
+
+      // ----- Values from stove -----
+      data[F("MBTYPE")] = MBTYPE;
+      data[F("MOD")] = MOD;
+      data[F("VER")] = VER;
+      data[F("CORE")] = CORE;
+      data[F("FWDATE")] = FWDATE;
+      data[F("FLUID")] = FLUID;
+      data[F("SPLMIN")] = SPLMIN;
+      data[F("SPLMAX")] = SPLMAX;
+      data[F("UICONFIG")] = UICONFIG;
+      data[F("HWTYPE")] = HWTYPE;
+      data[F("DSPFWVER")] = DSPFWVER;
+      data[F("CONFIG")] = CONFIG;
+      data[F("PELLETTYPE")] = PELLETTYPE;
+      data[F("PSENSTYPE")] = PSENSTYPE;
+      data[F("PSENSLMAX")] = PSENSLMAX;
+      data[F("PSENSLTSH")] = PSENSLTSH;
+      data[F("PSENSLMIN")] = PSENSLMIN;
+      data[F("MAINTPROBE")] = MAINTPROBE;
+      data[F("STOVETYPE")] = STOVETYPE;
+      data[F("FAN2TYPE")] = FAN2TYPE;
+      data[F("FAN2MOD")] = FAN2MOD;
+      data[F("CHRONOTYPE")] = 0; //disable chronothermostat (no planning) (enabled if > 1)
+      data[F("AUTONOMYTYPE")] = FAN2MOD;
+      data[F("NOMINALPWR")] = NOMINALPWR;
     }
     cmdProcessed = true;
   }
