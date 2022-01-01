@@ -285,7 +285,6 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   JsonObject data = jsonDoc.createNestedObject(F("DATA"));
 
 
-  //TODO complete STDT answer
   if (!cmdProcessed && cmd == F("GET STDT"))
   {
     int MBTYPE;
@@ -396,24 +395,86 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
   if (!cmdProcessed && cmd == F("GET ALLS"))
   {
-    uint16_t STATUS;
-    cmdSuccess &= _Pala.getStatus(&STATUS, nullptr);
+    bool refreshStatus = false;
+    unsigned long currentMillis = millis();
+    if ((currentMillis - _lastAllStatusRefreshMillis) > 15000UL) //refresh AllStatus data if it's 15sec old
+      refreshStatus = true;
 
-    float T1;
-    cmdSuccess &= _Pala.getAllTemps(&T1, nullptr, nullptr, nullptr, nullptr);
-
-    float setPoint;
-    cmdSuccess &= _Pala.getSetPoint(&setPoint);
-
+    int MBTYPE;
+    uint16_t MOD, VER, CORE;
+    char FWDATE[11];
+    char APLTS[20];
+    uint16_t APLWDAY;
+    uint16_t STATUS, LSTATUS;
+    bool isMFSTATUSValid;
+    uint16_t MFSTATUS;
+    float SETP;
     uint16_t PQT;
-    cmdSuccess &= _Pala.getPelletQtUsed(&PQT);
+    uint16_t F1V;
+    uint16_t F1RPM;
+    uint16_t F2L;
+    uint16_t F2LF;
+    uint16_t FANLMINMAX[6];
+    uint16_t F2V;
+    bool isF3LF4LValid;
+    uint16_t F3L;
+    uint16_t F4L;
+    byte PWR;
+    float FDR;
+    uint16_t DPT;
+    uint16_t DP;
+    byte IN;
+    byte OUT;
+    float T1, T2, T3, T4, T5;
+    cmdSuccess &= _Pala.getAllStatus(refreshStatus, &MBTYPE, &MOD, &VER, &CORE, FWDATE, APLTS, &APLWDAY, &STATUS, &LSTATUS, &isMFSTATUSValid, &MFSTATUS, &SETP, &PQT, &F1V, &F1RPM, &F2L, &F2LF, FANLMINMAX, &F2V, &isF3LF4LValid, &F3L, &F4L, &PWR, &FDR, &DPT, &DP, &IN, &OUT, &T1, &T2, &T3, &T4, &T5);
 
     if (cmdSuccess)
     {
+      if (refreshStatus)
+        _lastAllStatusRefreshMillis = currentMillis;
+
+      data[F("MBTYPE")] = MBTYPE;
+      data[F("MAC")] = WiFi.macAddress();
+      data[F("MOD")] = MOD;
+      data[F("VER")] = VER;
+      data[F("CORE")] = CORE;
+      data[F("FWDATE")] = FWDATE;
+      data[F("APLTS")] = APLTS;
+      data[F("APLWDAY")] = APLWDAY;
       data[F("STATUS")] = STATUS;
-      data[F("T1")] = T1;
-      data[F("SETP")] = setPoint;
+      data[F("LSTATUS")] = LSTATUS;
+      if (isMFSTATUSValid)
+        data[F("MFSTATUS")] = MFSTATUS;
+      data[F("SETP")] = SETP;
       data[F("PQT")] = PQT;
+      data[F("F1V")] = F1V;
+      data[F("F1RPM")] = F1RPM;
+      data[F("F2L")] = F2L;
+      data[F("F2LF")] = F2LF;
+      JsonArray fanlminmax = data.createNestedArray(F("FANLMINMAX"));
+      fanlminmax.add(FANLMINMAX[0]);
+      fanlminmax.add(FANLMINMAX[1]);
+      fanlminmax.add(FANLMINMAX[2]);
+      fanlminmax.add(FANLMINMAX[3]);
+      fanlminmax.add(FANLMINMAX[4]);
+      fanlminmax.add(FANLMINMAX[5]);
+      data[F("F2V")] = F2V;
+      if (isF3LF4LValid)
+      {
+        data[F("F3L")] = F3L;
+        data[F("F4L")] = F4L;
+      }
+      data[F("PWR")] = PWR;
+      data[F("FDR")] = FDR;
+      data[F("DPT")] = DPT;
+      data[F("DP")] = DP;
+      data[F("IN")] = IN;
+      data[F("OUT")] = OUT;
+      data[F("T1")] = T1;
+      data[F("T2")] = T2;
+      data[F("T3")] = T3;
+      data[F("T4")] = T4;
+      data[F("T5")] = T5;
     }
     cmdProcessed = true;
   }

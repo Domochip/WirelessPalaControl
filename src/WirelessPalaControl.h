@@ -51,6 +51,7 @@ private:
   AsyncUDP _udpServer;
 
   Palazzetti _Pala;
+  unsigned long _lastAllStatusRefreshMillis = 0;
 
   bool _needPublish = false;
   Ticker _publishTicker;
