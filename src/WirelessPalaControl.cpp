@@ -277,7 +277,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   bool cmdSuccess = true; //Palazzetti function calls successful
 
   //Prepare successful answer
-  DynamicJsonDocument jsonDoc(1536);
+  DynamicJsonDocument jsonDoc(2048);
   JsonObject info = jsonDoc.createNestedObject(F("INFO"));
   info[F("CMD")] = cmd;
   info[F("RSP")] = F("OK");
