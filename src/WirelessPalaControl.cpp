@@ -605,6 +605,29 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     cmdProcessed = true;
   }
 
+  if (!cmdProcessed && cmd == F("GET IOPT"))
+  {
+    byte IN_I01, IN_I02, IN_I03, IN_I04;
+    byte OUT_O01, OUT_O02, OUT_O03, OUT_O04, OUT_O05, OUT_O06, OUT_O07;
+    cmdSuccess &= _Pala.getIO(&IN_I01, &IN_I02, &IN_I03, &IN_I04, &OUT_O01, &OUT_O02, &OUT_O03, &OUT_O04, &OUT_O05, &OUT_O06, &OUT_O07);
+
+    if (cmdSuccess)
+    {
+      data[F("IN_I01")] = IN_I01;
+      data[F("IN_I02")] = IN_I02;
+      data[F("IN_I03")] = IN_I03;
+      data[F("IN_I04")] = IN_I04;
+      data[F("OUT_O01")] = OUT_O01;
+      data[F("OUT_O02")] = OUT_O02;
+      data[F("OUT_O03")] = OUT_O03;
+      data[F("OUT_O04")] = OUT_O04;
+      data[F("OUT_O05")] = OUT_O05;
+      data[F("OUT_O06")] = OUT_O06;
+      data[F("OUT_O07")] = OUT_O07;
+    }
+    cmdProcessed = true;
+  }
+
   if (!cmdProcessed && cmd.startsWith(F("GET PARM ")))
   {
     String strParamNumber(cmd.substring(9));
