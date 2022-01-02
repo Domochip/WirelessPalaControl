@@ -331,7 +331,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("WPR")] = (true) ? F("dhcp") : F("static");
       data[F("WMSK")] = WiFi.subnetMask().toString();
       data[F("WBCST")] = WiFi.broadcastIP().toString();
-      data[F("WCH")] = WiFi.channel();
+      data[F("WCH")] = String(WiFi.channel());
 
       // Ethernet infos
       data[F("EPR")] = F("dhcp");
