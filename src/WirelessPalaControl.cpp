@@ -302,11 +302,11 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     byte MAINTPROBE;
     byte STOVETYPE;
     byte FAN2TYPE;
-    byte FAN2MOD;
+    byte FAN2MODE;
     byte CHRONOTYPE;
     byte AUTONOMYTYPE;
     byte NOMINALPWR;
-    cmdSuccess &= _Pala.getStaticData(&MBTYPE, &MOD, &VER, &CORE, FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MOD, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
+    cmdSuccess &= _Pala.getStaticData(&MBTYPE, &MOD, &VER, &CORE, FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
     
     if (cmdSuccess)
     {
@@ -380,9 +380,9 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("MAINTPROBE")] = MAINTPROBE;
       data[F("STOVETYPE")] = STOVETYPE;
       data[F("FAN2TYPE")] = FAN2TYPE;
-      data[F("FAN2MOD")] = FAN2MOD;
+      data[F("FAN2MODE")] = FAN2MODE;
       data[F("CHRONOTYPE")] = 0; //disable chronothermostat (no planning) (enabled if > 1)
-      data[F("AUTONOMYTYPE")] = FAN2MOD;
+      data[F("AUTONOMYTYPE")] = AUTONOMYTYPE;
       data[F("NOMINALPWR")] = NOMINALPWR;
     }
     cmdProcessed = true;
