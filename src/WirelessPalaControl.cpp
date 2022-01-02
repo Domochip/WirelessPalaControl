@@ -475,6 +475,9 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("T3")] = T3;
       data[F("T4")] = T4;
       data[F("T5")] = T5;
+
+      data[F("EFLAGS")] = 0; //new ErrorFlags not implemented
+      //data[F("SN")] = F("000000000000000000000000000"); //added only if SN is valid // not implemented
     }
     cmdProcessed = true;
   }
