@@ -405,6 +405,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     char FWDATE[11];
     char APLTS[20];
     uint16_t APLWDAY;
+    byte CHRSTATUS;
     uint16_t STATUS, LSTATUS;
     bool isMFSTATUSValid;
     uint16_t MFSTATUS;
@@ -427,7 +428,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     byte IN;
     byte OUT;
     float T1, T2, T3, T4, T5;
-    cmdSuccess &= _Pala.getAllStatus(refreshStatus, &MBTYPE, &MOD, &VER, &CORE, FWDATE, APLTS, &APLWDAY, &STATUS, &LSTATUS, &isMFSTATUSValid, &MFSTATUS, &SETP, &PUMP, &PQT, &F1V, &F1RPM, &F2L, &F2LF, FANLMINMAX, &F2V, &isF3LF4LValid, &F3L, &F4L, &PWR, &FDR, &DPT, &DP, &IN, &OUT, &T1, &T2, &T3, &T4, &T5);
+    cmdSuccess &= _Pala.getAllStatus(refreshStatus, &MBTYPE, &MOD, &VER, &CORE, FWDATE, APLTS, &APLWDAY, &CHRSTATUS, &STATUS, &LSTATUS, &isMFSTATUSValid, &MFSTATUS, &SETP, &PUMP, &PQT, &F1V, &F1RPM, &F2L, &F2LF, FANLMINMAX, &F2V, &isF3LF4LValid, &F3L, &F4L, &PWR, &FDR, &DPT, &DP, &IN, &OUT, &T1, &T2, &T3, &T4, &T5);
 
     if (cmdSuccess)
     {
@@ -442,6 +443,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("FWDATE")] = FWDATE;
       data[F("APLTS")] = APLTS;
       data[F("APLWDAY")] = APLWDAY;
+      data[F("CHRSTATUS")] = CHRSTATUS;
       data[F("STATUS")] = STATUS;
       data[F("LSTATUS")] = LSTATUS;
       if (isMFSTATUSValid)
