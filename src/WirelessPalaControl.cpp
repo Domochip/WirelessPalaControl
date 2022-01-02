@@ -632,6 +632,18 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     cmdProcessed = true;
   }
 
+  if (!cmdProcessed && cmd == F("GET SERN"))
+  {
+    char SN[28];
+    cmdSuccess &= _Pala.getSN(SN);
+
+    if (cmdSuccess)
+    {
+      data[F("SN")] = SN;
+    }
+    cmdProcessed = true;
+  }
+
   if (!cmdProcessed && cmd.startsWith(F("GET PARM ")))
   {
     String strParamNumber(cmd.substring(9));
