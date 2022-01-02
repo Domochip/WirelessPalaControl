@@ -287,6 +287,8 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
   if (!cmdProcessed && cmd == F("GET STDT"))
   {
+    char SN[28];
+    byte SNCHK;
     int MBTYPE;
     uint16_t MOD, VER, CORE;
     char FWDATE[11];
@@ -306,7 +308,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     byte CHRONOTYPE;
     byte AUTONOMYTYPE;
     byte NOMINALPWR;
-    cmdSuccess &= _Pala.getStaticData(&MBTYPE, &MOD, &VER, &CORE, FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
+    cmdSuccess &= _Pala.getStaticData(SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
     
     if (cmdSuccess)
     {
@@ -355,11 +357,10 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("BLEMBMODE")] = 1;
       data[F("BLEDSPMODE")] = 1;
 
-      data[F("SN")] = F("000000000000000000000000000");
-      data[F("SNCHK")] = 0; //SN is not valid so 0
-
 
       // ----- Values from stove -----
+      data[F("SN")] = SN;
+      data[F("SNCHK")] = SNCHK;
       data[F("MBTYPE")] = MBTYPE;
       data[F("MOD")] = MOD;
       data[F("VER")] = VER;
@@ -428,7 +429,9 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     byte IN;
     byte OUT;
     float T1, T2, T3, T4, T5;
-    cmdSuccess &= _Pala.getAllStatus(refreshStatus, &MBTYPE, &MOD, &VER, &CORE, FWDATE, APLTS, &APLWDAY, &CHRSTATUS, &STATUS, &LSTATUS, &isMFSTATUSValid, &MFSTATUS, &SETP, &PUMP, &PQT, &F1V, &F1RPM, &F2L, &F2LF, FANLMINMAX, &F2V, &isF3LF4LValid, &F3L, &F4L, &PWR, &FDR, &DPT, &DP, &IN, &OUT, &T1, &T2, &T3, &T4, &T5);
+    bool isSNValid;
+    char SN[28];
+    cmdSuccess &= _Pala.getAllStatus(refreshStatus, &MBTYPE, &MOD, &VER, &CORE, FWDATE, APLTS, &APLWDAY, &CHRSTATUS, &STATUS, &LSTATUS, &isMFSTATUSValid, &MFSTATUS, &SETP, &PUMP, &PQT, &F1V, &F1RPM, &F2L, &F2LF, FANLMINMAX, &F2V, &isF3LF4LValid, &F3L, &F4L, &PWR, &FDR, &DPT, &DP, &IN, &OUT, &T1, &T2, &T3, &T4, &T5, &isSNValid, SN);
 
     if (cmdSuccess)
     {
@@ -481,7 +484,8 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("T5")] = T5;
 
       data[F("EFLAGS")] = 0; //new ErrorFlags not implemented
-      //data[F("SN")] = F("000000000000000000000000000"); //added only if SN is valid // not implemented
+      if (isSNValid)
+        data[F("SN")] = SN;
     }
     cmdProcessed = true;
   }
