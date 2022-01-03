@@ -171,9 +171,12 @@ void WebPalaControl::publishTick()
       else
         return;
 
-      uint16_t F1V, F2V, F1RPM, F2L, F2LF, F3L, F4L;
+      uint16_t F1V, F2V, F1RPM, F2L, F2LF;
+      bool isF3SF4SValid;
+      float F3S, F4S;
       bool isF3LF4LValid;
-      if ((_haSendResult &= _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3LF4LValid, &F3L, &F4L)))
+      uint16_t F3L, F4L;
+      if ((_haSendResult &= _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3SF4SValid, &F3S, &F4S, &isF3LF4LValid, &F3L, &F4L)))
       {
         _haSendResult &= _mqttMan.publish((baseTopic + F("F1V")).c_str(), String(F1V).c_str());
         _statusEventSource.send((String("{\"F1V\":") + F1V + '}').c_str());
@@ -183,6 +186,13 @@ void WebPalaControl::publishTick()
         _statusEventSource.send((String("{\"F2L\":") + F2L + '}').c_str());
         _haSendResult &= _mqttMan.publish((baseTopic + F("F2LF")).c_str(), String(F2LF).c_str());
         _statusEventSource.send((String("{\"F2LF\":") + F2LF + '}').c_str());
+        if (isF3SF4SValid)
+        {
+          _haSendResult &= _mqttMan.publish((baseTopic + F("F3S")).c_str(), String(F3S).c_str());
+          _statusEventSource.send((String("{\"F3S\":") + F3S + '}').c_str());
+          _haSendResult &= _mqttMan.publish((baseTopic + F("F4S")).c_str(), String(F4S).c_str());
+          _statusEventSource.send((String("{\"F4S\":") + F4S + '}').c_str());
+        }
         if (isF3LF4LValid)
         {
           _haSendResult &= _mqttMan.publish((baseTopic + F("F3L")).c_str(), String(F3L).c_str());
@@ -522,9 +532,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
   if (!cmdProcessed && cmd == F("GET FAND"))
   {
-    uint16_t F1V, F2V, F1RPM, F2L, F2LF, F3L, F4L;
+    uint16_t F1V, F2V, F1RPM, F2L, F2LF;
+    bool isF3SF4SValid;
+    float F3S, F4S;
     bool isF3LF4LValid;
-    cmdSuccess &= _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3LF4LValid, &F3L, &F4L);
+    uint16_t F3L, F4L;
+    cmdSuccess &= _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3SF4SValid, &F3S, &F4S, &isF3LF4LValid, &F3L, &F4L);
 
     if (cmdSuccess)
     {
@@ -533,6 +546,11 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("F1RPM")] = F1RPM;
       data[F("F2L")] = F2L;
       data[F("F2LF")] = F2LF;
+      if (isF3SF4SValid)
+      {
+        data[F("F3S")] = F3S;
+        data[F("F4S")] = F4S;
+      }
       if (isF3LF4LValid)
       {
         data[F("F3L")] = F3L;
