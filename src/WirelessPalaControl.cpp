@@ -842,7 +842,27 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       return jsonToReturn;
     }
 
-    cmdSuccess &= _Pala.setSilentMode(silentMode);
+    byte SLNTReturn;
+    byte PWRReturn;
+    uint16_t F2LReturn;
+    uint16_t F2LFReturn;
+    bool isF3LF4LReturnValid;
+    uint16_t F3LReturn;
+    uint16_t F4LReturn;
+    cmdSuccess &= _Pala.setSilentMode(silentMode, &SLNTReturn, &PWRReturn, &F2LReturn, &F2LFReturn, &isF3LF4LReturnValid, &F3LReturn, &F4LReturn);
+
+    if (cmdSuccess)
+    {
+      data[F("SLNT")] = SLNTReturn;
+      data[F("PWR")] = PWRReturn;
+      data[F("F2L")] = F2LReturn;
+      data[F("F2LF")] = F2LFReturn;
+      if (isF3LF4LReturnValid)
+      {
+        data[F("F3L")] = F3LReturn;
+        data[F("F4L")] = F4LReturn;
+      }
+    }
     cmdProcessed = true;
   }
 
