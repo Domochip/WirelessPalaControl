@@ -295,7 +295,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     uint16_t FLUID;
     uint16_t SPLMIN, SPLMAX;
     byte UICONFIG;
-    uint16_t HWTYPE;
+    byte HWTYPE;
     uint16_t DSPFWVER;
     byte CONFIG;
     byte PELLETTYPE;
