@@ -930,6 +930,11 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     cmdSuccess &= _Pala.setParameter(paramNumber, paramValue);
+
+    if (cmdSuccess)
+    {
+      data[String(F("PAR")) + paramNumber] = paramValue;
+    }
     cmdProcessed = true;
   }
 
