@@ -159,6 +159,8 @@ HTTP GET requests can be send directly and should follow this syntax : **http://
 
 HTTP GET Command list : 
 
+- `GET+STDT` will return static data
+- `GET+ALLS` will return all status data
 - `GET+STAT` will return status of the stove
 - `GET+TMPS` will return temperatures of the stove
 - `GET+FAND` will return Fan values
@@ -167,6 +169,9 @@ HTTP GET Command list :
 - `GET+CUNT` will return some counters
 - `GET+CNTR` will return some counters (same as GET+CUNT)
 - `GET+DPRS` will return delta pressure data
+- `GET+TIME` will return stove clock data
+- `GET+IOPT` will return IO ports status
+- `GET+SERN` will return stove Serial Number
 - `GET+PARM+92` will return parameter (ex : 92=pellet type (1-3))
 - `GET+HPAR+57` will return hidden parameter (ex : 57=% of pellet to feed for pellet type 3)
 ---
@@ -183,6 +188,7 @@ HTTP GET Command list :
 - `SET+RFAN+7` will set Room Fan value (0-5;6=Max;7=Auto)
 - `SET+FN3L+0` will set Room Fan 3 value (0-5)
 - `SET+FN4L+0` will set Room Fan 4 value (0-5)
+- `SET+SLNT+0` will set Silent mode value (0-1)
 - `SET+PARM+92+2` will set parameter 92 to value 2 (ex : 92=pellet type (1-3))
 - `SET+HPAR+57+95` will set hidden parameter 57 to value 95 (ex : 57=% of pellet to feed for pellet type 3)
 ---
