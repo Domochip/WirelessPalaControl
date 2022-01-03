@@ -816,7 +816,13 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       return jsonToReturn;
     }
 
-    cmdSuccess &= _Pala.setSetpoint(setPoint);
+    float SETPReturn;
+    cmdSuccess &= _Pala.setSetpoint(setPoint, &SETPReturn);
+
+    if (cmdSuccess)
+    {
+      data[F("SETP")] = SETPReturn;
+    }
     cmdProcessed = true;
   }
 
