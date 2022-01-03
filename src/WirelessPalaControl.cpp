@@ -305,10 +305,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     byte STOVETYPE;
     byte FAN2TYPE;
     byte FAN2MODE;
+    byte BLEMBMODE;
+    byte BLEDSPMODE;
     byte CHRONOTYPE;
     byte AUTONOMYTYPE;
     byte NOMINALPWR;
-    cmdSuccess &= _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
+    cmdSuccess &= _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
     
     if (cmdSuccess)
     {
@@ -353,9 +355,6 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("SYSTEM")] = F("2.5.3 2021-10-08 10:30:20 (657c8cf)");
 
       data[F("CLOUD_ENABLED")] = true;
-      // BLE USB dongle mode?
-      data[F("BLEMBMODE")] = 1;
-      data[F("BLEDSPMODE")] = 1;
 
 
       // ----- Values from stove -----
@@ -382,6 +381,8 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("STOVETYPE")] = STOVETYPE;
       data[F("FAN2TYPE")] = FAN2TYPE;
       data[F("FAN2MODE")] = FAN2MODE;
+      data[F("BLEMBMODE")] = BLEMBMODE;
+      data[F("BLEDSPMODE")] = BLEDSPMODE;
       data[F("CHRONOTYPE")] = 0; //disable chronothermostat (no planning) (enabled if > 1)
       data[F("AUTONOMYTYPE")] = AUTONOMYTYPE;
       data[F("NOMINALPWR")] = NOMINALPWR;
