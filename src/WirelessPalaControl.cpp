@@ -217,7 +217,7 @@ void WebPalaControl::publishTick()
 
       char STOVE_DATETIME[20];
       byte STOVE_WDAY;
-      if ((_haSendResult &= _Pala.getDateTime(STOVE_DATETIME, &STOVE_WDAY)))
+      if ((_haSendResult &= _Pala.getDateTime(&STOVE_DATETIME, &STOVE_WDAY)))
       {
         _haSendResult &= _mqttMan.publish((baseTopic + F("STOVE_DATETIME")).c_str(), String(STOVE_DATETIME).c_str());
         _statusEventSource.send((String("{\"STOVE_DATETIME\":") + STOVE_DATETIME + '}').c_str());
@@ -308,7 +308,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     byte CHRONOTYPE;
     byte AUTONOMYTYPE;
     byte NOMINALPWR;
-    cmdSuccess &= _Pala.getStaticData(SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
+    cmdSuccess &= _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
     
     if (cmdSuccess)
     {
@@ -431,7 +431,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     float T1, T2, T3, T4, T5;
     bool isSNValid;
     char SN[28];
-    cmdSuccess &= _Pala.getAllStatus(refreshStatus, &MBTYPE, &MOD, &VER, &CORE, FWDATE, APLTS, &APLWDAY, &CHRSTATUS, &STATUS, &LSTATUS, &isMFSTATUSValid, &MFSTATUS, &SETP, &PUMP, &PQT, &F1V, &F1RPM, &F2L, &F2LF, FANLMINMAX, &F2V, &isF3LF4LValid, &F3L, &F4L, &PWR, &FDR, &DPT, &DP, &IN, &OUT, &T1, &T2, &T3, &T4, &T5, &isSNValid, SN);
+    cmdSuccess &= _Pala.getAllStatus(refreshStatus, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &APLTS, &APLWDAY, &CHRSTATUS, &STATUS, &LSTATUS, &isMFSTATUSValid, &MFSTATUS, &SETP, &PUMP, &PQT, &F1V, &F1RPM, &F2L, &F2LF, &FANLMINMAX, &F2V, &isF3LF4LValid, &F3L, &F4L, &PWR, &FDR, &DPT, &DP, &IN, &OUT, &T1, &T2, &T3, &T4, &T5, &isSNValid, &SN);
 
     if (cmdSuccess)
     {
@@ -603,7 +603,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   {
     char STOVE_DATETIME[20];
     byte STOVE_WDAY;
-    cmdSuccess &= _Pala.getDateTime(STOVE_DATETIME, &STOVE_WDAY);
+    cmdSuccess &= _Pala.getDateTime(&STOVE_DATETIME, &STOVE_WDAY);
 
     if (cmdSuccess)
     {
@@ -639,7 +639,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET SERN"))
   {
     char SN[28];
-    cmdSuccess &= _Pala.getSN(SN);
+    cmdSuccess &= _Pala.getSN(&SN);
 
     if (cmdSuccess)
     {
@@ -1236,7 +1236,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
       }
 
       byte params[0x6A];
-      res &= _Pala.getAllParameters(params);
+      res &= _Pala.getAllParameters(&params);
 
       if (res)
       {
@@ -1304,7 +1304,7 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
       }
 
       uint16_t hiddenParams[0x6F];
-      res &= _Pala.getAllHiddenParameters(hiddenParams);
+      res &= _Pala.getAllHiddenParameters(&hiddenParams);
 
       if (res)
       {
