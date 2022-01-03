@@ -764,7 +764,19 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       return jsonToReturn;
     }
 
-    cmdSuccess &= _Pala.setRoomFan(roomFanLevel);
+    bool isPWRReturnValid;
+    byte PWRReturn;
+    uint16_t F2LReturn;
+    uint16_t F2LFReturn;
+    cmdSuccess &= _Pala.setRoomFan(roomFanLevel, &isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
+
+    if (cmdSuccess)
+    {
+      if (isPWRReturnValid)
+        data[F("PWR")] = PWRReturn;
+      data[F("F2L")] = F2LReturn;
+      data[F("F2LF")] = F2LFReturn;
+    }
     cmdProcessed = true;
   }
 
