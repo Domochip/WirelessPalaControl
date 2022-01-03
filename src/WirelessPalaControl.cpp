@@ -667,6 +667,22 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     cmdProcessed = true;
   }
 
+  if (!cmdProcessed && cmd == F("GET MDVE"))
+  {
+    uint16_t MOD, VER, CORE;
+    char FWDATE[11];
+    cmdSuccess &= _Pala.getModelVersion(&MOD, &VER, &CORE, &FWDATE);
+
+    if (cmdSuccess)
+    {
+      data[F("MOD")] = MOD;
+      data[F("VER")] = VER;
+      data[F("CORE")] = CORE;
+      data[F("FWDATE")] = FWDATE;
+    }
+    cmdProcessed = true;
+  }
+
   if (!cmdProcessed && cmd.startsWith(F("GET PARM ")))
   {
     String strParamNumber(cmd.substring(9));
