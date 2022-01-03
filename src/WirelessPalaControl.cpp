@@ -794,7 +794,13 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       return jsonToReturn;
     }
 
-    cmdSuccess &= _Pala.setRoomFan3(roomFan3Level);
+    uint16_t F3LReturn;
+    cmdSuccess &= _Pala.setRoomFan3(roomFan3Level, &F3LReturn);
+
+    if (cmdSuccess)
+    {
+      data[F("F3L")] = F3LReturn;
+    }
     cmdProcessed = true;
   }
 
@@ -812,7 +818,13 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       return jsonToReturn;
     }
 
-    cmdSuccess &= _Pala.setRoomFan4(roomFan4Level);
+    uint16_t F4LReturn;
+    cmdSuccess &= _Pala.setRoomFan4(roomFan4Level, &F4LReturn);
+
+    if (cmdSuccess)
+    {
+      data[F("F4L")] = F4LReturn;
+    }
     cmdProcessed = true;
   }
 
