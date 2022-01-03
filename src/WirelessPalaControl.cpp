@@ -964,6 +964,11 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     cmdSuccess &= _Pala.setHiddenParameter(hiddenParamNumber, hiddenParamValue);
+    
+    if (cmdSuccess)
+    {
+      data[String(F("HPAR")) + hiddenParamNumber] = hiddenParamValue;
+    }
     cmdProcessed = true;
   }
 
