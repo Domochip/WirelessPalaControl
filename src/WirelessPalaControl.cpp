@@ -901,6 +901,30 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     cmdProcessed = true;
   }
 
+  if (!cmdProcessed && cmd.startsWith(F("SET CSST ")))
+  {
+    String strChronoStatus = cmd.substring(9);
+
+    bool chronoStatus = (strChronoStatus.toInt() != 0);
+
+    if (!chronoStatus && strChronoStatus[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSST\",\"MSG\":\"Incorrect Chrono Status value : ");
+      jsonToReturn += strChronoStatus;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    byte CHRSTATUSReturn;
+    cmdSuccess &= _Pala.setChronoStatus(chronoStatus, &CHRSTATUSReturn);
+
+    if (cmdSuccess)
+    {
+      data[F("CHRSTATUS")] = CHRSTATUSReturn;
+    }
+    cmdProcessed = true;
+  }
+
   if (!cmdProcessed && cmd.startsWith(F("SET SETP ")))
   {
     byte setPoint = cmd.substring(9).toInt();
