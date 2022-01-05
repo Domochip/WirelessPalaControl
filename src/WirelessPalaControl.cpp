@@ -75,13 +75,13 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
 
   if (!isCmdExecuted && length == 6 && !memcmp_P(payload, F("CMD+ON"), length))
   {
-    _Pala.powerOn();
+    _Pala.switchOn();
     isCmdExecuted = true;
   }
 
   if (!isCmdExecuted && length == 7 && !memcmp_P(payload, F("CMD+OFF"), length))
   {
-    _Pala.powerOff();
+    _Pala.switchOff();
     isCmdExecuted = true;
   }
 
@@ -744,9 +744,9 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     if (strOrder == F("ON"))
-      cmdSuccess &= _Pala.powerOn();
+      cmdSuccess &= _Pala.switchOn();
     else if (strOrder == F("OFF"))
-      cmdSuccess &= _Pala.powerOff();
+      cmdSuccess &= _Pala.switchOff();
 
     cmdProcessed = true;
   }
