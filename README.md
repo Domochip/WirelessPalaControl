@@ -173,6 +173,7 @@ HTTP GET Command list :
 - `GET+IOPT` will return IO ports status
 - `GET+SERN` will return stove Serial Number
 - `GET+MDVE` will return stove model and fw version
+- `GET+CHRD` will return chrono data
 - `GET+PARM+92` will return parameter (ex : 92=pellet type (1-3))
 - `GET+HPAR+57` will return hidden parameter (ex : 57=% of pellet to feed for pellet type 3)
 ---
