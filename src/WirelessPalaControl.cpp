@@ -683,6 +683,62 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     cmdProcessed = true;
   }
 
+  if (!cmdProcessed && cmd == F("GET CHRD"))
+  {
+    byte CHRSTATUS;
+    float PCHRSETP[6];
+    byte PSTART[6][2];
+    byte PSTOP[6][2];
+    byte DM[7][3];
+    cmdSuccess &= _Pala.getChronoData(&CHRSTATUS, &PCHRSETP, &PSTART, &PSTOP, &DM);
+
+    if (cmdSuccess)
+    {
+      data[F("CHRSTATUS")] = CHRSTATUS;
+
+      //Add Programs (P1->P6)
+      char programName[3] = {'P', 'X', 0};
+      char time[6] = {'0', '0', ':', '0', '0', 0};
+      for (byte i = 0; i < 6; i++)
+      {
+        programName[1] = i + '1';
+        JsonObject px = data.createNestedObject(programName);
+        px[F("CHRSETP")] = PCHRSETP[i];
+        time[0] = PSTART[i][0] / 10 + '0';
+        time[1] = PSTART[i][0] % 10 + '0';
+        time[3] = PSTART[i][1] / 10 + '0';
+        time[4] = PSTART[i][1] % 10 + '0';
+        px[F("START")] = time;
+        time[0] = PSTOP[i][0] / 10 + '0';
+        time[1] = PSTOP[i][0] % 10 + '0';
+        time[3] = PSTOP[i][1] / 10 + '0';
+        time[4] = PSTOP[i][1] % 10 + '0';
+        px[F("STOP")] = time;
+      }
+
+      //Add Days (D1->D7)
+      char dayName[3] = {'D', 'X', 0};
+      char memoryName[3] = {'M', 'X', 0};
+      for (byte dayNumber = 0; dayNumber < 7; dayNumber++)
+      {
+        dayName[1] = dayNumber + '1';
+        JsonObject dx = data.createNestedObject(dayName);
+        for (byte memoryNumber = 0; memoryNumber < 3; memoryNumber++)
+        {
+          memoryName[1] = memoryNumber + '1';
+          if (DM[dayNumber][memoryNumber])
+          {
+            programName[1] = DM[dayNumber][memoryNumber] + '0';
+            dx[memoryName] = programName;
+          }
+          else
+            dx[memoryName] = F("OFF");
+        }
+      }
+    }
+    cmdProcessed = true;
+  }
+
   if (!cmdProcessed && cmd.startsWith(F("GET PARM ")))
   {
     String strParamNumber(cmd.substring(9));
