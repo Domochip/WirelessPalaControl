@@ -1101,6 +1101,36 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     cmdProcessed = true;
   }
 
+  if (!cmdProcessed && cmd.startsWith(F("SET CSET ")))
+  {
+    String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
+    String strSetPoint(cmd.substring(cmd.indexOf(' ', 9) + 1));
+
+    byte programNumber = strProgramNumber.toInt();
+
+    if (programNumber == 0 && strProgramNumber[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Program Number : ");
+      jsonToReturn += strProgramNumber;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    byte setPoint = strSetPoint.toInt();
+
+    if (setPoint == 0 && strSetPoint[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect SetPoint : ");
+      jsonToReturn += strSetPoint;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    cmdSuccess &= _Pala.setChronoSetpoint(programNumber, setPoint);
+
+    cmdProcessed = true;
+  }
+
   if (!cmdProcessed && cmd.startsWith(F("SET SETP ")))
   {
     byte setPoint = cmd.substring(9).toInt();
