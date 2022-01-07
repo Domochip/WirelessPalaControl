@@ -1020,7 +1020,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     if (programNumber == 0 && strProgramNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Program Number : ");
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTM\",\"MSG\":\"Incorrect Program Number : ");
       jsonToReturn += strProgramNumber;
       jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
       return jsonToReturn;
@@ -1030,7 +1030,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     if (startMinute == 0 && strStartMinute[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Start Minute : ");
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTM\",\"MSG\":\"Incorrect Start Minute : ");
       jsonToReturn += strStartMinute;
       jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
       return jsonToReturn;
@@ -1050,7 +1050,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     if (programNumber == 0 && strProgramNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Program Number : ");
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSPH\",\"MSG\":\"Incorrect Program Number : ");
       jsonToReturn += strProgramNumber;
       jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
       return jsonToReturn;
@@ -1060,7 +1060,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     if (stopHour == 0 && strStopHour[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Stop Hour : ");
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSPH\",\"MSG\":\"Incorrect Stop Hour : ");
       jsonToReturn += strStopHour;
       jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
       return jsonToReturn;
@@ -1080,7 +1080,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     if (programNumber == 0 && strProgramNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Program Number : ");
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSPM\",\"MSG\":\"Incorrect Program Number : ");
       jsonToReturn += strProgramNumber;
       jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
       return jsonToReturn;
@@ -1090,7 +1090,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     if (stopMinute == 0 && strStopMinute[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Stop Minute : ");
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSPM\",\"MSG\":\"Incorrect Stop Minute : ");
       jsonToReturn += strStopMinute;
       jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
       return jsonToReturn;
@@ -1110,7 +1110,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     if (programNumber == 0 && strProgramNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Program Number : ");
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSET\",\"MSG\":\"Incorrect Program Number : ");
       jsonToReturn += strProgramNumber;
       jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
       return jsonToReturn;
@@ -1120,7 +1120,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     if (setPoint == 0 && strSetPoint[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect SetPoint : ");
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSET\",\"MSG\":\"Incorrect SetPoint : ");
       jsonToReturn += strSetPoint;
       jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
       return jsonToReturn;
