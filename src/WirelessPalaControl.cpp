@@ -1131,6 +1131,66 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     cmdProcessed = true;
   }
 
+  if (!cmdProcessed && cmd.startsWith(F("SET CDAY ")))
+  {
+    // Starting 9 to first space starting 9
+    String strDayNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
+    // Starting (9 + previous string length + 1) to first space starting (9 + previous string length + 1)
+    String strMemoryNumber(cmd.substring(9 + strDayNumber.length() + 1, cmd.indexOf(' ', 9 + strDayNumber.length() + 1)));
+    // Starting (9 + previous strings lengths + number of previous strings) to the end
+    String strProgramNumber(cmd.substring(9 + strDayNumber.length() + strMemoryNumber.length() + 2));
+
+    byte dayNumber = strDayNumber.toInt();
+
+    if (dayNumber == 0 && strDayNumber[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CDAY\",\"MSG\":\"Incorrect Day Number : ");
+      jsonToReturn += strDayNumber;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    byte memoryNumber = strMemoryNumber.toInt();
+
+    if (memoryNumber == 0 && strMemoryNumber[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CDAY\",\"MSG\":\"Incorrect Memory Number : ");
+      jsonToReturn += strMemoryNumber;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    byte programNumber = strProgramNumber.toInt();
+
+    if (programNumber == 0 && strProgramNumber[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CDAY\",\"MSG\":\"Incorrect Program Number : ");
+      jsonToReturn += strProgramNumber;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    cmdSuccess &= _Pala.setChronoDay(dayNumber, memoryNumber, programNumber);
+
+    if (cmdSuccess)
+    {
+      char dayName[3] = {'D', 'X', 0};
+      char memoryName[3] = {'M', 'X', 0};
+      char programName[3] = {'P', 'X', 0};
+
+      dayName[1] = dayNumber + '0';
+      memoryName[1] = memoryNumber + '0';
+      programName[1] = programNumber + '0';
+
+      JsonObject dx = data.createNestedObject(dayName);
+      if (programNumber)
+        dx[memoryName] = programName;
+      else
+        dx[memoryName] = F("OFF");
+    }
+    cmdProcessed = true;
+  }
+
   if (!cmdProcessed && cmd.startsWith(F("SET SETP ")))
   {
     byte setPoint = cmd.substring(9).toInt();
