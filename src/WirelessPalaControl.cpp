@@ -981,6 +981,126 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     cmdProcessed = true;
   }
 
+  if (!cmdProcessed && cmd.startsWith(F("SET CSTH ")))
+  {
+    String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
+    String strStartHour(cmd.substring(cmd.indexOf(' ', 9) + 1));
+
+    byte programNumber = strProgramNumber.toInt();
+
+    if (programNumber == 0 && strProgramNumber[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Program Number : ");
+      jsonToReturn += strProgramNumber;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    byte startHour = strStartHour.toInt();
+
+    if (startHour == 0 && strStartHour[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Start Hour : ");
+      jsonToReturn += strStartHour;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    cmdSuccess &= _Pala.setChronoStartHH(programNumber, startHour);
+
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET CSTM ")))
+  {
+    String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
+    String strStartMinute(cmd.substring(cmd.indexOf(' ', 9) + 1));
+
+    byte programNumber = strProgramNumber.toInt();
+
+    if (programNumber == 0 && strProgramNumber[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Program Number : ");
+      jsonToReturn += strProgramNumber;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    byte startMinute = strStartMinute.toInt();
+
+    if (startMinute == 0 && strStartMinute[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Start Minute : ");
+      jsonToReturn += strStartMinute;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    cmdSuccess &= _Pala.setChronoStartMM(programNumber, startMinute);
+
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET CSPH ")))
+  {
+    String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
+    String strStopHour(cmd.substring(cmd.indexOf(' ', 9) + 1));
+
+    byte programNumber = strProgramNumber.toInt();
+
+    if (programNumber == 0 && strProgramNumber[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Program Number : ");
+      jsonToReturn += strProgramNumber;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    byte stopHour = strStopHour.toInt();
+
+    if (stopHour == 0 && strStopHour[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Stop Hour : ");
+      jsonToReturn += strStopHour;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    cmdSuccess &= _Pala.setChronoStopHH(programNumber, stopHour);
+
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET CSPM ")))
+  {
+    String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
+    String strStopMinute(cmd.substring(cmd.indexOf(' ', 9) + 1));
+
+    byte programNumber = strProgramNumber.toInt();
+
+    if (programNumber == 0 && strProgramNumber[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Program Number : ");
+      jsonToReturn += strProgramNumber;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    byte stopMinute = strStopMinute.toInt();
+
+    if (stopMinute == 0 && strStopMinute[0] != '0')
+    {
+      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Stop Minute : ");
+      jsonToReturn += strStopMinute;
+      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      return jsonToReturn;
+    }
+
+    cmdSuccess &= _Pala.setChronoStopMM(programNumber, stopMinute);
+
+    cmdProcessed = true;
+  }
+
   if (!cmdProcessed && cmd.startsWith(F("SET SETP ")))
   {
     byte setPoint = cmd.substring(9).toInt();

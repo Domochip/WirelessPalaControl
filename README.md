@@ -192,6 +192,10 @@ HTTP GET Command list :
 - `SET+FN4L+0` will set Room Fan 4 value (0-5)
 - `SET+SLNT+0` will set Silent mode value (0-1)
 - `SET+CSST+0` will set Chrono Status value (0-1)
+- `SET+CSTH+2+18` will set Chrono Start Hour (1-6) (0-23)
+- `SET+CSTM+2+30` will set Chrono Start Minute (1-6) (0-59)
+- `SET+CSPH+2+22` will set Chrono Stop Hour (1-6) (0-23)
+- `SET+CSPM+2+45` will set Chrono Stop Minute (1-6) (0-59)
 - `SET+PARM+92+2` will set parameter 92 to value 2 (ex : 92=pellet type (1-3))
 - `SET+HPAR+57+95` will set hidden parameter 57 to value 95 (ex : 57=% of pellet to feed for pellet type 3)
 ---
