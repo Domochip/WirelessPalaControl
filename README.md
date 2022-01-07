@@ -198,6 +198,7 @@ HTTP GET Command list :
 - `SET+CSPM+2+45` will set Chrono Program Stop Minute (1-6) (0-59)
 - `SET+CSET+2+19` will set Chrono Program Set Point (1-6) (desired temperature)
 - `SET+CDAY+7+3+6` will set Chrono Program for week day (Day-Mem-Prog) (1-7) (1-3) (1-6)
+- `SET+CPRD+1+19+18+30+22+45` will set Chrono Program data (Prog-Temp-StartH-StartM-StopH-StopM) (1-6) (temperature) (0-23) (0-59) (0-23) (0-59)
 - `SET+PARM+92+2` will set parameter 92 to value 2 (ex : 92=pellet type (1-3))
 - `SET+HPAR+57+95` will set hidden parameter 57 to value 95 (ex : 57=% of pellet to feed for pellet type 3)
 ---

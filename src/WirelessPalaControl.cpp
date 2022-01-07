@@ -1191,6 +1191,53 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     cmdProcessed = true;
   }
 
+  if (!cmdProcessed && cmd.startsWith(F("SET CPRD ")))
+  {
+    byte posInCmd = 9;
+    String strParams[6];
+    byte params[6];
+    const __FlashStringHelper* errorMessage[6] = {F("Program Number"), F("SetPoint"), F("Starr Hour"), F("Start Minute"), F("Stop Hour"), F("Stop Minute")};
+
+    for (byte i = 0; i < 6; i++)
+    {
+      strParams[i] = cmd.substring(posInCmd, cmd.indexOf(' ', posInCmd));
+      params[i] = strParams[i].toInt();
+      if (params[i] == 0 && strParams[i][0] != '0')
+      {
+        jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CDAY\",\"MSG\":\"Incorrect ");
+        jsonToReturn += errorMessage[i];
+        jsonToReturn += F(" : ");
+        jsonToReturn += strParams[i];
+        jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+        return jsonToReturn;
+      }
+      posInCmd += strParams[i].length() + 1;
+    }
+
+    cmdSuccess &= _Pala.setChronoPrg(params[0], params[1], params[2], params[3], params[4], params[5]);
+
+    if (cmdSuccess)
+    {
+      char programName[3] = {'P', 'X', 0};
+      char time[6] = {'0', '0', ':', '0', '0', 0};
+
+      programName[1] = params[0] + '0';
+      JsonObject px = data.createNestedObject(programName);
+      px[F("CHRSETP")] = (float)params[1];
+      time[0] = params[2] / 10 + '0';
+      time[1] = params[2] % 10 + '0';
+      time[3] = params[3] / 10 + '0';
+      time[4] = params[3] % 10 + '0';
+      px[F("START")] = time;
+      time[0] = params[4] / 10 + '0';
+      time[1] = params[4] % 10 + '0';
+      time[3] = params[5] / 10 + '0';
+      time[4] = params[5] % 10 + '0';
+      px[F("STOP")] = time;
+    }
+    cmdProcessed = true;
+  }
+
   if (!cmdProcessed && cmd.startsWith(F("SET SETP ")))
   {
     byte setPoint = cmd.substring(9).toInt();
