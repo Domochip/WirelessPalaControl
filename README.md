@@ -187,6 +187,8 @@ HTTP GET Command list :
 - `CMD+OFF` will turn stove OFF
 - `SET+POWR+3` will set power (1-5)
 - `SET+SETP+20` will set Set Point (desired temperature)
+- `SET+STPU` will increase Set Point by 1 unit
+- `SET+STPD` will decrease Set Point by 1 unit
 - `SET+RFAN+7` will set Room Fan value (0-5;6=Max;7=Auto)
 - `SET+FN3L+0` will set Room Fan 3 value (0-5)
 - `SET+FN4L+0` will set Room Fan 4 value (0-5)

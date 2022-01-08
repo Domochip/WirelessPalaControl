@@ -1260,6 +1260,30 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     cmdProcessed = true;
   }
 
+  if (!cmdProcessed && cmd == F("SET STPU"))
+  {
+    float SETPReturn;
+    cmdSuccess &= _Pala.setSetPointUp(&SETPReturn);
+
+    if (cmdSuccess)
+    {
+      data[F("SETP")] = SETPReturn;
+    }
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd == F("SET STPD"))
+  {
+    float SETPReturn;
+    cmdSuccess &= _Pala.setSetPointDown(&SETPReturn);
+
+    if (cmdSuccess)
+    {
+      data[F("SETP")] = SETPReturn;
+    }
+    cmdProcessed = true;
+  }
+
   if (!cmdProcessed && cmd.startsWith(F("SET STPF ")))
   {
     float setPointFloat = cmd.substring(9).toFloat();
