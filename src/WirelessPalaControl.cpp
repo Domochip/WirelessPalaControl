@@ -841,6 +841,55 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     cmdProcessed = true;
   }
 
+  if (!cmdProcessed && cmd == F("SET PWRU"))
+  {
+    byte PWRReturn;
+    bool isF2LReturnValid;
+    uint16_t _F2LReturn;
+    uint16_t FANLMINMAXReturn[6];
+    cmdSuccess &= _Pala.setPowerUp(&PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
+
+    if (cmdSuccess)
+    {
+      data[F("PWR")] = PWRReturn;
+      if (isF2LReturnValid)
+        data[F("F2L")] = _F2LReturn;
+      JsonArray fanlminmax = data.createNestedArray(F("FANLMINMAX"));
+      fanlminmax.add(FANLMINMAXReturn[0]);
+      fanlminmax.add(FANLMINMAXReturn[1]);
+      fanlminmax.add(FANLMINMAXReturn[2]);
+      fanlminmax.add(FANLMINMAXReturn[3]);
+      fanlminmax.add(FANLMINMAXReturn[4]);
+      fanlminmax.add(FANLMINMAXReturn[5]);
+    }
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd == F("SET PWRD"))
+  {
+    byte PWRReturn;
+    bool isF2LReturnValid;
+    uint16_t _F2LReturn;
+    uint16_t FANLMINMAXReturn[6];
+    cmdSuccess &= _Pala.setPowerDown(&PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
+
+    if (cmdSuccess)
+    {
+      data[F("PWR")] = PWRReturn;
+      if (isF2LReturnValid)
+        data[F("F2L")] = _F2LReturn;
+      JsonArray fanlminmax = data.createNestedArray(F("FANLMINMAX"));
+      fanlminmax.add(FANLMINMAXReturn[0]);
+      fanlminmax.add(FANLMINMAXReturn[1]);
+      fanlminmax.add(FANLMINMAXReturn[2]);
+      fanlminmax.add(FANLMINMAXReturn[3]);
+      fanlminmax.add(FANLMINMAXReturn[4]);
+      fanlminmax.add(FANLMINMAXReturn[5]);
+    }
+    cmdProcessed = true;
+  }
+
+
   if (!cmdProcessed && cmd.startsWith(F("SET RFAN ")))
   {
     String strRoomFanLevel(cmd.substring(9));
