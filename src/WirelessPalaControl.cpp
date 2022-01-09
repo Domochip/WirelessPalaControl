@@ -871,6 +871,42 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     cmdProcessed = true;
   }
 
+  if (!cmdProcessed && cmd == F("SET FN2U"))
+  {
+    bool isPWRReturnValid;
+    byte PWRReturn;
+    uint16_t F2LReturn;
+    uint16_t F2LFReturn;
+    cmdSuccess &= _Pala.setRoomFanUp(&isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
+
+    if (cmdSuccess)
+    {
+      if (isPWRReturnValid)
+        data[F("PWR")] = PWRReturn;
+      data[F("F2L")] = F2LReturn;
+      data[F("F2LF")] = F2LFReturn;
+    }
+    cmdProcessed = true;
+  }
+
+  if (!cmdProcessed && cmd == F("SET FN2D"))
+  {
+    bool isPWRReturnValid;
+    byte PWRReturn;
+    uint16_t F2LReturn;
+    uint16_t F2LFReturn;
+    cmdSuccess &= _Pala.setRoomFanDown(&isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
+
+    if (cmdSuccess)
+    {
+      if (isPWRReturnValid)
+        data[F("PWR")] = PWRReturn;
+      data[F("F2L")] = F2LReturn;
+      data[F("F2LF")] = F2LFReturn;
+    }
+    cmdProcessed = true;
+  }
+
   if (!cmdProcessed && cmd.startsWith(F("SET FN3L ")))
   {
     String strRoomFan3Level(cmd.substring(9));
