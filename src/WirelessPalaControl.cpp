@@ -153,6 +153,33 @@ void WebPalaControl::publishTick()
       }
       else
         return;
+      
+      DynamicJsonDocument cntrDoc(2048);
+      JsonObject cntrData = cntrDoc.createNestedObject(F("CNTR"));
+      String cntrToReturn;
+      uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQTn;
+      if ((_haSendResult &= _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQTn)))
+      {
+        _statusEventSource.send((String("{\"IGN\":") + IGN + '}').c_str());
+        _statusEventSource.send((String("{\"IGNERRORS\":") + IGNERRORS + '}').c_str());
+        _statusEventSource.send((String("{\"POWERTIME\":") + POWERTIMEh + '}').c_str());
+        _statusEventSource.send((String("{\"HEATTIME\":") + HEATTIMEh + '}').c_str());
+        _statusEventSource.send((String("{\"SERVICETIME\":") + SERVICETIMEh + '}').c_str());
+        _statusEventSource.send((String("{\"ONTIME\":") + ONTIMEh + '}').c_str());
+        _statusEventSource.send((String("{\"OVERTMPERRORS\":") + OVERTMPERRORS + '}').c_str());
+        cntrData[F("IGN")] = IGN;
+        cntrData[F("IGNERRORS")] = IGNERRORS;
+        cntrData[F("POWERTIME")] = POWERTIMEh;
+        cntrData[F("HEATTIME")] = HEATTIMEh;
+        cntrData[F("SERVICETIME")] = SERVICETIMEh;
+        cntrData[F("ONTIME")] = ONTIMEh;
+        cntrData[F("OVERTMPERRORS")] = OVERTMPERRORS;
+        cntrData[F("PQT")] = PQTn;
+        serializeJson(cntrData, cntrToReturn);
+        _haSendResult &= _mqttMan.publish((baseTopic + F("CNTR")).c_str(), String(cntrToReturn).c_str());
+      }
+      else
+        return;
 
       float T1, T2, T3, T4, T5;
       if ((_haSendResult &= _Pala.getAllTemps(&T1, &T2, &T3, &T4, &T5)))
