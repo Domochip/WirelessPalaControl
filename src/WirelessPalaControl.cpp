@@ -1493,7 +1493,7 @@ void WebPalaControl::setConfigDefaultValues()
   _ha.mqtt.port = 1883;
   _ha.mqtt.username[0] = 0;
   _ha.mqtt.password[0] = 0;
-  _ha.mqtt.generic.baseTopic[0] = 0;
+  strcpy_P(_ha.mqtt.generic.baseTopic, PSTR("$model$"));
 };
 //------------------------------------------
 //Parse JSON object into configuration properties
