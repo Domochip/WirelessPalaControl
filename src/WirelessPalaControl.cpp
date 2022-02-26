@@ -143,13 +143,18 @@ void WebPalaControl::publishTick()
 
       _haSendResult = true;
 
+      DynamicJsonDocument statusDoc(2048);
+      JsonObject statusData = statusDoc.createNestedObject(F("STAT"));
+      String statusToReturn;
       uint16_t STATUS, LSTATUS;
       if ((_haSendResult &= _Pala.getStatus(&STATUS, &LSTATUS)))
       {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("STATUS")).c_str(), String(STATUS).c_str());
         _statusEventSource.send((String("{\"STATUS\":") + STATUS + '}').c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("LSTATUS")).c_str(), String(LSTATUS).c_str());
         _statusEventSource.send((String("{\"LSTATUS\":") + LSTATUS + '}').c_str());
+        statusData[F("STATUS")] = STATUS;
+        statusData[F("LSTATUS")] = LSTATUS;
+        serializeJson(statusData, statusToReturn);
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STAT")).c_str(), String(statusToReturn).c_str());
       }
       else
         return;
