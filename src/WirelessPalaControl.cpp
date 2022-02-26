@@ -230,7 +230,7 @@ void WebPalaControl::publishTick()
       if ((_haSendResult &= _Pala.getDateTime(&STOVE_DATETIME, &STOVE_WDAY)))
       {
         _haSendResult &= _mqttMan.publish((baseTopic + F("STOVE_DATETIME")).c_str(), String(STOVE_DATETIME).c_str());
-        _statusEventSource.send((String("{\"STOVE_DATETIME\":") + STOVE_DATETIME + '}').c_str());
+        _statusEventSource.send((String("{\"STOVE_DATETIME\":\"") + STOVE_DATETIME + "\"}").c_str());
         _haSendResult &= _mqttMan.publish((baseTopic + F("STOVE_WDAY")).c_str(), String(STOVE_WDAY).c_str());
         _statusEventSource.send((String("{\"STOVE_WDAY\":") + STOVE_WDAY + '}').c_str());
       }
