@@ -143,72 +143,6 @@ void WebPalaControl::publishTick()
 
       _haSendResult = true;
 
-      DynamicJsonDocument statusDoc(2048);
-      JsonObject statusData = statusDoc.createNestedObject(F("STAT"));
-      String statusToReturn;
-      uint16_t STATUS, LSTATUS;
-      if ((_haSendResult &= _Pala.getStatus(&STATUS, &LSTATUS)))
-      {
-        _statusEventSource.send((String("{\"STATUS\":") + STATUS + '}').c_str());
-        _statusEventSource.send((String("{\"LSTATUS\":") + LSTATUS + '}').c_str());
-        statusData[F("STATUS")] = STATUS;
-        statusData[F("LSTATUS")] = LSTATUS;
-        serializeJson(statusData, statusToReturn);
-        _haSendResult &= _mqttMan.publish((baseTopic + F("STAT")).c_str(), String(statusToReturn).c_str());
-      }
-      else
-        return;
-
-      float T1, T2, T3, T4, T5;
-      if ((_haSendResult &= _Pala.getAllTemps(&T1, &T2, &T3, &T4, &T5)))
-      {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("T1")).c_str(), String(T1).c_str());
-        _statusEventSource.send((String("{\"T1\":") + T1 + '}').c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("T2")).c_str(), String(T2).c_str());
-        _statusEventSource.send((String("{\"T2\":") + T2 + '}').c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("T3")).c_str(), String(T3).c_str());
-        _statusEventSource.send((String("{\"T3\":") + T3 + '}').c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("T4")).c_str(), String(T4).c_str());
-        _statusEventSource.send((String("{\"T4\":") + T4 + '}').c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("T5")).c_str(), String(T5).c_str());
-        _statusEventSource.send((String("{\"T5\":") + T5 + '}').c_str());
-      }
-      else
-        return;
-
-      uint16_t F1V, F2V, F1RPM, F2L, F2LF;
-      bool isF3SF4SValid;
-      float F3S, F4S;
-      bool isF3LF4LValid;
-      uint16_t F3L, F4L;
-      if ((_haSendResult &= _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3SF4SValid, &F3S, &F4S, &isF3LF4LValid, &F3L, &F4L)))
-      {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("F1V")).c_str(), String(F1V).c_str());
-        _statusEventSource.send((String("{\"F1V\":") + F1V + '}').c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("F2V")).c_str(), String(F2V).c_str());
-        _statusEventSource.send((String("{\"F2V\":") + F2V + '}').c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("F2L")).c_str(), String(F2L).c_str());
-        _statusEventSource.send((String("{\"F2L\":") + F2L + '}').c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("F2LF")).c_str(), String(F2LF).c_str());
-        _statusEventSource.send((String("{\"F2LF\":") + F2LF + '}').c_str());
-        if (isF3SF4SValid)
-        {
-          _haSendResult &= _mqttMan.publish((baseTopic + F("F3S")).c_str(), String(F3S).c_str());
-          _statusEventSource.send((String("{\"F3S\":") + F3S + '}').c_str());
-          _haSendResult &= _mqttMan.publish((baseTopic + F("F4S")).c_str(), String(F4S).c_str());
-          _statusEventSource.send((String("{\"F4S\":") + F4S + '}').c_str());
-        }
-        if (isF3LF4LValid)
-        {
-          _haSendResult &= _mqttMan.publish((baseTopic + F("F3L")).c_str(), String(F3L).c_str());
-          _statusEventSource.send((String("{\"F3L\":") + F3L + '}').c_str());
-          _haSendResult &= _mqttMan.publish((baseTopic + F("F4L")).c_str(), String(F4L).c_str());
-          _statusEventSource.send((String("{\"F4L\":") + F4L + '}').c_str());
-        }
-      }
-      else
-        return;
-
       uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQTn;
       if ((_haSendResult &= _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQTn)))
       {
@@ -235,54 +169,199 @@ void WebPalaControl::publishTick()
       if ((_haSendResult &= _Pala.getDateTime(&STOVE_DATETIME, &STOVE_WDAY)))
       {
         _haSendResult &= _mqttMan.publish((baseTopic + F("STOVE_DATETIME")).c_str(), String(STOVE_DATETIME).c_str());
-        _statusEventSource.send((String("{\"STOVE_DATETIME\":") + STOVE_DATETIME + '}').c_str());
+        _statusEventSource.send((String("{\"STOVE_DATETIME\":\"") + STOVE_DATETIME + "\"}").c_str());
         _haSendResult &= _mqttMan.publish((baseTopic + F("STOVE_WDAY")).c_str(), String(STOVE_WDAY).c_str());
         _statusEventSource.send((String("{\"STOVE_WDAY\":") + STOVE_WDAY + '}').c_str());
       }
       else
         return;
 
+      byte IN_I01, IN_I02, IN_I03, IN_I04;
+      byte OUT_O01, OUT_O02, OUT_O03, OUT_O04, OUT_O05, OUT_O06, OUT_O07;
+      if ((_haSendResult &= _Pala.getIO(&IN_I01, &IN_I02, &IN_I03, &IN_I04, &OUT_O01, &OUT_O02, &OUT_O03, &OUT_O04, &OUT_O05, &OUT_O06, &OUT_O07)))
+      {
+        _haSendResult &= _mqttMan.publish((baseTopic + F("IOPT/IN_I01")).c_str(), String(IN_I01).c_str());
+        _statusEventSource.send((String("{\"IN_I01\":") + IN_I01 + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("IOPT/IN_I02")).c_str(), String(IN_I02).c_str());
+        _statusEventSource.send((String("{\"IN_I02\":") + IN_I02 + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("IOPT/IN_I03")).c_str(), String(IN_I03).c_str());
+        _statusEventSource.send((String("{\"IN_I03\":") + IN_I03 + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("IOPT/IN_I04")).c_str(), String(IN_I04).c_str());
+        _statusEventSource.send((String("{\"IN_I04\":") + IN_I04 + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("IOPT/OUT_O01")).c_str(), String(OUT_O01).c_str());
+        _statusEventSource.send((String("{\"OUT_O01\":") + OUT_O01 + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("IOPT/OUT_O02")).c_str(), String(OUT_O02).c_str());
+        _statusEventSource.send((String("{\"OUT_O02\":") + OUT_O02 + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("IOPT/OUT_O03")).c_str(), String(OUT_O03).c_str());
+        _statusEventSource.send((String("{\"OUT_O03\":") + OUT_O03 + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("IOPT/OUT_O04")).c_str(), String(OUT_O04).c_str());
+        _statusEventSource.send((String("{\"OUT_O04\":") + OUT_O04 + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("IOPT/OUT_O05")).c_str(), String(OUT_O05).c_str());
+        _statusEventSource.send((String("{\"OUT_O05\":") + OUT_O05 + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("IOPT/OUT_O06")).c_str(), String(OUT_O06).c_str());
+        _statusEventSource.send((String("{\"OUT_O06\":") + OUT_O06 + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("IOPT/OUT_O07")).c_str(), String(OUT_O07).c_str());
+        _statusEventSource.send((String("{\"OUT_O07\":") + OUT_O07 + '}').c_str());
+      }
+      else
+        return;
+
+      char SN[28];
+      byte SNCHK;
+      int MBTYPE;
+      uint16_t MOD, VER, CORE;
+      char FWDATE[11];
+      uint16_t FLUID;
+      uint16_t SPLMIN, SPLMAX;
+      byte UICONFIG;
+      byte HWTYPE;
+      uint16_t DSPFWVER;
+      byte CONFIG;
+      byte PELLETTYPE;
+      uint16_t PSENSTYPE;
+      byte PSENSLMAX, PSENSLTSH, PSENSLMIN;
+      byte MAINTPROBE;
+      byte STOVETYPE;
+      byte FAN2TYPE;
+      byte FAN2MODE;
+      byte BLEMBMODE;
+      byte BLEDSPMODE;
+      byte CHRONOTYPE;
+      byte AUTONOMYTYPE;
+      byte NOMINALPWR;
+      if ((_haSendResult &= _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR)))
+      {
+        // ----- WPalaControl generated values -----
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/WiFi/LABEL")).c_str(), WiFi.getHostname());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/WiFi/GWDEVICE")).c_str(), String(F("wlan0")).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/WiFi/MAC")).c_str(), String(WiFi.macAddress()).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/WiFi/WMAC")).c_str(), String(WiFi.macAddress()).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/WiFi/GATEWAY")).c_str(), String(WiFi.gatewayIP().toString()).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/WiFi/WMODE")).c_str(), (WiFi.getMode() & WIFI_STA) ? String(F("sta")).c_str() : String(F("ap")).c_str());
+       // _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/WiFi/WADR")).c_str(),  (WiFi.getMode() & WIFI_STA) ? WiFi.localIP().toString() : String(WiFi.softAPIP().toString()));
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/WiFi/WGW")).c_str(), String(WiFi.gatewayIP().toString()).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/WiFi/WENC")).c_str(), String(F("psk2")).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/WiFi/WPWR")).c_str(), String(WiFi.RSSI()).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/WiFi/WSSID")).c_str(), String(WiFi.SSID()).c_str());
+        //_haSendResult &= _mqttMan.publish((baseTopic + F("STDT/WiFi/WPR")).c_str(), (true) ? String(F("dhcp")).c_str() : String(F("static")).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/WiFi/WMSK")).c_str(), String(WiFi.subnetMask().toString()).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/WiFi/WBCST")).c_str(), String(WiFi.broadcastIP().toString()).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/WiFi/WCH")).c_str(), String(WiFi.channel()).c_str());
+
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/SN")).c_str(), SN);
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/SNCHK")).c_str(), String(SNCHK).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/MBTYPE")).c_str(), String(MBTYPE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/MOD")).c_str(), String(MOD).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/VER")).c_str(), String(VER).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/CORE")).c_str(), String(CORE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/FWDATE")).c_str(), FWDATE);
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/FLUID")).c_str(), String(FLUID).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/SPLMIN")).c_str(), String(SPLMIN).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/SPLMAX")).c_str(), String(SPLMAX).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/UICONFIG")).c_str(), String(UICONFIG).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/HWTYPE")).c_str(), String(HWTYPE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/CONFIG")).c_str(), String(CONFIG).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/PELLETTYPE")).c_str(), String(PELLETTYPE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/PSENSTYPE")).c_str(), String(PSENSTYPE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/PSENSLMAX")).c_str(), String(PSENSLMAX).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/PSENSLTSH")).c_str(), String(PSENSLTSH).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/PSENSLMIN")).c_str(), String(PSENSLMIN).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/MAINTPROBE")).c_str(), String(MAINTPROBE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/STOVETYPE")).c_str(), String(STOVETYPE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/FAN2TYPE")).c_str(), String(FAN2TYPE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/FAN2MODE")).c_str(), String(FAN2MODE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/BLEMBMODE")).c_str(), String(BLEMBMODE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/BLEDSPMODE")).c_str(),String( BLEDSPMODE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/CHRONOTYPE")).c_str(), String(CHRONOTYPE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/AUTONOMYTYPE")).c_str(), String(AUTONOMYTYPE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("STDT/STOVE/NOMINALPWR")).c_str(), String(NOMINALPWR).c_str());
+      }
+      else
+        return;
+
+      bool refreshStatus = false;
+      unsigned long currentMillis = millis();
+      if ((currentMillis - _lastAllStatusRefreshMillis) > 15000UL) //refresh AllStatus data if it's 15sec old
+        refreshStatus = true;
+
+      float T1, T2, T3, T4, T5;
+      uint16_t F1V, F2V, F1RPM, F2L, F2LF;
+      bool isF3LF4LValid;
+      uint16_t F3L, F4L;
       float SETP;
-      if ((_haSendResult &= _Pala.getSetPoint(&SETP)))
-      {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("SETP")).c_str(), String(SETP).c_str());
-        _statusEventSource.send((String("{\"SETP\":") + SETP + '}').c_str());
-      }
-      else
-        return;
-
       uint16_t PQT;
-      if ((_haSendResult &= _Pala.getPelletQtUsed(&PQT)))
-      {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("PQT")).c_str(), String(PQT).c_str());
-        _statusEventSource.send((String("{\"PQT\":") + PQT + '}').c_str());
-      }
-      else
-        return;
-
       byte PWR;
       float FDR;
-      if ((_haSendResult &= _Pala.getPower(&PWR, &FDR)))
+      char APLTS[20];
+      uint16_t APLWDAY;
+      uint16_t STATUS, LSTATUS;
+      byte CHRSTATUS;
+      bool isMFSTATUSValid;
+      uint16_t MFSTATUS;
+      byte PUMP;
+      uint16_t FANLMINMAX[6];
+      uint16_t DPT;
+      uint16_t DP;
+      byte IN;
+      byte OUT;
+      bool isSNValid;
+      if ((_haSendResult &= _Pala.getAllStatus(refreshStatus, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &APLTS, &APLWDAY, &CHRSTATUS, &STATUS, &LSTATUS, &isMFSTATUSValid, &MFSTATUS, &SETP, &PUMP, &PQT, &F1V, &F1RPM, &F2L, &F2LF, &FANLMINMAX, &F2V, &isF3LF4LValid, &F3L, &F4L, &PWR, &FDR, &DPT, &DP, &IN, &OUT, &T1, &T2, &T3, &T4, &T5, &isSNValid, &SN)))
       {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("PWR")).c_str(), String(PWR).c_str());
-        _statusEventSource.send((String("{\"PWR\":") + PWR + '}').c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("FDR")).c_str(), String(FDR).c_str());
-        _statusEventSource.send((String("{\"FDR\":") + FDR + '}').c_str());
-      }
-      else
-        return;
+        if (refreshStatus)
+          _lastAllStatusRefreshMillis = currentMillis;
 
-      uint16_t DP_TARGET, DP_PRESS;
-      if ((_haSendResult &= _Pala.getDPressData(&DP_TARGET, &DP_PRESS)))
-      {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("DP_TARGET")).c_str(), String(DP_TARGET).c_str());
-        _statusEventSource.send((String("{\"DP_TARGET\":") + DP_TARGET + '}').c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("DP_PRESS")).c_str(), String(DP_PRESS).c_str());
-        _statusEventSource.send((String("{\"DP_PRESS\":") + DP_PRESS + '}').c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/MBTYPE")).c_str(), String(MBTYPE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/MOD")).c_str(), String(MOD).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/VER")).c_str(), String(VER).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/CORE")).c_str(), String(CORE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/FWDATE")).c_str(), String(FWDATE).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/APLTS")).c_str(), String(APLTS).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/APLWDAY")).c_str(), String(APLWDAY).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/STATUS")).c_str(), String(STATUS).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/LSTATUS")).c_str(), String(LSTATUS).c_str());
+        if (isMFSTATUSValid)
+          _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/MFSTATUS")).c_str(), String(MFSTATUS).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/SETP")).c_str(), String(SETP).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/PUMP")).c_str(), String(PUMP).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/PQT")).c_str(), String(PQT).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/F1V")).c_str(), String(F1V).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/F1RPM")).c_str(), String(F1RPM).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/F2L")).c_str(), String(F2L).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/F2LF")).c_str(), String(F2LF).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/F1RPM")).c_str(), String(F1RPM).c_str());
+        DynamicJsonDocument _FAN(2048);
+        String jsonToReturn;
+        JsonArray fanlminmax = _FAN.createNestedArray(F("FANLMINMAX"));
+        fanlminmax.add(FANLMINMAX[0]);
+        fanlminmax.add(FANLMINMAX[1]);
+        fanlminmax.add(FANLMINMAX[2]);
+        fanlminmax.add(FANLMINMAX[3]);
+        fanlminmax.add(FANLMINMAX[4]);
+        fanlminmax.add(FANLMINMAX[5]);
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/FANLMINMAX")).c_str(), String(serializeJson(_FAN, jsonToReturn)).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/F2V")).c_str(), String(F2V).c_str());
+        if (isF3LF4LValid)
+        {
+          _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/F3L")).c_str(), String(F3L).c_str());
+          _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/F4L")).c_str(), String(F4L).c_str());
+        }
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/PWR")).c_str(), String(PWR).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/FDR")).c_str(), String(FDR).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/DP_TARGET")).c_str(), String(DPT).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/DP_PRESS")).c_str(), String(DP).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/IN")).c_str(), String(IN).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/OUT")).c_str(), String(OUT).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/T1")).c_str(), String(T1).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/T2")).c_str(), String(T2).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/T3")).c_str(), String(T3).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/T4")).c_str(), String(T4).c_str());
+        _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/T5")).c_str(), String(T5).c_str());
+        if (isSNValid)
+          _haSendResult &= _mqttMan.publish((baseTopic + F("ALLS/SN")).c_str(), String(SN).c_str());
       }
-      else
-        return;
-    }
+        else
+          return;
+   }
   }
 }
 
