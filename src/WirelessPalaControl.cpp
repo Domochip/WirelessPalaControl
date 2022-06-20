@@ -123,7 +123,7 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
     publishTick();
 }
 
-void WebPalaControl::publishTick(bool eventSourceOnly)
+void WebPalaControl::publishTick()
 {
   //------------------------------------------------------------------------
   // Read all necessary info from stove and send it to webClient (eventSource connected)
@@ -223,10 +223,6 @@ void WebPalaControl::publishTick(bool eventSourceOnly)
     _statusEventSource.send("{\"MSG\":\"Stove communication failed! please check cabling to your stove.\"}");
     return;
   }
-
-  // if eventSourceOnly then stop here
-  if (eventSourceOnly)
-    return;
 
   //------------------------------------------------------------------------
   // if Home Automation upload not enabled then return
