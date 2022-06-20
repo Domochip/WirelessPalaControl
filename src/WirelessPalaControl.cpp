@@ -125,7 +125,9 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
 
 void WebPalaControl::publishTick(bool eventSourceOnly)
 {
+  //------------------------------------------------------------------------
   // Read all necessary info from stove and send it to webClient (eventSource connected)
+  
   bool readSuccess = true;
 
   uint16_t STATUS, LSTATUS;
@@ -226,6 +228,7 @@ void WebPalaControl::publishTick(bool eventSourceOnly)
   if (eventSourceOnly)
     return;
 
+  //------------------------------------------------------------------------
   // if Home Automation upload not enabled then return
   if (_ha.protocol == HA_PROTO_DISABLED)
     return;
