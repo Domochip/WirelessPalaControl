@@ -67,7 +67,7 @@ private:
 
   void mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnection);
   void mqttCallback(char *topic, uint8_t *payload, unsigned int length);
-  void publishTick();
+  void publishTick(bool eventSourceOnly = false);
   String executePalaCmd(const String &cmd);
 
   void setConfigDefaultValues();

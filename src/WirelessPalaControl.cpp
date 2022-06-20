@@ -123,7 +123,7 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
     publishTick();
 }
 
-void WebPalaControl::publishTick()
+void WebPalaControl::publishTick(bool eventSourceOnly)
 {
   //if Home Automation upload not enabled then return
   if (_ha.protocol == HA_PROTO_DISABLED)
