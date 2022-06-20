@@ -1760,13 +1760,9 @@ bool WebPalaControl::appInit(bool reInit)
   if (res)
     LOG_SERIAL.printf("setpoint=%.2f", setPoint);
 
-  //if no HA, then use default period for Publish
-  if (_ha.protocol != HA_PROTO_DISABLED)
-  {
-    if (res)
-      publishTick(); //if configuration changed, publish immediately
-    _publishTicker.attach(_ha.uploadPeriod, [this]() { this->_needPublish = true; });
-  }
+  if (res)
+    publishTick(); //if configuration changed, publish immediately
+  _publishTicker.attach(_ha.uploadPeriod, [this]() { this->_needPublish = true; });
 
   //Start UDP Server
   _udpServer.listen(54549);
