@@ -1659,7 +1659,13 @@ String WebPalaControl::generateStatusJSON()
 {
   String gs('{');
 
-  gs = gs + F("\"has1\":\"");
+  char SN[28];
+  if (_Pala.getSN(&SN))
+    gs = gs + F("\"liveData\":{\"SN\":\"") + SN + F("\"}");
+  else
+    gs = gs + F("\"liveData\":{\"MSG\":\"Stove communication failed! please check cabling to your stove.\"}");
+
+  gs = gs + F(",\"has1\":\"");
   switch (_ha.protocol)
   {
   case HA_PROTO_DISABLED:
