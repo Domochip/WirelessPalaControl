@@ -92,8 +92,9 @@ Connect to this network and then configure it.
 
 WirelessPalaControl offers you some webpages in order to configure it :
 
-- `Status` return you the current status of the module :  
-![status screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status.png)
+- `Status` return you the current status of the module (and the Serial Number of your stove):  
+![status screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status.png) 
+**Then 1 minute later, other stove information appears (default upload period)**
 ![status2 screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status2.png)
 
 - `Config` allows you to change configuration :  
