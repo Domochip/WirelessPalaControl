@@ -1567,7 +1567,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
     jsonDoc[F("SUCCESS")] = false;
     data[F("NODATA")] = true;
   }
-  
+
   return false;
 }
 
@@ -1872,7 +1872,6 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
   server.on("/cgi-bin/sendmsg.lua", HTTP_GET, [this](AsyncWebServerRequest *request)
             {
     String cmd;
-    String strAnswer;
     DynamicJsonDocument jsonDoc(2048);
 
     if (request->hasParam(F("cmd"))) cmd = request->getParam(F("cmd"))->value();
@@ -2015,42 +2014,37 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
 
     // Other commands processed using normal Palazzetti logic
     executePalaCmd(cmd, jsonDoc);
-    serializeJson(jsonDoc, strAnswer); // serialize resturned JSON as-is
-    request->send(200, F("text/json"), strAnswer); });
 
-  // Commented best method because of issue : https://github.com/me-no-dev/ESPAsyncWebServer/pull/1105
-  // // Handle HTTP POST requests (Body contains a JSON)
-  // server.addHandler(new AsyncCallbackJsonWebHandler("/cgi-bin/sendmsg.lua", [this](AsyncWebServerRequest *request, JsonVariant &json) {
-  //   String cmd;
-
-  //   if (!json[F("command")].isNull()) {
-  //     cmd = json[F("command")].as<String>();
-  //   }
-
-  //   // process cmd
-  //   request->send(200, F("text/json"), executePalaCmd(cmd));
-  //   return;
-  // }, 128)); // last param is DynamicJsonDocument size
+    // send response
+    AsyncResponseStream *response = request->beginResponseStream(F("text/json"));
+    response->setCode(200);
+    serializeJson(jsonDoc, *response); // serialize returned JSON as-is
+    request->send(response); });
 
   // Handle HTTP POST requests (Body contains a JSON)
   server.on(
       "/cgi-bin/sendmsg.lua", HTTP_POST, [this](AsyncWebServerRequest *request)
       {
-        DynamicJsonDocument jsonBuffer(128);
         String cmd;
-        String strAnswer;
         DynamicJsonDocument jsonDoc(2048);
 
-        DeserializationError error = deserializeJson(jsonBuffer, (char *)(request->_tempObject));
+        DeserializationError error = deserializeJson(jsonDoc, (char *)(request->_tempObject));
 
-        if (!error && !jsonBuffer[F("command")].isNull())
-          cmd = jsonBuffer[F("command")].as<String>();
+        if (!error && !jsonDoc[F("command")].isNull())
+          cmd = jsonDoc[F("command")].as<String>();
+
+
+        // clear jsonDoc to reuse it
+        jsonDoc.clear();
 
         // process cmd
         executePalaCmd(cmd, jsonDoc);
-        serializeJson(jsonDoc, strAnswer); // serialize resturned JSON as-is
 
-        request->send(200, F("text/json"), strAnswer); },
+        // send response
+        AsyncResponseStream *response = request->beginResponseStream(F("text/json"));
+        response->setCode(200);
+        serializeJson(jsonDoc, *response); // serialize returned JSON as-is
+        request->send(response); },
       nullptr, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
       {
     if (total > 0 && request->_tempObject == NULL) {
