@@ -336,14 +336,12 @@ void WebPalaControl::publishTick()
   }
 }
 
-String WebPalaControl::executePalaCmd(const String &cmd)
+bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &jsonDoc)
 {
-  String jsonToReturn;
   bool cmdProcessed = false; // cmd has been processed
   bool cmdSuccess = false;   // Palazzetti function calls successful
 
   // Prepare answer structure
-  DynamicJsonDocument jsonDoc(2048);
   JsonObject info = jsonDoc.createNestedObject(F("INFO"));
   info[F("CMD")] = cmd;
   JsonObject data = jsonDoc.createNestedObject(F("DATA"));
@@ -1526,7 +1524,7 @@ String WebPalaControl::executePalaCmd(const String &cmd)
       info[F("CMD")] = F("SET HPAR");
       info[F("MSG")] = String(F("Incorrect Hidden Parameter Value : ")) + strHiddenParamValue;
     }
-    
+
     if (info[F("MSG")].isNull())
     {
       cmdSuccess = _Pala.setHiddenParameter(hiddenParamNumber, hiddenParamValue);
@@ -1546,6 +1544,7 @@ String WebPalaControl::executePalaCmd(const String &cmd)
     {
       info[F("RSP")] = F("OK");
       jsonDoc[F("SUCCESS")] = true;
+      return true;
     }
     else
     {
@@ -1568,10 +1567,8 @@ String WebPalaControl::executePalaCmd(const String &cmd)
     jsonDoc[F("SUCCESS")] = false;
     data[F("NODATA")] = true;
   }
-
-  serializeJson(jsonDoc, jsonToReturn); // serialize jsonToReturn
-
-  return jsonToReturn;
+  
+  return false;
 }
 
 //------------------------------------------
@@ -1811,6 +1808,7 @@ bool WebPalaControl::appInit(bool reInit)
                       {
     String strData;
     strData.reserve(packet.length()+1);
+    DynamicJsonDocument jsonDoc(2048);
     String strAnswer;
 
     uint8_t* data = packet.data();
@@ -1819,9 +1817,11 @@ bool WebPalaControl::appInit(bool reInit)
     for (size_t i = 0; i < packet.length(); i++) strData += (char)data[i];
 
     // process request
-    if (strData.endsWith(F("bridge?"))) strAnswer = executePalaCmd(F("GET STDT"));
-    else if (strData.endsWith(F("bridge?GET ALLS"))) strAnswer = executePalaCmd(F("GET ALLS"));
-    else strAnswer = executePalaCmd("");
+    if (strData.endsWith(F("bridge?"))) executePalaCmd(F("GET STDT"), jsonDoc);
+    else if (strData.endsWith(F("bridge?GET ALLS"))) executePalaCmd(F("GET ALLS"), jsonDoc);
+    else executePalaCmd("", jsonDoc);
+
+    serializeJson(jsonDoc, strAnswer); // serialize resturned JSON as-is
 
     // answer to the requester
     packet.write((const uint8_t *)strAnswer.c_str(), strAnswer.length()); });
@@ -1872,6 +1872,8 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
   server.on("/cgi-bin/sendmsg.lua", HTTP_GET, [this](AsyncWebServerRequest *request)
             {
     String cmd;
+    String strAnswer;
+    DynamicJsonDocument jsonDoc(2048);
 
     if (request->hasParam(F("cmd"))) cmd = request->getParam(F("cmd"))->value();
 
@@ -2012,7 +2014,9 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
     }
 
     // Other commands processed using normal Palazzetti logic
-    request->send(200, F("text/json"), executePalaCmd(cmd)); });
+    executePalaCmd(cmd, jsonDoc);
+    serializeJson(jsonDoc, strAnswer); // serialize resturned JSON as-is
+    request->send(200, F("text/json"), strAnswer); });
 
   // Commented best method because of issue : https://github.com/me-no-dev/ESPAsyncWebServer/pull/1105
   // // Handle HTTP POST requests (Body contains a JSON)
@@ -2034,6 +2038,8 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
       {
         DynamicJsonDocument jsonBuffer(128);
         String cmd;
+        String strAnswer;
+        DynamicJsonDocument jsonDoc(2048);
 
         DeserializationError error = deserializeJson(jsonBuffer, (char *)(request->_tempObject));
 
@@ -2041,7 +2047,10 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
           cmd = jsonBuffer[F("command")].as<String>();
 
         // process cmd
-        request->send(200, F("text/json"), executePalaCmd(cmd)); },
+        executePalaCmd(cmd, jsonDoc);
+        serializeJson(jsonDoc, strAnswer); // serialize resturned JSON as-is
+
+        request->send(200, F("text/json"), strAnswer); },
       nullptr, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
       {
     if (total > 0 && request->_tempObject == NULL) {
