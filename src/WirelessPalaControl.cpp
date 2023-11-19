@@ -345,6 +345,7 @@ String WebPalaControl::executePalaCmd(const String &cmd)
   // Prepare answer structure
   DynamicJsonDocument jsonDoc(2048);
   JsonObject info = jsonDoc.createNestedObject(F("INFO"));
+  info[F("CMD")] = cmd;
   JsonObject data = jsonDoc.createNestedObject(F("DATA"));
 
   if (!cmdProcessed && cmd == F("GET STDT"))
@@ -816,18 +817,19 @@ String WebPalaControl::executePalaCmd(const String &cmd)
 
     if (paramNumber == 0 && strParamNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"GET PARM\",\"MSG\":\"Incorrect Parameter Number : ");
-      jsonToReturn += strParamNumber;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("GET PARM");
+      info[F("MSG")] = String(F("Incorrect Parameter Number : ")) + strParamNumber;
     }
 
-    byte paramValue;
-    cmdSuccess = _Pala.getParameter(paramNumber, &paramValue);
-
-    if (cmdSuccess)
+    if (info[F("MSG")].isNull())
     {
-      data[F("PAR")] = paramValue;
+      byte paramValue;
+      cmdSuccess = _Pala.getParameter(paramNumber, &paramValue);
+
+      if (cmdSuccess)
+      {
+        data[F("PAR")] = paramValue;
+      }
     }
   }
 
@@ -841,18 +843,19 @@ String WebPalaControl::executePalaCmd(const String &cmd)
 
     if (hiddenParamNumber == 0 && strHiddenParamNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"GET HPAR\",\"MSG\":\"Incorrect Hidden Parameter Number : ");
-      jsonToReturn += strHiddenParamNumber;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("GET HPAR");
+      info[F("MSG")] = String(F("Incorrect Hidden Parameter Number : ")) + strHiddenParamNumber;
     }
 
-    uint16_t hiddenParamValue;
-    cmdSuccess = _Pala.getHiddenParameter(hiddenParamNumber, &hiddenParamValue);
-
-    if (cmdSuccess)
+    if (info[F("MSG")].isNull())
     {
-      data[F("HPAR")] = hiddenParamValue;
+      uint16_t hiddenParamValue;
+      cmdSuccess = _Pala.getHiddenParameter(hiddenParamNumber, &hiddenParamValue);
+
+      if (cmdSuccess)
+      {
+        data[F("HPAR")] = hiddenParamValue;
+      }
     }
   }
 
@@ -864,16 +867,17 @@ String WebPalaControl::executePalaCmd(const String &cmd)
 
     if (strOrder != F("ON") && strOrder != F("OFF"))
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"CMD\",\"MSG\":\"Incorrect ON/OFF value : ");
-      jsonToReturn += cmd.substring(4);
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("CMD");
+      info[F("MSG")] = String(F("Incorrect ON/OFF value : ")) + cmd.substring(4);
     }
 
-    if (strOrder == F("ON"))
-      cmdSuccess = _Pala.switchOn();
-    else if (strOrder == F("OFF"))
-      cmdSuccess = _Pala.switchOff();
+    if (info[F("MSG")].isNull())
+    {
+      if (strOrder == F("ON"))
+        cmdSuccess = _Pala.switchOn();
+      else if (strOrder == F("OFF"))
+        cmdSuccess = _Pala.switchOff();
+    }
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET POWR ")))
@@ -884,30 +888,31 @@ String WebPalaControl::executePalaCmd(const String &cmd)
 
     if (powerLevel == 0)
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET POWR\",\"MSG\":\"Incorrect Power value : ");
-      jsonToReturn += cmd.substring(9);
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET POWR");
+      info[F("MSG")] = String(F("Incorrect Power value : ")) + cmd.substring(9);
     }
 
-    byte PWRReturn;
-    bool isF2LReturnValid;
-    uint16_t _F2LReturn;
-    uint16_t FANLMINMAXReturn[6];
-    cmdSuccess = _Pala.setPower(powerLevel, &PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
-
-    if (cmdSuccess)
+    if (info[F("MSG")].isNull())
     {
-      data[F("PWR")] = PWRReturn;
-      if (isF2LReturnValid)
-        data[F("F2L")] = _F2LReturn;
-      JsonArray fanlminmax = data.createNestedArray(F("FANLMINMAX"));
-      fanlminmax.add(FANLMINMAXReturn[0]);
-      fanlminmax.add(FANLMINMAXReturn[1]);
-      fanlminmax.add(FANLMINMAXReturn[2]);
-      fanlminmax.add(FANLMINMAXReturn[3]);
-      fanlminmax.add(FANLMINMAXReturn[4]);
-      fanlminmax.add(FANLMINMAXReturn[5]);
+      byte PWRReturn;
+      bool isF2LReturnValid;
+      uint16_t _F2LReturn;
+      uint16_t FANLMINMAXReturn[6];
+      cmdSuccess = _Pala.setPower(powerLevel, &PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
+
+      if (cmdSuccess)
+      {
+        data[F("PWR")] = PWRReturn;
+        if (isF2LReturnValid)
+          data[F("F2L")] = _F2LReturn;
+        JsonArray fanlminmax = data.createNestedArray(F("FANLMINMAX"));
+        fanlminmax.add(FANLMINMAXReturn[0]);
+        fanlminmax.add(FANLMINMAXReturn[1]);
+        fanlminmax.add(FANLMINMAXReturn[2]);
+        fanlminmax.add(FANLMINMAXReturn[3]);
+        fanlminmax.add(FANLMINMAXReturn[4]);
+        fanlminmax.add(FANLMINMAXReturn[5]);
+      }
     }
   }
 
@@ -971,24 +976,25 @@ String WebPalaControl::executePalaCmd(const String &cmd)
 
     if (roomFanLevel == 0 && strRoomFanLevel[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET RFAN\",\"MSG\":\"Incorrect Room Fan value : ");
-      jsonToReturn += strRoomFanLevel;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET RFAN");
+      info[F("MSG")] = String(F("Incorrect Room Fan value : ")) + strRoomFanLevel;
     }
 
-    bool isPWRReturnValid;
-    byte PWRReturn;
-    uint16_t F2LReturn;
-    uint16_t F2LFReturn;
-    cmdSuccess = _Pala.setRoomFan(roomFanLevel, &isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
-
-    if (cmdSuccess)
+    if (info[F("MSG")].isNull())
     {
-      if (isPWRReturnValid)
-        data[F("PWR")] = PWRReturn;
-      data[F("F2L")] = F2LReturn;
-      data[F("F2LF")] = F2LFReturn;
+      bool isPWRReturnValid;
+      byte PWRReturn;
+      uint16_t F2LReturn;
+      uint16_t F2LFReturn;
+      cmdSuccess = _Pala.setRoomFan(roomFanLevel, &isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
+
+      if (cmdSuccess)
+      {
+        if (isPWRReturnValid)
+          data[F("PWR")] = PWRReturn;
+        data[F("F2L")] = F2LReturn;
+        data[F("F2LF")] = F2LFReturn;
+      }
     }
   }
 
@@ -1040,18 +1046,19 @@ String WebPalaControl::executePalaCmd(const String &cmd)
 
     if (roomFan3Level == 0 && strRoomFan3Level[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET FN3L\",\"MSG\":\"Incorrect Room Fan 3 value : ");
-      jsonToReturn += strRoomFan3Level;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET FN3L");
+      info[F("MSG")] = String(F("Incorrect Room Fan 3 value : ")) + strRoomFan3Level;
     }
 
-    uint16_t F3LReturn;
-    cmdSuccess = _Pala.setRoomFan3(roomFan3Level, &F3LReturn);
-
-    if (cmdSuccess)
+    if (info[F("MSG")].isNull())
     {
-      data[F("F3L")] = F3LReturn;
+      uint16_t F3LReturn;
+      cmdSuccess = _Pala.setRoomFan3(roomFan3Level, &F3LReturn);
+
+      if (cmdSuccess)
+      {
+        data[F("F3L")] = F3LReturn;
+      }
     }
   }
 
@@ -1065,18 +1072,19 @@ String WebPalaControl::executePalaCmd(const String &cmd)
 
     if (roomFan4Level == 0 && strRoomFan4Level[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET FN4L\",\"MSG\":\"Incorrect Room Fan 4 value : ");
-      jsonToReturn += strRoomFan4Level;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET FN4L");
+      info[F("MSG")] = String(F("Incorrect Room Fan 4 value : ")) + strRoomFan4Level;
     }
 
-    uint16_t F4LReturn;
-    cmdSuccess = _Pala.setRoomFan4(roomFan4Level, &F4LReturn);
-
-    if (cmdSuccess)
+    if (info[F("MSG")].isNull())
     {
-      data[F("F4L")] = F4LReturn;
+      uint16_t F4LReturn;
+      cmdSuccess = _Pala.setRoomFan4(roomFan4Level, &F4LReturn);
+
+      if (cmdSuccess)
+      {
+        data[F("F4L")] = F4LReturn;
+      }
     }
   }
 
@@ -1090,31 +1098,32 @@ String WebPalaControl::executePalaCmd(const String &cmd)
 
     if (silentMode == 0 && strSilentMode[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET SLNT\",\"MSG\":\"Incorrect Silent Mode value : ");
-      jsonToReturn += strSilentMode;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET SLNT");
+      info[F("MSG")] = String(F("Incorrect Silent Mode value : ")) + strSilentMode;
     }
 
-    byte SLNTReturn;
-    byte PWRReturn;
-    uint16_t F2LReturn;
-    uint16_t F2LFReturn;
-    bool isF3LF4LReturnValid;
-    uint16_t F3LReturn;
-    uint16_t F4LReturn;
-    cmdSuccess = _Pala.setSilentMode(silentMode, &SLNTReturn, &PWRReturn, &F2LReturn, &F2LFReturn, &isF3LF4LReturnValid, &F3LReturn, &F4LReturn);
-
-    if (cmdSuccess)
+    if (info[F("MSG")].isNull())
     {
-      data[F("SLNT")] = SLNTReturn;
-      data[F("PWR")] = PWRReturn;
-      data[F("F2L")] = F2LReturn;
-      data[F("F2LF")] = F2LFReturn;
-      if (isF3LF4LReturnValid)
+      byte SLNTReturn;
+      byte PWRReturn;
+      uint16_t F2LReturn;
+      uint16_t F2LFReturn;
+      bool isF3LF4LReturnValid;
+      uint16_t F3LReturn;
+      uint16_t F4LReturn;
+      cmdSuccess = _Pala.setSilentMode(silentMode, &SLNTReturn, &PWRReturn, &F2LReturn, &F2LFReturn, &isF3LF4LReturnValid, &F3LReturn, &F4LReturn);
+
+      if (cmdSuccess)
       {
-        data[F("F3L")] = F3LReturn;
-        data[F("F4L")] = F4LReturn;
+        data[F("SLNT")] = SLNTReturn;
+        data[F("PWR")] = PWRReturn;
+        data[F("F2L")] = F2LReturn;
+        data[F("F2LF")] = F2LFReturn;
+        if (isF3LF4LReturnValid)
+        {
+          data[F("F3L")] = F3LReturn;
+          data[F("F4L")] = F4LReturn;
+        }
       }
     }
   }
@@ -1129,18 +1138,19 @@ String WebPalaControl::executePalaCmd(const String &cmd)
 
     if (!chronoStatus && strChronoStatus[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSST\",\"MSG\":\"Incorrect Chrono Status value : ");
-      jsonToReturn += strChronoStatus;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET CSST");
+      info[F("MSG")] = String(F("Incorrect Chrono Status value : ")) + strChronoStatus;
     }
 
-    byte CHRSTATUSReturn;
-    cmdSuccess = _Pala.setChronoStatus(chronoStatus, &CHRSTATUSReturn);
-
-    if (cmdSuccess)
+    if (info[F("MSG")].isNull())
     {
-      data[F("CHRSTATUS")] = CHRSTATUSReturn;
+      byte CHRSTATUSReturn;
+      cmdSuccess = _Pala.setChronoStatus(chronoStatus, &CHRSTATUSReturn);
+
+      if (cmdSuccess)
+      {
+        data[F("CHRSTATUS")] = CHRSTATUSReturn;
+      }
     }
   }
 
@@ -1152,26 +1162,24 @@ String WebPalaControl::executePalaCmd(const String &cmd)
     String strStartHour(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
     byte programNumber = strProgramNumber.toInt();
+    byte startHour = strStartHour.toInt();
 
     if (programNumber == 0 && strProgramNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Program Number : ");
-      jsonToReturn += strProgramNumber;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET CSTH");
+      info[F("MSG")] = String(F("Incorrect Program Number : ")) + strProgramNumber;
     }
 
-    byte startHour = strStartHour.toInt();
-
-    if (startHour == 0 && strStartHour[0] != '0')
+    if (info[F("MSG")].isNull() && startHour == 0 && strStartHour[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTH\",\"MSG\":\"Incorrect Start Hour : ");
-      jsonToReturn += strStartHour;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET CSTH");
+      info[F("MSG")] = String(F("Incorrect Start Hour : ")) + strStartHour;
     }
 
-    cmdSuccess = _Pala.setChronoStartHH(programNumber, startHour);
+    if (info[F("MSG")].isNull())
+    {
+      cmdSuccess = _Pala.setChronoStartHH(programNumber, startHour);
+    }
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSTM ")))
@@ -1182,26 +1190,24 @@ String WebPalaControl::executePalaCmd(const String &cmd)
     String strStartMinute(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
     byte programNumber = strProgramNumber.toInt();
+    byte startMinute = strStartMinute.toInt();
 
     if (programNumber == 0 && strProgramNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTM\",\"MSG\":\"Incorrect Program Number : ");
-      jsonToReturn += strProgramNumber;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET CSTM");
+      info[F("MSG")] = String(F("Incorrect Program Number : ")) + strProgramNumber;
     }
 
-    byte startMinute = strStartMinute.toInt();
-
-    if (startMinute == 0 && strStartMinute[0] != '0')
+    if (info[F("MSG")].isNull() && startMinute == 0 && strStartMinute[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSTM\",\"MSG\":\"Incorrect Start Minute : ");
-      jsonToReturn += strStartMinute;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET CSTM");
+      info[F("MSG")] = String(F("Incorrect Start Minute : ")) + startMinute;
     }
 
-    cmdSuccess = _Pala.setChronoStartMM(programNumber, startMinute);
+    if (info[F("MSG")].isNull())
+    {
+      cmdSuccess = _Pala.setChronoStartMM(programNumber, startMinute);
+    }
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSPH ")))
@@ -1212,26 +1218,25 @@ String WebPalaControl::executePalaCmd(const String &cmd)
     String strStopHour(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
     byte programNumber = strProgramNumber.toInt();
+    byte stopHour = strStopHour.toInt();
 
     if (programNumber == 0 && strProgramNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSPH\",\"MSG\":\"Incorrect Program Number : ");
-      jsonToReturn += strProgramNumber;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+
+      info[F("CMD")] = F("SET CSPH");
+      info[F("MSG")] = String(F("Incorrect Program Number : ")) + strProgramNumber;
     }
 
-    byte stopHour = strStopHour.toInt();
-
-    if (stopHour == 0 && strStopHour[0] != '0')
+    if (info[F("MSG")].isNull() && stopHour == 0 && strStopHour[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSPH\",\"MSG\":\"Incorrect Stop Hour : ");
-      jsonToReturn += strStopHour;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET CSPH");
+      info[F("MSG")] = String(F("Incorrect Stop Hour : ")) + strStopHour;
     }
 
-    cmdSuccess = _Pala.setChronoStopHH(programNumber, stopHour);
+    if (info[F("MSG")].isNull())
+    {
+      cmdSuccess = _Pala.setChronoStopHH(programNumber, stopHour);
+    }
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSPM ")))
@@ -1242,26 +1247,24 @@ String WebPalaControl::executePalaCmd(const String &cmd)
     String strStopMinute(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
     byte programNumber = strProgramNumber.toInt();
+    byte stopMinute = strStopMinute.toInt();
 
     if (programNumber == 0 && strProgramNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSPM\",\"MSG\":\"Incorrect Program Number : ");
-      jsonToReturn += strProgramNumber;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET CSPM");
+      info[F("MSG")] = String(F("Incorrect Program Number : ")) + strProgramNumber;
     }
 
-    byte stopMinute = strStopMinute.toInt();
-
-    if (stopMinute == 0 && strStopMinute[0] != '0')
+    if (info[F("MSG")].isNull() && stopMinute == 0 && strStopMinute[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSPM\",\"MSG\":\"Incorrect Stop Minute : ");
-      jsonToReturn += strStopMinute;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET CSPM");
+      info[F("MSG")] = String(F("Incorrect Stop Minute : ")) + strStopMinute;
     }
 
-    cmdSuccess = _Pala.setChronoStopMM(programNumber, stopMinute);
+    if (info[F("MSG")].isNull())
+    {
+      cmdSuccess = _Pala.setChronoStopMM(programNumber, stopMinute);
+    }
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSET ")))
@@ -1272,26 +1275,24 @@ String WebPalaControl::executePalaCmd(const String &cmd)
     String strSetPoint(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
     byte programNumber = strProgramNumber.toInt();
+    byte setPoint = strSetPoint.toInt();
 
     if (programNumber == 0 && strProgramNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSET\",\"MSG\":\"Incorrect Program Number : ");
-      jsonToReturn += strProgramNumber;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET CSET");
+      info[F("MSG")] = String(F("Incorrect Program Number : ")) + strProgramNumber;
     }
 
-    byte setPoint = strSetPoint.toInt();
-
-    if (setPoint == 0 && strSetPoint[0] != '0')
+    if (info[F("MSG")].isNull() && setPoint == 0 && strSetPoint[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CSET\",\"MSG\":\"Incorrect SetPoint : ");
-      jsonToReturn += strSetPoint;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET CSET");
+      info[F("MSG")] = String(F("Incorrect SetPoint : ")) + strSetPoint;
     }
 
-    cmdSuccess = _Pala.setChronoSetpoint(programNumber, setPoint);
+    if (info[F("MSG")].isNull())
+    {
+      cmdSuccess = _Pala.setChronoSetpoint(programNumber, setPoint);
+    }
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CDAY ")))
@@ -1306,52 +1307,47 @@ String WebPalaControl::executePalaCmd(const String &cmd)
     String strProgramNumber(cmd.substring(9 + strDayNumber.length() + strMemoryNumber.length() + 2));
 
     byte dayNumber = strDayNumber.toInt();
+    byte memoryNumber = strMemoryNumber.toInt();
+    byte programNumber = strProgramNumber.toInt();
 
     if (dayNumber == 0 && strDayNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CDAY\",\"MSG\":\"Incorrect Day Number : ");
-      jsonToReturn += strDayNumber;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET CDAY");
+      info[F("MSG")] = String(F("Incorrect Day Number : ")) + strDayNumber;
     }
 
-    byte memoryNumber = strMemoryNumber.toInt();
-
-    if (memoryNumber == 0 && strMemoryNumber[0] != '0')
+    if (info[F("MSG")].isNull() && memoryNumber == 0 && strMemoryNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CDAY\",\"MSG\":\"Incorrect Memory Number : ");
-      jsonToReturn += strMemoryNumber;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET CDAY");
+      info[F("MSG")] = String(F("Incorrect Memory Number : ")) + strMemoryNumber;
     }
 
-    byte programNumber = strProgramNumber.toInt();
-
-    if (programNumber == 0 && strProgramNumber[0] != '0')
+    if (info[F("MSG")].isNull() && programNumber == 0 && strProgramNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CDAY\",\"MSG\":\"Incorrect Program Number : ");
-      jsonToReturn += strProgramNumber;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET CDAY");
+      info[F("MSG")] = String(F("Incorrect Program Number : ")) + strProgramNumber;
     }
 
-    cmdSuccess = _Pala.setChronoDay(dayNumber, memoryNumber, programNumber);
-
-    if (cmdSuccess)
+    if (info[F("MSG")].isNull())
     {
-      char dayName[3] = {'D', 'X', 0};
-      char memoryName[3] = {'M', 'X', 0};
-      char programName[3] = {'P', 'X', 0};
+      cmdSuccess = _Pala.setChronoDay(dayNumber, memoryNumber, programNumber);
 
-      dayName[1] = dayNumber + '0';
-      memoryName[1] = memoryNumber + '0';
-      programName[1] = programNumber + '0';
+      if (cmdSuccess)
+      {
+        char dayName[3] = {'D', 'X', 0};
+        char memoryName[3] = {'M', 'X', 0};
+        char programName[3] = {'P', 'X', 0};
 
-      JsonObject dx = data.createNestedObject(dayName);
-      if (programNumber)
-        dx[memoryName] = programName;
-      else
-        dx[memoryName] = F("OFF");
+        dayName[1] = dayNumber + '0';
+        memoryName[1] = memoryNumber + '0';
+        programName[1] = programNumber + '0';
+
+        JsonObject dx = data.createNestedObject(dayName);
+        if (programNumber)
+          dx[memoryName] = programName;
+        else
+          dx[memoryName] = F("OFF");
+      }
     }
   }
 
@@ -1362,44 +1358,43 @@ String WebPalaControl::executePalaCmd(const String &cmd)
     byte posInCmd = 9;
     String strParams[6];
     byte params[6];
-    const __FlashStringHelper *errorMessage[6] = {F("Program Number"), F("SetPoint"), F("Starr Hour"), F("Start Minute"), F("Stop Hour"), F("Stop Minute")};
+    const __FlashStringHelper *errorMessage[6] = {F("Program Number"), F("SetPoint"), F("Start Hour"), F("Start Minute"), F("Stop Hour"), F("Stop Minute")};
 
-    for (byte i = 0; i < 6; i++)
+    for (byte i = 0; i < 6 && info[F("MSG")].isNull(); i++)
     {
       strParams[i] = cmd.substring(posInCmd, cmd.indexOf(' ', posInCmd));
       params[i] = strParams[i].toInt();
       if (params[i] == 0 && strParams[i][0] != '0')
       {
-        jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET CDAY\",\"MSG\":\"Incorrect ");
-        jsonToReturn += errorMessage[i];
-        jsonToReturn += F(" : ");
-        jsonToReturn += strParams[i];
-        jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-        return jsonToReturn;
+        info[F("CMD")] = F("SET CPRD");
+        info[F("MSG")] = String(F("Incorrect ")) + errorMessage[i] + F(" : ") + strParams[i];
       }
       posInCmd += strParams[i].length() + 1;
     }
 
-    cmdSuccess = _Pala.setChronoPrg(params[0], params[1], params[2], params[3], params[4], params[5]);
-
-    if (cmdSuccess)
+    if (info[F("MSG")].isNull())
     {
-      char programName[3] = {'P', 'X', 0};
-      char time[6] = {'0', '0', ':', '0', '0', 0};
+      cmdSuccess = _Pala.setChronoPrg(params[0], params[1], params[2], params[3], params[4], params[5]);
 
-      programName[1] = params[0] + '0';
-      JsonObject px = data.createNestedObject(programName);
-      px[F("CHRSETP")] = (float)params[1];
-      time[0] = params[2] / 10 + '0';
-      time[1] = params[2] % 10 + '0';
-      time[3] = params[3] / 10 + '0';
-      time[4] = params[3] % 10 + '0';
-      px[F("START")] = time;
-      time[0] = params[4] / 10 + '0';
-      time[1] = params[4] % 10 + '0';
-      time[3] = params[5] / 10 + '0';
-      time[4] = params[5] % 10 + '0';
-      px[F("STOP")] = time;
+      if (cmdSuccess)
+      {
+        char programName[3] = {'P', 'X', 0};
+        char time[6] = {'0', '0', ':', '0', '0', 0};
+
+        programName[1] = params[0] + '0';
+        JsonObject px = data.createNestedObject(programName);
+        px[F("CHRSETP")] = (float)params[1];
+        time[0] = params[2] / 10 + '0';
+        time[1] = params[2] % 10 + '0';
+        time[3] = params[3] / 10 + '0';
+        time[4] = params[3] % 10 + '0';
+        px[F("START")] = time;
+        time[0] = params[4] / 10 + '0';
+        time[1] = params[4] % 10 + '0';
+        time[3] = params[5] / 10 + '0';
+        time[4] = params[5] % 10 + '0';
+        px[F("STOP")] = time;
+      }
     }
   }
 
@@ -1411,18 +1406,19 @@ String WebPalaControl::executePalaCmd(const String &cmd)
 
     if (setPoint == 0)
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET SETP\",\"MSG\":\"Incorrect SetPoint value : ");
-      jsonToReturn += cmd.substring(9);
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET SETP");
+      info[F("MSG")] = String(F("Incorrect SetPoint value : ")) + cmd.substring(9);
     }
 
-    float SETPReturn;
-    cmdSuccess = _Pala.setSetpoint(setPoint, &SETPReturn);
-
-    if (cmdSuccess)
+    if (info[F("MSG")].isNull())
     {
-      data[F("SETP")] = serialized(String(SETPReturn, 2));
+      float SETPReturn;
+      cmdSuccess = _Pala.setSetpoint(setPoint, &SETPReturn);
+
+      if (cmdSuccess)
+      {
+        data[F("SETP")] = serialized(String(SETPReturn, 2));
+      }
     }
   }
 
@@ -1460,18 +1456,19 @@ String WebPalaControl::executePalaCmd(const String &cmd)
 
     if (setPointFloat == 0.0f)
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET STPF\",\"MSG\":\"Incorrect SetPoint Float value : ");
-      jsonToReturn += cmd.substring(9);
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET STPF");
+      info[F("MSG")] = String(F("Incorrect SetPoint Float value : ")) + cmd.substring(9);
     }
 
-    float SETPReturn;
-    cmdSuccess = _Pala.setSetpoint(setPointFloat, &SETPReturn);
-
-    if (cmdSuccess)
+    if (info[F("MSG")].isNull())
     {
-      data[F("SETP")] = serialized(String(SETPReturn, 2));
+      float SETPReturn;
+      cmdSuccess = _Pala.setSetpoint(setPointFloat, &SETPReturn);
+
+      if (cmdSuccess)
+      {
+        data[F("SETP")] = serialized(String(SETPReturn, 2));
+      }
     }
   }
 
@@ -1483,30 +1480,28 @@ String WebPalaControl::executePalaCmd(const String &cmd)
     String strParamValue(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
     byte paramNumber = strParamNumber.toInt();
+    byte paramValue = strParamValue.toInt();
 
     if (paramNumber == 0 && strParamNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET PARM\",\"MSG\":\"Incorrect Parameter Number : ");
-      jsonToReturn += strParamNumber;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET PARM");
+      info[F("MSG")] = String(F("Incorrect Parameter Number : ")) + strParamNumber;
     }
 
-    byte paramValue = strParamValue.toInt();
-
-    if (paramValue == 0 && strParamValue[0] != '0')
+    if (info[F("MSG")].isNull() && paramValue == 0 && strParamValue[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET PARM\",\"MSG\":\"Incorrect Parameter Value : ");
-      jsonToReturn += strParamValue;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET PARM");
+      info[F("MSG")] = String(F("Incorrect Parameter Value : ")) + strParamValue;
     }
 
-    cmdSuccess = _Pala.setParameter(paramNumber, paramValue);
-
-    if (cmdSuccess)
+    if (info[F("MSG")].isNull())
     {
-      data[String(F("PAR")) + paramNumber] = paramValue;
+      cmdSuccess = _Pala.setParameter(paramNumber, paramValue);
+
+      if (cmdSuccess)
+      {
+        data[String(F("PAR")) + paramNumber] = paramValue;
+      }
     }
   }
 
@@ -1518,38 +1513,34 @@ String WebPalaControl::executePalaCmd(const String &cmd)
     String strHiddenParamValue(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
     byte hiddenParamNumber = strHiddenParamNumber.toInt();
+    uint16_t hiddenParamValue = strHiddenParamValue.toInt();
 
     if (hiddenParamNumber == 0 && strHiddenParamNumber[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET HPAR\",\"MSG\":\"Incorrect Hidden Parameter Number : ");
-      jsonToReturn += strHiddenParamNumber;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET HPAR");
+      info[F("MSG")] = String(F("Incorrect Hidden Parameter Number : ")) + strHiddenParamNumber;
     }
 
-    uint16_t hiddenParamValue = strHiddenParamValue.toInt();
-
-    if (hiddenParamValue == 0 && strHiddenParamValue[0] != '0')
+    if (info[F("MSG")].isNull() && hiddenParamValue == 0 && strHiddenParamValue[0] != '0')
     {
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"SET HPAR\",\"MSG\":\"Incorrect Hidden Parameter Value : ");
-      jsonToReturn += strHiddenParamValue;
-      jsonToReturn += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-      return jsonToReturn;
+      info[F("CMD")] = F("SET HPAR");
+      info[F("MSG")] = String(F("Incorrect Hidden Parameter Value : ")) + strHiddenParamValue;
     }
-
-    cmdSuccess = _Pala.setHiddenParameter(hiddenParamNumber, hiddenParamValue);
-
-    if (cmdSuccess)
+    
+    if (info[F("MSG")].isNull())
     {
-      data[String(F("HPAR")) + hiddenParamNumber] = hiddenParamValue;
+      cmdSuccess = _Pala.setHiddenParameter(hiddenParamNumber, hiddenParamValue);
+
+      if (cmdSuccess)
+      {
+        data[String(F("HPAR")) + hiddenParamNumber] = hiddenParamValue;
+      }
     }
   }
 
   // if command has been processed
   if (cmdProcessed)
   {
-    info[F("CMD")] = cmd;
-
     // successfully
     if (cmdSuccess)
     {
@@ -1558,9 +1549,13 @@ String WebPalaControl::executePalaCmd(const String &cmd)
     }
     else
     {
-      // stove communication failed
-      info[F("RSP")] = F("TIMEOUT");
-      info[F("MSG")] = F("Stove communication failed");
+      // if there is no MSG in info then stove communication failed
+      if (info[F("MSG")].isNull())
+      {
+        info[F("RSP")] = F("TIMEOUT");
+        info[F("MSG")] = F("Stove communication failed");
+      }
+
       jsonDoc[F("SUCCESS")] = false;
       data[F("NODATA")] = true;
     }
