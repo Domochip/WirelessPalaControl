@@ -339,14 +339,11 @@ void WebPalaControl::publishTick()
 String WebPalaControl::executePalaCmd(const String &cmd){
   String jsonToReturn;
   bool cmdProcessed = false; //cmd has been processed
-  bool cmdSuccess = true; //Palazzetti function calls successful
+  bool cmdSuccess = false; //Palazzetti function calls successful
 
-  //Prepare successful answer
+  //Prepare answer structure
   DynamicJsonDocument jsonDoc(2048);
   JsonObject info = jsonDoc.createNestedObject(F("INFO"));
-  info[F("CMD")] = cmd;
-  info[F("RSP")] = F("OK");
-  jsonDoc[F("SUCCESS")] = true;
   JsonObject data = jsonDoc.createNestedObject(F("DATA"));
 
 
@@ -375,7 +372,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     byte CHRONOTYPE;
     byte AUTONOMYTYPE;
     byte NOMINALPWR;
-    cmdSuccess &= _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
+    cmdSuccess = _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
     
     if (cmdSuccess)
     {
@@ -497,7 +494,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     float T1, T2, T3, T4, T5;
     bool isSNValid;
     char SN[28];
-    cmdSuccess &= _Pala.getAllStatus(refreshStatus, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &APLTS, &APLWDAY, &CHRSTATUS, &STATUS, &LSTATUS, &isMFSTATUSValid, &MFSTATUS, &SETP, &PUMP, &PQT, &F1V, &F1RPM, &F2L, &F2LF, &FANLMINMAX, &F2V, &isF3LF4LValid, &F3L, &F4L, &PWR, &FDR, &DPT, &DP, &IN, &OUT, &T1, &T2, &T3, &T4, &T5, &isSNValid, &SN);
+    cmdSuccess = _Pala.getAllStatus(refreshStatus, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &APLTS, &APLWDAY, &CHRSTATUS, &STATUS, &LSTATUS, &isMFSTATUSValid, &MFSTATUS, &SETP, &PUMP, &PQT, &F1V, &F1RPM, &F2L, &F2LF, &FANLMINMAX, &F2V, &isF3LF4LValid, &F3L, &F4L, &PWR, &FDR, &DPT, &DP, &IN, &OUT, &T1, &T2, &T3, &T4, &T5, &isSNValid, &SN);
 
     if (cmdSuccess)
     {
@@ -559,7 +556,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET STAT"))
   {
     uint16_t STATUS, LSTATUS;
-    cmdSuccess &= _Pala.getStatus(&STATUS, &LSTATUS);
+    cmdSuccess = _Pala.getStatus(&STATUS, &LSTATUS);
 
     if (cmdSuccess)
     {
@@ -572,7 +569,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET TMPS"))
   {
     float T1, T2, T3, T4, T5;
-    cmdSuccess &= _Pala.getAllTemps(&T1, &T2, &T3, &T4, &T5);
+    cmdSuccess = _Pala.getAllTemps(&T1, &T2, &T3, &T4, &T5);
 
     if (cmdSuccess)
     {
@@ -592,7 +589,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     float F3S, F4S;
     bool isF3LF4LValid;
     uint16_t F3L, F4L;
-    cmdSuccess &= _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3SF4SValid, &F3S, &F4S, &isF3LF4LValid, &F3L, &F4L);
+    cmdSuccess = _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3SF4SValid, &F3S, &F4S, &isF3LF4LValid, &F3L, &F4L);
 
     if (cmdSuccess)
     {
@@ -618,7 +615,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET SETP"))
   {
     float SETP;
-    cmdSuccess &= _Pala.getSetPoint(&SETP);
+    cmdSuccess = _Pala.getSetPoint(&SETP);
 
     if (cmdSuccess)
     {
@@ -631,7 +628,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   {
     byte PWR;
     float FDR;
-    cmdSuccess &= _Pala.getPower(&PWR, &FDR);
+    cmdSuccess = _Pala.getPower(&PWR, &FDR);
 
     if (cmdSuccess)
     {
@@ -644,7 +641,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && (cmd == F("GET CUNT") || cmd == F("GET CNTR")))
   {
     uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQT;
-    cmdSuccess &= _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQT);
+    cmdSuccess = _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQT);
 
     if (cmdSuccess)
     {
@@ -663,7 +660,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET DPRS"))
   {
     uint16_t DP_TARGET, DP_PRESS;
-    cmdSuccess &= _Pala.getDPressData(&DP_TARGET, &DP_PRESS);
+    cmdSuccess = _Pala.getDPressData(&DP_TARGET, &DP_PRESS);
 
     if (cmdSuccess)
     {
@@ -677,7 +674,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   {
     char STOVE_DATETIME[20];
     byte STOVE_WDAY;
-    cmdSuccess &= _Pala.getDateTime(&STOVE_DATETIME, &STOVE_WDAY);
+    cmdSuccess = _Pala.getDateTime(&STOVE_DATETIME, &STOVE_WDAY);
 
     if (cmdSuccess)
     {
@@ -691,7 +688,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   {
     byte IN_I01, IN_I02, IN_I03, IN_I04;
     byte OUT_O01, OUT_O02, OUT_O03, OUT_O04, OUT_O05, OUT_O06, OUT_O07;
-    cmdSuccess &= _Pala.getIO(&IN_I01, &IN_I02, &IN_I03, &IN_I04, &OUT_O01, &OUT_O02, &OUT_O03, &OUT_O04, &OUT_O05, &OUT_O06, &OUT_O07);
+    cmdSuccess = _Pala.getIO(&IN_I01, &IN_I02, &IN_I03, &IN_I04, &OUT_O01, &OUT_O02, &OUT_O03, &OUT_O04, &OUT_O05, &OUT_O06, &OUT_O07);
 
     if (cmdSuccess)
     {
@@ -713,7 +710,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET SERN"))
   {
     char SN[28];
-    cmdSuccess &= _Pala.getSN(&SN);
+    cmdSuccess = _Pala.getSN(&SN);
 
     if (cmdSuccess)
     {
@@ -726,7 +723,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   {
     uint16_t MOD, VER, CORE;
     char FWDATE[11];
-    cmdSuccess &= _Pala.getModelVersion(&MOD, &VER, &CORE, &FWDATE);
+    cmdSuccess = _Pala.getModelVersion(&MOD, &VER, &CORE, &FWDATE);
 
     if (cmdSuccess)
     {
@@ -745,7 +742,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     byte PSTART[6][2];
     byte PSTOP[6][2];
     byte DM[7][3];
-    cmdSuccess &= _Pala.getChronoData(&CHRSTATUS, &PCHRSETP, &PSTART, &PSTOP, &DM);
+    cmdSuccess = _Pala.getChronoData(&CHRSTATUS, &PCHRSETP, &PSTART, &PSTOP, &DM);
 
     if (cmdSuccess)
     {
@@ -809,7 +806,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     byte paramValue;
-    cmdSuccess &= _Pala.getParameter(paramNumber, &paramValue);
+    cmdSuccess = _Pala.getParameter(paramNumber, &paramValue);
 
     if (cmdSuccess)
     {
@@ -833,7 +830,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     uint16_t hiddenParamValue;
-    cmdSuccess &= _Pala.getHiddenParameter(hiddenParamNumber, &hiddenParamValue);
+    cmdSuccess = _Pala.getHiddenParameter(hiddenParamNumber, &hiddenParamValue);
 
     if (cmdSuccess)
     {
@@ -855,9 +852,9 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     if (strOrder == F("ON"))
-      cmdSuccess &= _Pala.switchOn();
+      cmdSuccess = _Pala.switchOn();
     else if (strOrder == F("OFF"))
-      cmdSuccess &= _Pala.switchOff();
+      cmdSuccess = _Pala.switchOff();
 
     cmdProcessed = true;
   }
@@ -878,7 +875,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     bool isF2LReturnValid;
     uint16_t _F2LReturn;
     uint16_t FANLMINMAXReturn[6];
-    cmdSuccess &= _Pala.setPower(powerLevel, &PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
+    cmdSuccess = _Pala.setPower(powerLevel, &PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
 
     if (cmdSuccess)
     {
@@ -902,7 +899,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     bool isF2LReturnValid;
     uint16_t _F2LReturn;
     uint16_t FANLMINMAXReturn[6];
-    cmdSuccess &= _Pala.setPowerUp(&PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
+    cmdSuccess = _Pala.setPowerUp(&PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
 
     if (cmdSuccess)
     {
@@ -926,7 +923,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     bool isF2LReturnValid;
     uint16_t _F2LReturn;
     uint16_t FANLMINMAXReturn[6];
-    cmdSuccess &= _Pala.setPowerDown(&PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
+    cmdSuccess = _Pala.setPowerDown(&PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
 
     if (cmdSuccess)
     {
@@ -963,7 +960,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     byte PWRReturn;
     uint16_t F2LReturn;
     uint16_t F2LFReturn;
-    cmdSuccess &= _Pala.setRoomFan(roomFanLevel, &isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
+    cmdSuccess = _Pala.setRoomFan(roomFanLevel, &isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
 
     if (cmdSuccess)
     {
@@ -981,7 +978,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     byte PWRReturn;
     uint16_t F2LReturn;
     uint16_t F2LFReturn;
-    cmdSuccess &= _Pala.setRoomFanUp(&isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
+    cmdSuccess = _Pala.setRoomFanUp(&isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
 
     if (cmdSuccess)
     {
@@ -999,7 +996,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     byte PWRReturn;
     uint16_t F2LReturn;
     uint16_t F2LFReturn;
-    cmdSuccess &= _Pala.setRoomFanDown(&isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
+    cmdSuccess = _Pala.setRoomFanDown(&isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
 
     if (cmdSuccess)
     {
@@ -1026,7 +1023,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     uint16_t F3LReturn;
-    cmdSuccess &= _Pala.setRoomFan3(roomFan3Level, &F3LReturn);
+    cmdSuccess = _Pala.setRoomFan3(roomFan3Level, &F3LReturn);
 
     if (cmdSuccess)
     {
@@ -1050,7 +1047,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     uint16_t F4LReturn;
-    cmdSuccess &= _Pala.setRoomFan4(roomFan4Level, &F4LReturn);
+    cmdSuccess = _Pala.setRoomFan4(roomFan4Level, &F4LReturn);
 
     if (cmdSuccess)
     {
@@ -1080,7 +1077,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     bool isF3LF4LReturnValid;
     uint16_t F3LReturn;
     uint16_t F4LReturn;
-    cmdSuccess &= _Pala.setSilentMode(silentMode, &SLNTReturn, &PWRReturn, &F2LReturn, &F2LFReturn, &isF3LF4LReturnValid, &F3LReturn, &F4LReturn);
+    cmdSuccess = _Pala.setSilentMode(silentMode, &SLNTReturn, &PWRReturn, &F2LReturn, &F2LFReturn, &isF3LF4LReturnValid, &F3LReturn, &F4LReturn);
 
     if (cmdSuccess)
     {
@@ -1112,7 +1109,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     byte CHRSTATUSReturn;
-    cmdSuccess &= _Pala.setChronoStatus(chronoStatus, &CHRSTATUSReturn);
+    cmdSuccess = _Pala.setChronoStatus(chronoStatus, &CHRSTATUSReturn);
 
     if (cmdSuccess)
     {
@@ -1146,7 +1143,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       return jsonToReturn;
     }
 
-    cmdSuccess &= _Pala.setChronoStartHH(programNumber, startHour);
+    cmdSuccess = _Pala.setChronoStartHH(programNumber, startHour);
 
     cmdProcessed = true;
   }
@@ -1176,7 +1173,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       return jsonToReturn;
     }
 
-    cmdSuccess &= _Pala.setChronoStartMM(programNumber, startMinute);
+    cmdSuccess = _Pala.setChronoStartMM(programNumber, startMinute);
 
     cmdProcessed = true;
   }
@@ -1206,7 +1203,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       return jsonToReturn;
     }
 
-    cmdSuccess &= _Pala.setChronoStopHH(programNumber, stopHour);
+    cmdSuccess = _Pala.setChronoStopHH(programNumber, stopHour);
 
     cmdProcessed = true;
   }
@@ -1236,7 +1233,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       return jsonToReturn;
     }
 
-    cmdSuccess &= _Pala.setChronoStopMM(programNumber, stopMinute);
+    cmdSuccess = _Pala.setChronoStopMM(programNumber, stopMinute);
 
     cmdProcessed = true;
   }
@@ -1266,7 +1263,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       return jsonToReturn;
     }
 
-    cmdSuccess &= _Pala.setChronoSetpoint(programNumber, setPoint);
+    cmdSuccess = _Pala.setChronoSetpoint(programNumber, setPoint);
 
     cmdProcessed = true;
   }
@@ -1310,7 +1307,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       return jsonToReturn;
     }
 
-    cmdSuccess &= _Pala.setChronoDay(dayNumber, memoryNumber, programNumber);
+    cmdSuccess = _Pala.setChronoDay(dayNumber, memoryNumber, programNumber);
 
     if (cmdSuccess)
     {
@@ -1354,7 +1351,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       posInCmd += strParams[i].length() + 1;
     }
 
-    cmdSuccess &= _Pala.setChronoPrg(params[0], params[1], params[2], params[3], params[4], params[5]);
+    cmdSuccess = _Pala.setChronoPrg(params[0], params[1], params[2], params[3], params[4], params[5]);
 
     if (cmdSuccess)
     {
@@ -1391,7 +1388,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     float SETPReturn;
-    cmdSuccess &= _Pala.setSetpoint(setPoint, &SETPReturn);
+    cmdSuccess = _Pala.setSetpoint(setPoint, &SETPReturn);
 
     if (cmdSuccess)
     {
@@ -1403,7 +1400,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("SET STPU"))
   {
     float SETPReturn;
-    cmdSuccess &= _Pala.setSetPointUp(&SETPReturn);
+    cmdSuccess = _Pala.setSetPointUp(&SETPReturn);
 
     if (cmdSuccess)
     {
@@ -1415,7 +1412,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("SET STPD"))
   {
     float SETPReturn;
-    cmdSuccess &= _Pala.setSetPointDown(&SETPReturn);
+    cmdSuccess = _Pala.setSetPointDown(&SETPReturn);
 
     if (cmdSuccess)
     {
@@ -1437,7 +1434,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     float SETPReturn;
-    cmdSuccess &= _Pala.setSetpoint(setPointFloat, &SETPReturn);
+    cmdSuccess = _Pala.setSetpoint(setPointFloat, &SETPReturn);
 
     if (cmdSuccess)
     {
@@ -1471,7 +1468,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       return jsonToReturn;
     }
 
-    cmdSuccess &= _Pala.setParameter(paramNumber, paramValue);
+    cmdSuccess = _Pala.setParameter(paramNumber, paramValue);
 
     if (cmdSuccess)
     {
@@ -1505,7 +1502,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       return jsonToReturn;
     }
 
-    cmdSuccess &= _Pala.setHiddenParameter(hiddenParamNumber, hiddenParamValue);
+    cmdSuccess = _Pala.setHiddenParameter(hiddenParamNumber, hiddenParamValue);
     
     if (cmdSuccess)
     {
@@ -1518,20 +1515,31 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   // if command has been processed
   if (cmdProcessed)
   {
+    info[F("CMD")] = cmd;
+
     //successfully
-    if (cmdSuccess) serializeJson(jsonDoc, jsonToReturn); //serialize jsonToReturn
+    if (cmdSuccess) {
+      info[F("RSP")] = F("OK");
+      jsonDoc[F("SUCCESS")] = true;
+    }
     else
     {
       //stove communication failed
-      jsonToReturn = F("{\"INFO\":{\"CMD\":\"");
-      jsonToReturn += cmd;
-      jsonToReturn += F("\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+      info[F("RSP")] = F("TIMEOUT");
+      info[F("MSG")] = F("Stove communication failed");
+      jsonDoc[F("SUCCESS")] = false;
+      data[F("NODATA")] = true;
     }
   }
   else{
     // command is unknown and not processed
-    jsonToReturn = F("{\"INFO\":{\"CMD\":\"UNKNOWN\",\"MSG\":\"No valid request received\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
+    info[F("CMD")] = F("UNKNOWN");
+    info[F("MSG")] = F("No valid request received");
+    jsonDoc[F("SUCCESS")] = false;
+    data[F("NODATA")] = true;
   }
+
+  serializeJson(jsonDoc, jsonToReturn); //serialize jsonToReturn
 
   return jsonToReturn;
 }
