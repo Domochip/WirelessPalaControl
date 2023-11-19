@@ -1,17 +1,17 @@
 #include "WirelessPalaControl.h"
 
-//Serial management functions -------------
+// Serial management functions -------------
 int WebPalaControl::myOpenSerial(uint32_t baudrate)
 {
   Serial.begin(baudrate);
-  Serial.pins(15, 13); //swap ESP8266 pins to alternative positions (D7(GPIO13)(RX)/D8(GPIO15)(TX))
+  Serial.pins(15, 13); // swap ESP8266 pins to alternative positions (D7(GPIO13)(RX)/D8(GPIO15)(TX))
   return 0;
 }
 void WebPalaControl::myCloseSerial()
 {
   Serial.end();
-  //TX/GPIO15 is pulled down and so block the stove bus by default...
-  pinMode(15, OUTPUT); //set TX PIN to OUTPUT HIGH
+  // TX/GPIO15 is pulled down and so block the stove bus by default...
+  pinMode(15, OUTPUT); // set TX PIN to OUTPUT HIGH
   digitalWrite(15, HIGH);
 }
 int WebPalaControl::mySelectSerial(unsigned long timeout)
@@ -23,7 +23,7 @@ int WebPalaControl::mySelectSerial(unsigned long timeout)
     timeOut.reset();
     while (!timeOut)
       ;
-    ESP.wdtFeed(); //feed the WDT to prevent bite
+    ESP.wdtFeed(); // feed the WDT to prevent bite
   }
 
   if (Serial.available())
@@ -34,7 +34,7 @@ size_t WebPalaControl::myReadSerial(void *buf, size_t count) { return Serial.rea
 size_t WebPalaControl::myWriteSerial(const void *buf, size_t count) { return Serial.write((const uint8_t *)buf, count); }
 int WebPalaControl::myDrainSerial()
 {
-  Serial.flush(); //On ESP, Serial.flush() is drain
+  Serial.flush(); // On ESP, Serial.flush() is drain
   return 0;
 }
 int WebPalaControl::myFlushSerial()
@@ -47,14 +47,14 @@ void WebPalaControl::myUSleep(unsigned long usecond) { delayMicroseconds(usecond
 void WebPalaControl::mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnection)
 {
 
-  //Subscribe to needed topic
-  //prepare topic subscription
+  // Subscribe to needed topic
+  // prepare topic subscription
   String subscribeTopic = _ha.mqtt.generic.baseTopic;
 
-  //Replace placeholders
+  // Replace placeholders
   MQTTMan::prepareTopic(subscribeTopic);
 
-  switch (_ha.mqtt.type) //switch on MQTT type
+  switch (_ha.mqtt.type) // switch on MQTT type
   {
   case HA_MQTT_GENERIC:
     subscribeTopic += F("cmd");
@@ -62,14 +62,14 @@ void WebPalaControl::mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnectio
   }
 
   if (firstConnection)
-    mqttMan->publish(subscribeTopic.c_str(), ""); //make empty publish only for firstConnection
+    mqttMan->publish(subscribeTopic.c_str(), ""); // make empty publish only for firstConnection
   mqttMan->subscribe(subscribeTopic.c_str());
 }
 
 void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int length)
 {
-  //if topic is basetopic/cmd
-  //commented because only this topic is subscribed
+  // if topic is basetopic/cmd
+  // commented because only this topic is subscribed
 
   bool isCmdExecuted = false;
 
@@ -108,7 +108,7 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
       isCmdExecuted = true;
     }
   }
-  
+
   if (!isCmdExecuted && length == 10 && !memcmp_P(payload, F("SET+RFAN+"), 9))
   {
     if (payload[9] >= '0' && payload[9] <= '7')
@@ -118,7 +118,7 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
     }
   }
 
-  //Finally if Cmd has been executed, Run a Publish to push back to HA
+  // Finally if Cmd has been executed, Run a Publish to push back to HA
   if (isCmdExecuted)
     publishTick();
 }
@@ -127,7 +127,7 @@ void WebPalaControl::publishTick()
 {
   //------------------------------------------------------------------------
   // Read all necessary info from stove and send it to webClient (eventSource connected)
-  
+
   bool readSuccess = true;
 
   uint16_t STATUS, LSTATUS;
@@ -336,16 +336,16 @@ void WebPalaControl::publishTick()
   }
 }
 
-String WebPalaControl::executePalaCmd(const String &cmd){
+String WebPalaControl::executePalaCmd(const String &cmd)
+{
   String jsonToReturn;
-  bool cmdProcessed = false; //cmd has been processed
-  bool cmdSuccess = false; //Palazzetti function calls successful
+  bool cmdProcessed = false; // cmd has been processed
+  bool cmdSuccess = false;   // Palazzetti function calls successful
 
-  //Prepare answer structure
+  // Prepare answer structure
   DynamicJsonDocument jsonDoc(2048);
   JsonObject info = jsonDoc.createNestedObject(F("INFO"));
   JsonObject data = jsonDoc.createNestedObject(F("DATA"));
-
 
   if (!cmdProcessed && cmd == F("GET STDT"))
   {
@@ -375,14 +375,14 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     byte AUTONOMYTYPE;
     byte NOMINALPWR;
     cmdSuccess = _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
-    
+
     if (cmdSuccess)
     {
       // ----- WPalaControl generated values -----
       data[F("LABEL")] = WiFi.getHostname();
 
       // Network infos
-      data[F("GWDEVICE")] = F("wlan0"); //always wifi
+      data[F("GWDEVICE")] = F("wlan0"); // always wifi
       data[F("MAC")] = WiFi.macAddress();
       data[F("GATEWAY")] = WiFi.gatewayIP().toString();
       JsonArray dns = data.createNestedArray("DNS");
@@ -394,7 +394,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("WADR")] = (WiFi.getMode() & WIFI_STA) ? WiFi.localIP().toString() : WiFi.softAPIP().toString();
       data[F("WGW")] = WiFi.gatewayIP().toString();
       data[F("WENC")] = F("psk2");
-      data[F("WPWR")] = String(WiFi.RSSI()) + F(" dBm"); //need conversion to dBm?
+      data[F("WPWR")] = String(WiFi.RSSI()) + F(" dBm"); // need conversion to dBm?
       data[F("WSSID")] = WiFi.SSID();
       data[F("WPR")] = (true) ? F("dhcp") : F("static");
       data[F("WMSK")] = WiFi.subnetMask().toString();
@@ -410,16 +410,15 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("ECBL")] = F("down");
       data[F("EBCST")] = "";
 
-      data[F("APLCONN")] = 1; //appliance connected
-      data[F("ICONN")] = 0; //internet connected
-      
-      data[F("CBTYPE")] = F("miniembplug"); //CBox model
+      data[F("APLCONN")] = 1; // appliance connected
+      data[F("ICONN")] = 0;   // internet connected
+
+      data[F("CBTYPE")] = F("miniembplug"); // CBox model
       data[F("sendmsg")] = F("2.1.2 2018-03-28 10:19:09");
       data[F("plzbridge")] = F("2.2.1 2021-10-08 09:30:45");
       data[F("SYSTEM")] = F("2.5.3 2021-10-08 10:30:20 (657c8cf)");
 
       data[F("CLOUD_ENABLED")] = true;
-
 
       // ----- Values from stove -----
       data[F("SN")] = SN;
@@ -447,7 +446,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("FAN2MODE")] = FAN2MODE;
       data[F("BLEMBMODE")] = BLEMBMODE;
       data[F("BLEDSPMODE")] = BLEDSPMODE;
-      data[F("CHRONOTYPE")] = 0; //disable chronothermostat (no planning) (enabled if > 1)
+      data[F("CHRONOTYPE")] = 0; // disable chronothermostat (no planning) (enabled if > 1)
       data[F("AUTONOMYTYPE")] = AUTONOMYTYPE;
       data[F("NOMINALPWR")] = NOMINALPWR;
     }
@@ -456,7 +455,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET LABL"))
   {
     cmdProcessed = true;
-    
+
     data[F("LABEL")] = WiFi.getHostname();
   }
 
@@ -466,7 +465,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     bool refreshStatus = false;
     unsigned long currentMillis = millis();
-    if ((currentMillis - _lastAllStatusRefreshMillis) > 15000UL) //refresh AllStatus data if it's 15sec old
+    if ((currentMillis - _lastAllStatusRefreshMillis) > 15000UL) // refresh AllStatus data if it's 15sec old
       refreshStatus = true;
 
     int MBTYPE;
@@ -551,7 +550,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("T4")] = serialized(String(T4, 2));
       data[F("T5")] = serialized(String(T5, 2));
 
-      data[F("EFLAGS")] = 0; //new ErrorFlags not implemented
+      data[F("EFLAGS")] = 0; // new ErrorFlags not implemented
       if (isSNValid)
         data[F("SN")] = SN;
     }
@@ -591,7 +590,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET FAND"))
   {
     cmdProcessed = true;
-    
+
     uint16_t F1V, F2V, F1RPM, F2L, F2LF;
     bool isF3SF4SValid;
     float F3S, F4S;
@@ -622,7 +621,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET SETP"))
   {
     cmdProcessed = true;
-    
+
     float SETP;
     cmdSuccess = _Pala.getSetPoint(&SETP);
 
@@ -635,7 +634,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET POWR"))
   {
     cmdProcessed = true;
-    
+
     byte PWR;
     float FDR;
     cmdSuccess = _Pala.getPower(&PWR, &FDR);
@@ -650,7 +649,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && (cmd == F("GET CUNT") || cmd == F("GET CNTR")))
   {
     cmdProcessed = true;
-    
+
     uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQT;
     cmdSuccess = _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQT);
 
@@ -670,7 +669,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET DPRS"))
   {
     cmdProcessed = true;
-    
+
     uint16_t DP_TARGET, DP_PRESS;
     cmdSuccess = _Pala.getDPressData(&DP_TARGET, &DP_PRESS);
 
@@ -684,7 +683,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET TIME"))
   {
     cmdProcessed = true;
-    
+
     char STOVE_DATETIME[20];
     byte STOVE_WDAY;
     cmdSuccess = _Pala.getDateTime(&STOVE_DATETIME, &STOVE_WDAY);
@@ -699,7 +698,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET IOPT"))
   {
     cmdProcessed = true;
-    
+
     byte IN_I01, IN_I02, IN_I03, IN_I04;
     byte OUT_O01, OUT_O02, OUT_O03, OUT_O04, OUT_O05, OUT_O06, OUT_O07;
     cmdSuccess = _Pala.getIO(&IN_I01, &IN_I02, &IN_I03, &IN_I04, &OUT_O01, &OUT_O02, &OUT_O03, &OUT_O04, &OUT_O05, &OUT_O06, &OUT_O07);
@@ -723,7 +722,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET SERN"))
   {
     cmdProcessed = true;
-    
+
     char SN[28];
     cmdSuccess = _Pala.getSN(&SN);
 
@@ -736,7 +735,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET MDVE"))
   {
     cmdProcessed = true;
-    
+
     uint16_t MOD, VER, CORE;
     char FWDATE[11];
     cmdSuccess = _Pala.getModelVersion(&MOD, &VER, &CORE, &FWDATE);
@@ -753,7 +752,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("GET CHRD"))
   {
     cmdProcessed = true;
-    
+
     byte CHRSTATUS;
     float PCHRSETP[6];
     byte PSTART[6][2];
@@ -765,7 +764,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     {
       data[F("CHRSTATUS")] = CHRSTATUS;
 
-      //Add Programs (P1->P6)
+      // Add Programs (P1->P6)
       char programName[3] = {'P', 'X', 0};
       char time[6] = {'0', '0', ':', '0', '0', 0};
       for (byte i = 0; i < 6; i++)
@@ -785,7 +784,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
         px[F("STOP")] = time;
       }
 
-      //Add Days (D1->D7)
+      // Add Days (D1->D7)
       char dayName[3] = {'D', 'X', 0};
       char memoryName[3] = {'M', 'X', 0};
       for (byte dayNumber = 0; dayNumber < 7; dayNumber++)
@@ -810,7 +809,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd.startsWith(F("GET PARM ")))
   {
     cmdProcessed = true;
-    
+
     String strParamNumber(cmd.substring(9));
 
     byte paramNumber = strParamNumber.toInt();
@@ -835,7 +834,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd.startsWith(F("GET HPAR ")))
   {
     cmdProcessed = true;
-    
+
     String strHiddenParamNumber(cmd.substring(9));
 
     byte hiddenParamNumber = strHiddenParamNumber.toInt();
@@ -860,7 +859,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd.startsWith(F("CMD ")))
   {
     cmdProcessed = true;
-    
+
     String strOrder(cmd.substring(4));
 
     if (strOrder != F("ON") && strOrder != F("OFF"))
@@ -875,13 +874,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       cmdSuccess = _Pala.switchOn();
     else if (strOrder == F("OFF"))
       cmdSuccess = _Pala.switchOff();
-
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET POWR ")))
   {
     cmdProcessed = true;
-    
+
     byte powerLevel = cmd.substring(9).toInt();
 
     if (powerLevel == 0)
@@ -916,7 +914,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("SET PWRU"))
   {
     cmdProcessed = true;
-    
+
     byte PWRReturn;
     bool isF2LReturnValid;
     uint16_t _F2LReturn;
@@ -941,7 +939,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("SET PWRD"))
   {
     cmdProcessed = true;
-    
+
     byte PWRReturn;
     bool isF2LReturnValid;
     uint16_t _F2LReturn;
@@ -963,11 +961,10 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
   }
 
-
   if (!cmdProcessed && cmd.startsWith(F("SET RFAN ")))
   {
     cmdProcessed = true;
-    
+
     String strRoomFanLevel(cmd.substring(9));
 
     byte roomFanLevel = strRoomFanLevel.toInt();
@@ -998,7 +995,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("SET FN2U"))
   {
     cmdProcessed = true;
-    
+
     bool isPWRReturnValid;
     byte PWRReturn;
     uint16_t F2LReturn;
@@ -1017,7 +1014,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("SET FN2D"))
   {
     cmdProcessed = true;
-    
+
     bool isPWRReturnValid;
     byte PWRReturn;
     uint16_t F2LReturn;
@@ -1036,7 +1033,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd.startsWith(F("SET FN3L ")))
   {
     cmdProcessed = true;
-    
+
     String strRoomFan3Level(cmd.substring(9));
 
     byte roomFan3Level = strRoomFan3Level.toInt();
@@ -1061,7 +1058,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd.startsWith(F("SET FN4L ")))
   {
     cmdProcessed = true;
-    
+
     String strRoomFan4Level(cmd.substring(9));
 
     byte roomFan4Level = strRoomFan4Level.toInt();
@@ -1086,7 +1083,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd.startsWith(F("SET SLNT ")))
   {
     cmdProcessed = true;
-    
+
     String strSilentMode = cmd.substring(9);
 
     byte silentMode = strSilentMode.toInt();
@@ -1125,7 +1122,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd.startsWith(F("SET CSST ")))
   {
     cmdProcessed = true;
-    
+
     String strChronoStatus = cmd.substring(9);
 
     bool chronoStatus = (strChronoStatus.toInt() != 0);
@@ -1150,7 +1147,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd.startsWith(F("SET CSTH ")))
   {
     cmdProcessed = true;
-    
+
     String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     String strStartHour(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
@@ -1175,13 +1172,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     cmdSuccess = _Pala.setChronoStartHH(programNumber, startHour);
-
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSTM ")))
   {
     cmdProcessed = true;
-    
+
     String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     String strStartMinute(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
@@ -1206,13 +1202,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     cmdSuccess = _Pala.setChronoStartMM(programNumber, startMinute);
-
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSPH ")))
   {
     cmdProcessed = true;
-    
+
     String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     String strStopHour(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
@@ -1237,13 +1232,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     cmdSuccess = _Pala.setChronoStopHH(programNumber, stopHour);
-
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSPM ")))
   {
     cmdProcessed = true;
-    
+
     String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     String strStopMinute(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
@@ -1268,13 +1262,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     cmdSuccess = _Pala.setChronoStopMM(programNumber, stopMinute);
-
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSET ")))
   {
     cmdProcessed = true;
-    
+
     String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     String strSetPoint(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
@@ -1304,7 +1297,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd.startsWith(F("SET CDAY ")))
   {
     cmdProcessed = true;
-    
+
     // Starting 9 to first space starting 9
     String strDayNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     // Starting (9 + previous string length + 1) to first space starting (9 + previous string length + 1)
@@ -1365,11 +1358,11 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd.startsWith(F("SET CPRD ")))
   {
     cmdProcessed = true;
-    
+
     byte posInCmd = 9;
     String strParams[6];
     byte params[6];
-    const __FlashStringHelper* errorMessage[6] = {F("Program Number"), F("SetPoint"), F("Starr Hour"), F("Start Minute"), F("Stop Hour"), F("Stop Minute")};
+    const __FlashStringHelper *errorMessage[6] = {F("Program Number"), F("SetPoint"), F("Starr Hour"), F("Start Minute"), F("Stop Hour"), F("Stop Minute")};
 
     for (byte i = 0; i < 6; i++)
     {
@@ -1413,7 +1406,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd.startsWith(F("SET SETP ")))
   {
     cmdProcessed = true;
-    
+
     byte setPoint = cmd.substring(9).toInt();
 
     if (setPoint == 0)
@@ -1436,7 +1429,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("SET STPU"))
   {
     cmdProcessed = true;
-    
+
     float SETPReturn;
     cmdSuccess = _Pala.setSetPointUp(&SETPReturn);
 
@@ -1449,7 +1442,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd == F("SET STPD"))
   {
     cmdProcessed = true;
-    
+
     float SETPReturn;
     cmdSuccess = _Pala.setSetPointDown(&SETPReturn);
 
@@ -1462,7 +1455,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd.startsWith(F("SET STPF ")))
   {
     cmdProcessed = true;
-    
+
     float setPointFloat = cmd.substring(9).toFloat();
 
     if (setPointFloat == 0.0f)
@@ -1485,7 +1478,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd.startsWith(F("SET PARM ")))
   {
     cmdProcessed = true;
-    
+
     String strParamNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     String strParamValue(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
@@ -1520,7 +1513,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
   if (!cmdProcessed && cmd.startsWith(F("SET HPAR ")))
   {
     cmdProcessed = true;
-    
+
     String strHiddenParamNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     String strHiddenParamValue(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
@@ -1545,34 +1538,35 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     cmdSuccess = _Pala.setHiddenParameter(hiddenParamNumber, hiddenParamValue);
-    
+
     if (cmdSuccess)
     {
       data[String(F("HPAR")) + hiddenParamNumber] = hiddenParamValue;
     }
   }
 
-
   // if command has been processed
   if (cmdProcessed)
   {
     info[F("CMD")] = cmd;
 
-    //successfully
-    if (cmdSuccess) {
+    // successfully
+    if (cmdSuccess)
+    {
       info[F("RSP")] = F("OK");
       jsonDoc[F("SUCCESS")] = true;
     }
     else
     {
-      //stove communication failed
+      // stove communication failed
       info[F("RSP")] = F("TIMEOUT");
       info[F("MSG")] = F("Stove communication failed");
       jsonDoc[F("SUCCESS")] = false;
       data[F("NODATA")] = true;
     }
   }
-  else{
+  else
+  {
     // command is unknown and not processed
     info[F("CMD")] = F("UNKNOWN");
     info[F("MSG")] = F("No valid request received");
@@ -1580,13 +1574,13 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     data[F("NODATA")] = true;
   }
 
-  serializeJson(jsonDoc, jsonToReturn); //serialize jsonToReturn
+  serializeJson(jsonDoc, jsonToReturn); // serialize jsonToReturn
 
   return jsonToReturn;
 }
 
 //------------------------------------------
-//Used to initialize configuration properties to default values
+// Used to initialize configuration properties to default values
 void WebPalaControl::setConfigDefaultValues()
 {
   _ha.protocol = HA_PROTO_DISABLED;
@@ -1600,7 +1594,7 @@ void WebPalaControl::setConfigDefaultValues()
   strcpy_P(_ha.mqtt.generic.baseTopic, PSTR("$model$"));
 };
 //------------------------------------------
-//Parse JSON object into configuration properties
+// Parse JSON object into configuration properties
 void WebPalaControl::parseConfigJSON(DynamicJsonDocument &doc)
 {
   if (!doc[F("haproto")].isNull())
@@ -1623,15 +1617,15 @@ void WebPalaControl::parseConfigJSON(DynamicJsonDocument &doc)
     strlcpy(_ha.mqtt.generic.baseTopic, doc[F("hamgbt")], sizeof(_ha.mqtt.generic.baseTopic));
 };
 //------------------------------------------
-//Parse HTTP POST parameters in request into configuration properties
+// Parse HTTP POST parameters in request into configuration properties
 bool WebPalaControl::parseConfigWebRequest(AsyncWebServerRequest *request)
 {
 
-  //Parse HA protocol
+  // Parse HA protocol
   if (request->hasParam(F("haproto"), true))
     _ha.protocol = request->getParam(F("haproto"), true)->value().toInt();
 
-  //if an home Automation protocol has been selected then get common param
+  // if an home Automation protocol has been selected then get common param
   if (_ha.protocol != HA_PROTO_DISABLED)
   {
     if (request->hasParam(F("hahost"), true) && request->getParam(F("hahost"), true)->value().length() < sizeof(_ha.hostname))
@@ -1640,7 +1634,7 @@ bool WebPalaControl::parseConfigWebRequest(AsyncWebServerRequest *request)
       _ha.uploadPeriod = request->getParam(F("haupperiod"), true)->value().toInt();
   }
 
-  //Now get specific param
+  // Now get specific param
   switch (_ha.protocol)
   {
 
@@ -1653,10 +1647,10 @@ bool WebPalaControl::parseConfigWebRequest(AsyncWebServerRequest *request)
     if (request->hasParam(F("hamu"), true) && request->getParam(F("hamu"), true)->value().length() < sizeof(_ha.mqtt.username))
       strcpy(_ha.mqtt.username, request->getParam(F("hamu"), true)->value().c_str());
     char tempPassword[64 + 1] = {0};
-    //put MQTT password into temporary one for predefpassword
+    // put MQTT password into temporary one for predefpassword
     if (request->hasParam(F("hamp"), true) && request->getParam(F("hamp"), true)->value().length() < sizeof(tempPassword))
       strcpy(tempPassword, request->getParam(F("hamp"), true)->value().c_str());
-    //check for previous password (there is a predefined special password that mean to keep already saved one)
+    // check for previous password (there is a predefined special password that mean to keep already saved one)
     if (strcmp_P(tempPassword, appDataPredefPassword))
       strcpy(_ha.mqtt.password, tempPassword);
 
@@ -1675,7 +1669,7 @@ bool WebPalaControl::parseConfigWebRequest(AsyncWebServerRequest *request)
   return true;
 };
 //------------------------------------------
-//Generate JSON from configuration properties
+// Generate JSON from configuration properties
 String WebPalaControl::generateConfigJSON(bool forSaveFile = false)
 {
   String gc('{');
@@ -1684,7 +1678,7 @@ String WebPalaControl::generateConfigJSON(bool forSaveFile = false)
   gc = gc + F(",\"hahost\":\"") + _ha.hostname + '"';
   gc = gc + F(",\"haupperiod\":") + _ha.uploadPeriod;
 
-  //if for WebPage or protocol selected is MQTT
+  // if for WebPage or protocol selected is MQTT
   if (!forSaveFile || _ha.protocol == HA_PROTO_MQTT)
   {
     gc = gc + F(",\"hamtype\":") + _ha.mqtt.type;
@@ -1693,7 +1687,7 @@ String WebPalaControl::generateConfigJSON(bool forSaveFile = false)
     if (forSaveFile)
       gc = gc + F(",\"hamp\":\"") + _ha.mqtt.password + '"';
     else
-      gc = gc + F(",\"hamp\":\"") + (__FlashStringHelper *)appDataPredefPassword + '"'; //predefined special password (mean to keep already saved one)
+      gc = gc + F(",\"hamp\":\"") + (__FlashStringHelper *)appDataPredefPassword + '"'; // predefined special password (mean to keep already saved one)
 
     gc = gc + F(",\"hamgbt\":\"") + _ha.mqtt.generic.baseTopic + '"';
   }
@@ -1703,7 +1697,7 @@ String WebPalaControl::generateConfigJSON(bool forSaveFile = false)
   return gc;
 };
 //------------------------------------------
-//Generate JSON of application status
+// Generate JSON of application status
 String WebPalaControl::generateStatusJSON()
 {
   String gs('{');
@@ -1765,33 +1759,33 @@ String WebPalaControl::generateStatusJSON()
   return gs;
 };
 //------------------------------------------
-//code to execute during initialization and reinitialization of the app
+// code to execute during initialization and reinitialization of the app
 bool WebPalaControl::appInit(bool reInit)
 {
-  //Stop UdpServer
+  // Stop UdpServer
   _udpServer.close();
 
-  //Stop Publish
+  // Stop Publish
   _publishTicker.detach();
 
-  //Stop MQTT
+  // Stop MQTT
   _mqttMan.disconnect();
 
-  //if MQTT used so configure it
+  // if MQTT used so configure it
   if (_ha.protocol == HA_PROTO_MQTT)
   {
-    //prepare will topic
+    // prepare will topic
     String willTopic = _ha.mqtt.generic.baseTopic;
     MQTTMan::prepareTopic(willTopic);
     willTopic += F("connected");
 
-    //setup MQTT
+    // setup MQTT
     _mqttMan.setClient(_wifiClient).setServer(_ha.hostname, _ha.mqtt.port);
     _mqttMan.setConnectedAndWillTopic(willTopic.c_str());
     _mqttMan.setConnectedCallback(std::bind(&WebPalaControl::mqttConnectedCallback, this, std::placeholders::_1, std::placeholders::_2));
     _mqttMan.setCallback(std::bind(&WebPalaControl::mqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
-    //Connect
+    // Connect
     _mqttMan.connect(_ha.mqtt.username, _ha.mqtt.password);
   }
 
@@ -1812,12 +1806,14 @@ bool WebPalaControl::appInit(bool reInit)
     LOG_SERIAL.printf("setpoint=%.2f", setPoint);
 
   if (res)
-    publishTick(); //if configuration changed, publish immediately
-  _publishTicker.attach(_ha.uploadPeriod, [this]() { this->_needPublish = true; });
+    publishTick(); // if configuration changed, publish immediately
+  _publishTicker.attach(_ha.uploadPeriod, [this]()
+                        { this->_needPublish = true; });
 
-  //Start UDP Server
+  // Start UDP Server
   _udpServer.listen(54549);
-  _udpServer.onPacket([this](AsyncUDPPacket packet){
+  _udpServer.onPacket([this](AsyncUDPPacket packet)
+                      {
     String strData;
     strData.reserve(packet.length()+1);
     String strAnswer;
@@ -1833,13 +1829,12 @@ bool WebPalaControl::appInit(bool reInit)
     else strAnswer = executePalaCmd("");
 
     // answer to the requester
-    packet.write((const uint8_t *)strAnswer.c_str(), strAnswer.length());
-  });
+    packet.write((const uint8_t *)strAnswer.c_str(), strAnswer.length()); });
 
   return res;
 };
 //------------------------------------------
-//Return HTML Code to insert into Status Web page
+// Return HTML Code to insert into Status Web page
 const uint8_t *WebPalaControl::getHTMLContent(WebPageForPlaceHolder wp)
 {
   switch (wp)
@@ -1856,7 +1851,7 @@ const uint8_t *WebPalaControl::getHTMLContent(WebPageForPlaceHolder wp)
   };
   return nullptr;
 };
-//and his Size
+// and his Size
 size_t WebPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
 {
   switch (wp)
@@ -1875,11 +1870,12 @@ size_t WebPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
 };
 
 //------------------------------------------
-//code to register web request answer to the web server
+// code to register web request answer to the web server
 void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   // Handle HTTP GET requests
-  server.on("/cgi-bin/sendmsg.lua", HTTP_GET, [this](AsyncWebServerRequest *request) {
+  server.on("/cgi-bin/sendmsg.lua", HTTP_GET, [this](AsyncWebServerRequest *request)
+            {
     String cmd;
 
     if (request->hasParam(F("cmd"))) cmd = request->getParam(F("cmd"))->value();
@@ -2021,48 +2017,49 @@ void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot
     }
 
     // Other commands processed using normal Palazzetti logic
-    request->send(200, F("text/json"), executePalaCmd(cmd));
-  });
+    request->send(200, F("text/json"), executePalaCmd(cmd)); });
 
   // Commented best method because of issue : https://github.com/me-no-dev/ESPAsyncWebServer/pull/1105
   // // Handle HTTP POST requests (Body contains a JSON)
   // server.addHandler(new AsyncCallbackJsonWebHandler("/cgi-bin/sendmsg.lua", [this](AsyncWebServerRequest *request, JsonVariant &json) {
   //   String cmd;
-    
+
   //   if (!json[F("command")].isNull()) {
   //     cmd = json[F("command")].as<String>();
   //   }
-    
+
   //   // process cmd
   //   request->send(200, F("text/json"), executePalaCmd(cmd));
   //   return;
   // }, 128)); // last param is DynamicJsonDocument size
 
   // Handle HTTP POST requests (Body contains a JSON)
-  server.on("/cgi-bin/sendmsg.lua", HTTP_POST,[this](AsyncWebServerRequest *request) {
-    DynamicJsonDocument jsonBuffer(128);
-    String cmd;
+  server.on(
+      "/cgi-bin/sendmsg.lua", HTTP_POST, [this](AsyncWebServerRequest *request)
+      {
+        DynamicJsonDocument jsonBuffer(128);
+        String cmd;
 
-    DeserializationError error = deserializeJson(jsonBuffer, (char*)(request->_tempObject));
+        DeserializationError error = deserializeJson(jsonBuffer, (char *)(request->_tempObject));
 
-    if (!error && !jsonBuffer[F("command")].isNull()) cmd = jsonBuffer[F("command")].as<String>();
+        if (!error && !jsonBuffer[F("command")].isNull())
+          cmd = jsonBuffer[F("command")].as<String>();
 
-    // process cmd
-    request->send(200, F("text/json"), executePalaCmd(cmd));
-
-  }, nullptr, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+        // process cmd
+        request->send(200, F("text/json"), executePalaCmd(cmd)); },
+      nullptr, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+      {
     if (total > 0 && request->_tempObject == NULL) {
       request->_tempObject = malloc(total+1);
       if (request->_tempObject != NULL) ((char*)(request->_tempObject))[total] = 0;
     }
     if (request->_tempObject != NULL) {
       memcpy((uint8_t*)(request->_tempObject) + index, data, len);
-    }
-  });
+    } });
 };
 
 //------------------------------------------
-//Run for timer
+// Run for timer
 void WebPalaControl::appRun()
 {
   if (_ha.protocol == HA_PROTO_MQTT)
@@ -2077,10 +2074,10 @@ void WebPalaControl::appRun()
 }
 
 //------------------------------------------
-//Constructor
+// Constructor
 WebPalaControl::WebPalaControl(char appId, String appName) : Application(appId, appName)
 {
-  //TX/GPIO15 is pulled down and so block the stove bus by default...
-  pinMode(15, OUTPUT); //set TX PIN to OUTPUT HIGH to unlock bus during WiFi connection
+  // TX/GPIO15 is pulled down and so block the stove bus by default...
+  pinMode(15, OUTPUT); // set TX PIN to OUTPUT HIGH to unlock bus during WiFi connection
   digitalWrite(15, HIGH);
 }
