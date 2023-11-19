@@ -349,6 +349,8 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
   if (!cmdProcessed && cmd == F("GET STDT"))
   {
+    cmdProcessed = true;
+
     char SN[28];
     byte SNCHK;
     int MBTYPE;
@@ -449,16 +451,19 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("AUTONOMYTYPE")] = AUTONOMYTYPE;
       data[F("NOMINALPWR")] = NOMINALPWR;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("GET LABL"))
   {
+    cmdProcessed = true;
+    
     data[F("LABEL")] = WiFi.getHostname();
   }
 
   if (!cmdProcessed && cmd == F("GET ALLS"))
   {
+    cmdProcessed = true;
+
     bool refreshStatus = false;
     unsigned long currentMillis = millis();
     if ((currentMillis - _lastAllStatusRefreshMillis) > 15000UL) //refresh AllStatus data if it's 15sec old
@@ -550,11 +555,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       if (isSNValid)
         data[F("SN")] = SN;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("GET STAT"))
   {
+    cmdProcessed = true;
+
     uint16_t STATUS, LSTATUS;
     cmdSuccess = _Pala.getStatus(&STATUS, &LSTATUS);
 
@@ -563,11 +569,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("STATUS")] = STATUS;
       data[F("LSTATUS")] = LSTATUS;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("GET TMPS"))
   {
+    cmdProcessed = true;
+
     float T1, T2, T3, T4, T5;
     cmdSuccess = _Pala.getAllTemps(&T1, &T2, &T3, &T4, &T5);
 
@@ -579,11 +586,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("T4")] = serialized(String(T4, 2));
       data[F("T5")] = serialized(String(T5, 2));
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("GET FAND"))
   {
+    cmdProcessed = true;
+    
     uint16_t F1V, F2V, F1RPM, F2L, F2LF;
     bool isF3SF4SValid;
     float F3S, F4S;
@@ -609,11 +617,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
         data[F("F4L")] = F4L;
       }
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("GET SETP"))
   {
+    cmdProcessed = true;
+    
     float SETP;
     cmdSuccess = _Pala.getSetPoint(&SETP);
 
@@ -621,11 +630,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     {
       data[F("SETP")] = serialized(String(SETP, 2));
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("GET POWR"))
   {
+    cmdProcessed = true;
+    
     byte PWR;
     float FDR;
     cmdSuccess = _Pala.getPower(&PWR, &FDR);
@@ -635,11 +645,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("PWR")] = PWR;
       data[F("FDR")] = serialized(String(FDR, 2));
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && (cmd == F("GET CUNT") || cmd == F("GET CNTR")))
   {
+    cmdProcessed = true;
+    
     uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQT;
     cmdSuccess = _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQT);
 
@@ -654,11 +665,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("IGNERRORS")] = IGNERRORS;
       data[F("PQT")] = PQT;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("GET DPRS"))
   {
+    cmdProcessed = true;
+    
     uint16_t DP_TARGET, DP_PRESS;
     cmdSuccess = _Pala.getDPressData(&DP_TARGET, &DP_PRESS);
 
@@ -667,11 +679,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("DP_TARGET")] = DP_TARGET;
       data[F("DP_PRESS")] = DP_PRESS;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("GET TIME"))
   {
+    cmdProcessed = true;
+    
     char STOVE_DATETIME[20];
     byte STOVE_WDAY;
     cmdSuccess = _Pala.getDateTime(&STOVE_DATETIME, &STOVE_WDAY);
@@ -681,11 +694,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("STOVE_DATETIME")] = STOVE_DATETIME;
       data[F("STOVE_WDAY")] = STOVE_WDAY;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("GET IOPT"))
   {
+    cmdProcessed = true;
+    
     byte IN_I01, IN_I02, IN_I03, IN_I04;
     byte OUT_O01, OUT_O02, OUT_O03, OUT_O04, OUT_O05, OUT_O06, OUT_O07;
     cmdSuccess = _Pala.getIO(&IN_I01, &IN_I02, &IN_I03, &IN_I04, &OUT_O01, &OUT_O02, &OUT_O03, &OUT_O04, &OUT_O05, &OUT_O06, &OUT_O07);
@@ -704,11 +718,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("OUT_O06")] = OUT_O06;
       data[F("OUT_O07")] = OUT_O07;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("GET SERN"))
   {
+    cmdProcessed = true;
+    
     char SN[28];
     cmdSuccess = _Pala.getSN(&SN);
 
@@ -716,11 +731,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     {
       data[F("SN")] = SN;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("GET MDVE"))
   {
+    cmdProcessed = true;
+    
     uint16_t MOD, VER, CORE;
     char FWDATE[11];
     cmdSuccess = _Pala.getModelVersion(&MOD, &VER, &CORE, &FWDATE);
@@ -732,11 +748,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("CORE")] = CORE;
       data[F("FWDATE")] = FWDATE;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("GET CHRD"))
   {
+    cmdProcessed = true;
+    
     byte CHRSTATUS;
     float PCHRSETP[6];
     byte PSTART[6][2];
@@ -788,11 +805,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
         }
       }
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("GET PARM ")))
   {
+    cmdProcessed = true;
+    
     String strParamNumber(cmd.substring(9));
 
     byte paramNumber = strParamNumber.toInt();
@@ -812,11 +830,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     {
       data[F("PAR")] = paramValue;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("GET HPAR ")))
   {
+    cmdProcessed = true;
+    
     String strHiddenParamNumber(cmd.substring(9));
 
     byte hiddenParamNumber = strHiddenParamNumber.toInt();
@@ -836,11 +855,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     {
       data[F("HPAR")] = hiddenParamValue;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("CMD ")))
   {
+    cmdProcessed = true;
+    
     String strOrder(cmd.substring(4));
 
     if (strOrder != F("ON") && strOrder != F("OFF"))
@@ -856,11 +876,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     else if (strOrder == F("OFF"))
       cmdSuccess = _Pala.switchOff();
 
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET POWR ")))
   {
+    cmdProcessed = true;
+    
     byte powerLevel = cmd.substring(9).toInt();
 
     if (powerLevel == 0)
@@ -890,11 +911,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       fanlminmax.add(FANLMINMAXReturn[4]);
       fanlminmax.add(FANLMINMAXReturn[5]);
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("SET PWRU"))
   {
+    cmdProcessed = true;
+    
     byte PWRReturn;
     bool isF2LReturnValid;
     uint16_t _F2LReturn;
@@ -914,11 +936,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       fanlminmax.add(FANLMINMAXReturn[4]);
       fanlminmax.add(FANLMINMAXReturn[5]);
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("SET PWRD"))
   {
+    cmdProcessed = true;
+    
     byte PWRReturn;
     bool isF2LReturnValid;
     uint16_t _F2LReturn;
@@ -938,12 +961,13 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       fanlminmax.add(FANLMINMAXReturn[4]);
       fanlminmax.add(FANLMINMAXReturn[5]);
     }
-    cmdProcessed = true;
   }
 
 
   if (!cmdProcessed && cmd.startsWith(F("SET RFAN ")))
   {
+    cmdProcessed = true;
+    
     String strRoomFanLevel(cmd.substring(9));
 
     byte roomFanLevel = strRoomFanLevel.toInt();
@@ -969,11 +993,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("F2L")] = F2LReturn;
       data[F("F2LF")] = F2LFReturn;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("SET FN2U"))
   {
+    cmdProcessed = true;
+    
     bool isPWRReturnValid;
     byte PWRReturn;
     uint16_t F2LReturn;
@@ -987,11 +1012,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("F2L")] = F2LReturn;
       data[F("F2LF")] = F2LFReturn;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("SET FN2D"))
   {
+    cmdProcessed = true;
+    
     bool isPWRReturnValid;
     byte PWRReturn;
     uint16_t F2LReturn;
@@ -1005,11 +1031,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("F2L")] = F2LReturn;
       data[F("F2LF")] = F2LFReturn;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET FN3L ")))
   {
+    cmdProcessed = true;
+    
     String strRoomFan3Level(cmd.substring(9));
 
     byte roomFan3Level = strRoomFan3Level.toInt();
@@ -1029,11 +1056,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     {
       data[F("F3L")] = F3LReturn;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET FN4L ")))
   {
+    cmdProcessed = true;
+    
     String strRoomFan4Level(cmd.substring(9));
 
     byte roomFan4Level = strRoomFan4Level.toInt();
@@ -1053,11 +1081,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     {
       data[F("F4L")] = F4LReturn;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET SLNT ")))
   {
+    cmdProcessed = true;
+    
     String strSilentMode = cmd.substring(9);
 
     byte silentMode = strSilentMode.toInt();
@@ -1091,11 +1120,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
         data[F("F4L")] = F4LReturn;
       }
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSST ")))
   {
+    cmdProcessed = true;
+    
     String strChronoStatus = cmd.substring(9);
 
     bool chronoStatus = (strChronoStatus.toInt() != 0);
@@ -1115,11 +1145,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     {
       data[F("CHRSTATUS")] = CHRSTATUSReturn;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSTH ")))
   {
+    cmdProcessed = true;
+    
     String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     String strStartHour(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
@@ -1145,11 +1176,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     cmdSuccess = _Pala.setChronoStartHH(programNumber, startHour);
 
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSTM ")))
   {
+    cmdProcessed = true;
+    
     String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     String strStartMinute(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
@@ -1175,11 +1207,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     cmdSuccess = _Pala.setChronoStartMM(programNumber, startMinute);
 
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSPH ")))
   {
+    cmdProcessed = true;
+    
     String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     String strStopHour(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
@@ -1205,11 +1238,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     cmdSuccess = _Pala.setChronoStopHH(programNumber, stopHour);
 
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSPM ")))
   {
+    cmdProcessed = true;
+    
     String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     String strStopMinute(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
@@ -1235,11 +1269,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     cmdSuccess = _Pala.setChronoStopMM(programNumber, stopMinute);
 
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSET ")))
   {
+    cmdProcessed = true;
+    
     String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     String strSetPoint(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
@@ -1264,12 +1299,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     }
 
     cmdSuccess = _Pala.setChronoSetpoint(programNumber, setPoint);
-
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CDAY ")))
   {
+    cmdProcessed = true;
+    
     // Starting 9 to first space starting 9
     String strDayNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     // Starting (9 + previous string length + 1) to first space starting (9 + previous string length + 1)
@@ -1325,11 +1360,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       else
         dx[memoryName] = F("OFF");
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CPRD ")))
   {
+    cmdProcessed = true;
+    
     byte posInCmd = 9;
     String strParams[6];
     byte params[6];
@@ -1372,11 +1408,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       time[4] = params[5] % 10 + '0';
       px[F("STOP")] = time;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET SETP ")))
   {
+    cmdProcessed = true;
+    
     byte setPoint = cmd.substring(9).toInt();
 
     if (setPoint == 0)
@@ -1394,11 +1431,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     {
       data[F("SETP")] = serialized(String(SETPReturn, 2));
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("SET STPU"))
   {
+    cmdProcessed = true;
+    
     float SETPReturn;
     cmdSuccess = _Pala.setSetPointUp(&SETPReturn);
 
@@ -1406,11 +1444,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     {
       data[F("SETP")] = serialized(String(SETPReturn, 2));
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd == F("SET STPD"))
   {
+    cmdProcessed = true;
+    
     float SETPReturn;
     cmdSuccess = _Pala.setSetPointDown(&SETPReturn);
 
@@ -1418,11 +1457,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     {
       data[F("SETP")] = serialized(String(SETPReturn, 2));
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET STPF ")))
   {
+    cmdProcessed = true;
+    
     float setPointFloat = cmd.substring(9).toFloat();
 
     if (setPointFloat == 0.0f)
@@ -1440,11 +1480,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     {
       data[F("SETP")] = serialized(String(SETPReturn, 2));
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET PARM ")))
   {
+    cmdProcessed = true;
+    
     String strParamNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     String strParamValue(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
@@ -1474,11 +1515,12 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     {
       data[String(F("PAR")) + paramNumber] = paramValue;
     }
-    cmdProcessed = true;
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET HPAR ")))
   {
+    cmdProcessed = true;
+    
     String strHiddenParamNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
     String strHiddenParamValue(cmd.substring(cmd.indexOf(' ', 9) + 1));
 
@@ -1508,7 +1550,6 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     {
       data[String(F("HPAR")) + hiddenParamNumber] = hiddenParamValue;
     }
-    cmdProcessed = true;
   }
 
 
