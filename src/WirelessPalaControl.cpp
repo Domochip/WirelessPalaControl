@@ -517,7 +517,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("LSTATUS")] = LSTATUS;
       if (isMFSTATUSValid)
         data[F("MFSTATUS")] = MFSTATUS;
-      data[F("SETP")] = SETP;
+      data[F("SETP")] = serialized(String(SETP, 2));
       data[F("PUMP")] = PUMP;
       data[F("PQT")] = PQT;
       data[F("F1V")] = F1V;
@@ -538,16 +538,16 @@ String WebPalaControl::executePalaCmd(const String &cmd){
         data[F("F4L")] = F4L;
       }
       data[F("PWR")] = PWR;
-      data[F("FDR")] = FDR;
+      data[F("FDR")] = serialized(String(FDR, 2));
       data[F("DPT")] = DPT;
       data[F("DP")] = DP;
       data[F("IN")] = IN;
       data[F("OUT")] = OUT;
-      data[F("T1")] = T1;
-      data[F("T2")] = T2;
-      data[F("T3")] = T3;
-      data[F("T4")] = T4;
-      data[F("T5")] = T5;
+      data[F("T1")] = serialized(String(T1, 2));
+      data[F("T2")] = serialized(String(T2, 2));
+      data[F("T3")] = serialized(String(T3, 2));
+      data[F("T4")] = serialized(String(T4, 2));
+      data[F("T5")] = serialized(String(T5, 2));
 
       data[F("EFLAGS")] = 0; //new ErrorFlags not implemented
       if (isSNValid)
@@ -576,11 +576,11 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     if (cmdSuccess)
     {
-      data[F("T1")] = T1;
-      data[F("T2")] = T2;
-      data[F("T3")] = T3;
-      data[F("T4")] = T4;
-      data[F("T5")] = T5;
+      data[F("T1")] = serialized(String(T1, 2));
+      data[F("T2")] = serialized(String(T2, 2));
+      data[F("T3")] = serialized(String(T3, 2));
+      data[F("T4")] = serialized(String(T4, 2));
+      data[F("T5")] = serialized(String(T5, 2));
     }
     cmdProcessed = true;
   }
@@ -603,8 +603,8 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       data[F("F2LF")] = F2LF;
       if (isF3SF4SValid)
       {
-        data[F("F3S")] = F3S;
-        data[F("F4S")] = F4S;
+        data[F("F3S")] = serialized(String(F3S, 2));
+        data[F("F4S")] = serialized(String(F4S, 2));
       }
       if (isF3LF4LValid)
       {
@@ -622,7 +622,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     if (cmdSuccess)
     {
-      data[F("SETP")] = SETP;
+      data[F("SETP")] = serialized(String(SETP, 2));
     }
     cmdProcessed = true;
   }
@@ -636,7 +636,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
     if (cmdSuccess)
     {
       data[F("PWR")] = PWR;
-      data[F("FDR")] = FDR;
+      data[F("FDR")] = serialized(String(FDR, 2));
     }
     cmdProcessed = true;
   }
@@ -758,7 +758,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
       {
         programName[1] = i + '1';
         JsonObject px = data.createNestedObject(programName);
-        px[F("CHRSETP")] = PCHRSETP[i];
+        px[F("CHRSETP")] = serialized(String(PCHRSETP[i], 2));
         time[0] = PSTART[i][0] / 10 + '0';
         time[1] = PSTART[i][0] % 10 + '0';
         time[3] = PSTART[i][1] / 10 + '0';
@@ -1395,7 +1395,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     if (cmdSuccess)
     {
-      data[F("SETP")] = SETPReturn;
+      data[F("SETP")] = serialized(String(SETPReturn, 2));
     }
     cmdProcessed = true;
   }
@@ -1407,7 +1407,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     if (cmdSuccess)
     {
-      data[F("SETP")] = SETPReturn;
+      data[F("SETP")] = serialized(String(SETPReturn, 2));
     }
     cmdProcessed = true;
   }
@@ -1419,7 +1419,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     if (cmdSuccess)
     {
-      data[F("SETP")] = SETPReturn;
+      data[F("SETP")] = serialized(String(SETPReturn, 2));
     }
     cmdProcessed = true;
   }
@@ -1441,7 +1441,7 @@ String WebPalaControl::executePalaCmd(const String &cmd){
 
     if (cmdSuccess)
     {
-      data[F("SETP")] = SETPReturn;
+      data[F("SETP")] = serialized(String(SETPReturn, 2));
     }
     cmdProcessed = true;
   }
