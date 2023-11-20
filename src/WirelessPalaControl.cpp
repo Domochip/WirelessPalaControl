@@ -1544,7 +1544,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
     {
       info[F("RSP")] = F("OK");
       jsonDoc[F("SUCCESS")] = true;
-      return true;
     }
     else
     {
@@ -1568,7 +1567,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
     data[F("NODATA")] = true;
   }
 
-  return false;
+  return jsonDoc[F("SUCCESS")];
 }
 
 //------------------------------------------
