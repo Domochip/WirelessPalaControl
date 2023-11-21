@@ -133,18 +133,13 @@ void WebPalaControl::publishTick()
   uint16_t STATUS, LSTATUS;
   if (readSuccess &= _Pala.getStatus(&STATUS, &LSTATUS))
   {
-    _statusEventSource.send((String("{\"STATUS\":") + STATUS + '}').c_str());
-    _statusEventSource.send((String("{\"LSTATUS\":") + LSTATUS + '}').c_str());
+    _statusEventSource.send((String(F("{\"STATUS\":")) + STATUS + F(",\"LSTATUS\":") + LSTATUS + '}').c_str());
   }
 
   float T1, T2, T3, T4, T5;
   if (readSuccess &= _Pala.getAllTemps(&T1, &T2, &T3, &T4, &T5))
   {
-    _statusEventSource.send((String("{\"T1\":") + T1 + '}').c_str());
-    _statusEventSource.send((String("{\"T2\":") + T2 + '}').c_str());
-    _statusEventSource.send((String("{\"T3\":") + T3 + '}').c_str());
-    _statusEventSource.send((String("{\"T4\":") + T4 + '}').c_str());
-    _statusEventSource.send((String("{\"T5\":") + T5 + '}').c_str());
+    _statusEventSource.send((String(F("{\"T1\":")) + T1 + F(",\"T2\":") + T2 + F(",\"T3\":") + T3 + F(",\"T4\":") + T4 + F(",\"T5\":") + T5 + '}').c_str());
   }
 
   uint16_t F1V, F2V, F1RPM, F2L, F2LF;
@@ -154,67 +149,53 @@ void WebPalaControl::publishTick()
   uint16_t F3L, F4L;
   if (readSuccess &= _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3SF4SValid, &F3S, &F4S, &isF3LF4LValid, &F3L, &F4L))
   {
-    _statusEventSource.send((String("{\"F1V\":") + F1V + '}').c_str());
-    _statusEventSource.send((String("{\"F2V\":") + F2V + '}').c_str());
-    _statusEventSource.send((String("{\"F2L\":") + F2L + '}').c_str());
-    _statusEventSource.send((String("{\"F2LF\":") + F2LF + '}').c_str());
+    _statusEventSource.send((String(F("{\"F1V\":")) + F1V + F(",\"F2V\":") + F2V + F(",\"F2L\":") + F2L + F(",\"F2LF\":") + F2LF + '}').c_str());
     if (isF3SF4SValid)
     {
-      _statusEventSource.send((String("{\"F3S\":") + F3S + '}').c_str());
-      _statusEventSource.send((String("{\"F4S\":") + F4S + '}').c_str());
+      _statusEventSource.send((String(F("{\"F3S\":")) + F3S + F(",\"F4S\":") + F4S + '}').c_str());
     }
     if (isF3LF4LValid)
     {
-      _statusEventSource.send((String("{\"F3L\":") + F3L + '}').c_str());
-      _statusEventSource.send((String("{\"F4L\":") + F4L + '}').c_str());
+      _statusEventSource.send((String(F("{\"F3L\":")) + F3L + F(",\"F4L\":") + F4L + '}').c_str());
     }
   }
 
   uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQTn;
   if (readSuccess &= _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQTn))
   {
-    _statusEventSource.send((String("{\"IGN\":") + IGN + '}').c_str());
-    _statusEventSource.send((String("{\"IGNERRORS\":") + IGNERRORS + '}').c_str());
-    _statusEventSource.send((String("{\"POWERTIME\":") + POWERTIMEh + '}').c_str());
-    _statusEventSource.send((String("{\"HEATTIME\":") + HEATTIMEh + '}').c_str());
-    _statusEventSource.send((String("{\"SERVICETIME\":") + SERVICETIMEh + '}').c_str());
-    _statusEventSource.send((String("{\"ONTIME\":") + ONTIMEh + '}').c_str());
-    _statusEventSource.send((String("{\"OVERTMPERRORS\":") + OVERTMPERRORS + '}').c_str());
+    _statusEventSource.send((String(F("{\"IGN\":")) + IGN + F(",\"IGNERRORS\":") + IGNERRORS + F(",\"POWERTIME\":") + POWERTIMEh + F(",\"HEATTIME\":") + HEATTIMEh + F(",\"SERVICETIME\":") + SERVICETIMEh + F(",\"ONTIME\":") + ONTIMEh + F(",\"OVERTMPERRORS\":") + OVERTMPERRORS + '}').c_str());
   }
 
   char STOVE_DATETIME[20];
   byte STOVE_WDAY;
   if (readSuccess &= _Pala.getDateTime(&STOVE_DATETIME, &STOVE_WDAY))
   {
-    _statusEventSource.send((String("{\"STOVE_DATETIME\":\"") + STOVE_DATETIME + "\"}").c_str());
-    _statusEventSource.send((String("{\"STOVE_WDAY\":") + STOVE_WDAY + '}').c_str());
+    _statusEventSource.send((String(F("{\"STOVE_DATETIME\":\"")) + STOVE_DATETIME + F(",\"STOVE_WDAY\":") + STOVE_WDAY + "\"}").c_str());
   }
 
   float SETP;
   if (readSuccess &= _Pala.getSetPoint(&SETP))
   {
-    _statusEventSource.send((String("{\"SETP\":") + SETP + '}').c_str());
+    _statusEventSource.send((String(F("{\"SETP\":")) + SETP + '}').c_str());
   }
 
   uint16_t PQT;
   if (readSuccess &= _Pala.getPelletQtUsed(&PQT))
   {
-    _statusEventSource.send((String("{\"PQT\":") + PQT + '}').c_str());
+    _statusEventSource.send((String(F("{\"PQT\":")) + PQT + '}').c_str());
   }
 
   byte PWR;
   float FDR;
   if (readSuccess &= _Pala.getPower(&PWR, &FDR))
   {
-    _statusEventSource.send((String("{\"PWR\":") + PWR + '}').c_str());
-    _statusEventSource.send((String("{\"FDR\":") + FDR + '}').c_str());
+    _statusEventSource.send((String(F("{\"PWR\":")) + PWR + F(",\"FDR\":") + FDR + '}').c_str());
   }
 
   uint16_t DP_TARGET, DP_PRESS;
   if (readSuccess &= _Pala.getDPressData(&DP_TARGET, &DP_PRESS))
   {
-    _statusEventSource.send((String("{\"DP_TARGET\":") + DP_TARGET + '}').c_str());
-    _statusEventSource.send((String("{\"DP_PRESS\":") + DP_PRESS + '}').c_str());
+    _statusEventSource.send((String(F("{\"DP_TARGET\":")) + DP_TARGET + F(",\"DP_PRESS\":") + DP_PRESS + '}').c_str());
   }
 
   // if a read failed then send message to webClient (eventSource) and return
