@@ -1525,6 +1525,9 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
     {
       info[F("RSP")] = F("OK");
       jsonDoc[F("SUCCESS")] = true;
+      String strData;
+      serializeJson(data, strData);
+      _statusEventSource.send(strData.c_str());
     }
     else
     {
