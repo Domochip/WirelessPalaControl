@@ -129,190 +129,112 @@ void WebPalaControl::publishTick()
   // Read all necessary info from stove and send it to webClient (eventSource connected)
 
   bool readSuccess = true;
+  _haSendResult = true;
+  DynamicJsonDocument jsonDoc(2048);
+  String msg;
+  String strData;
+  String baseTopic = _ha.mqtt.generic.baseTopic;
 
-  uint16_t STATUS, LSTATUS;
-  if (readSuccess &= _Pala.getStatus(&STATUS, &LSTATUS))
-  {
-    _statusEventSource.send((String(F("{\"STATUS\":")) + STATUS + F(",\"LSTATUS\":") + LSTATUS + '}').c_str());
-  }
+  MQTTMan::prepareTopic(baseTopic);
 
-  float T1, T2, T3, T4, T5;
-  if (readSuccess &= _Pala.getAllTemps(&T1, &T2, &T3, &T4, &T5))
+  if (readSuccess &= executePalaCmd(F("GET STAT"), jsonDoc))
   {
-    _statusEventSource.send((String(F("{\"T1\":")) + T1 + F(",\"T2\":") + T2 + F(",\"T3\":") + T3 + F(",\"T4\":") + T4 + F(",\"T5\":") + T5 + '}').c_str());
-  }
-
-  uint16_t F1V, F2V, F1RPM, F2L, F2LF;
-  bool isF3SF4SValid;
-  float F3S, F4S;
-  bool isF3LF4LValid;
-  uint16_t F3L, F4L;
-  if (readSuccess &= _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3SF4SValid, &F3S, &F4S, &isF3LF4LValid, &F3L, &F4L))
-  {
-    _statusEventSource.send((String(F("{\"F1V\":")) + F1V + F(",\"F2V\":") + F2V + F(",\"F2L\":") + F2L + F(",\"F2LF\":") + F2LF + '}').c_str());
-    if (isF3SF4SValid)
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
     {
-      _statusEventSource.send((String(F("{\"F3S\":")) + F3S + F(",\"F4S\":") + F4S + '}').c_str());
-    }
-    if (isF3LF4LValid)
-    {
-      _statusEventSource.send((String(F("{\"F3L\":")) + F3L + F(",\"F4L\":") + F4L + '}').c_str());
+      serializeJson(jsonDoc[F("DATA")], strData);
+      _haSendResult &= _mqttMan.publish((baseTopic + F("STAT")).c_str(), strData.c_str());
+      _mqttMan.loop();
     }
   }
 
-  uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQTn;
-  if (readSuccess &= _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQTn))
-  {
-    _statusEventSource.send((String(F("{\"IGN\":")) + IGN + F(",\"IGNERRORS\":") + IGNERRORS + F(",\"POWERTIME\":") + POWERTIMEh + F(",\"HEATTIME\":") + HEATTIMEh + F(",\"SERVICETIME\":") + SERVICETIMEh + F(",\"ONTIME\":") + ONTIMEh + F(",\"OVERTMPERRORS\":") + OVERTMPERRORS + '}').c_str());
-  }
+  jsonDoc.clear();
+  strData.clear();
 
-  char STOVE_DATETIME[20];
-  byte STOVE_WDAY;
-  if (readSuccess &= _Pala.getDateTime(&STOVE_DATETIME, &STOVE_WDAY))
+  if (readSuccess &= executePalaCmd(F("GET TMPS"), jsonDoc))
   {
-    _statusEventSource.send((String(F("{\"STOVE_DATETIME\":\"")) + STOVE_DATETIME + F(",\"STOVE_WDAY\":") + STOVE_WDAY + "\"}").c_str());
-  }
-
-  float SETP;
-  if (readSuccess &= _Pala.getSetPoint(&SETP))
-  {
-    _statusEventSource.send((String(F("{\"SETP\":")) + SETP + '}').c_str());
-  }
-
-  uint16_t PQT;
-  if (readSuccess &= _Pala.getPelletQtUsed(&PQT))
-  {
-    _statusEventSource.send((String(F("{\"PQT\":")) + PQT + '}').c_str());
-  }
-
-  byte PWR;
-  float FDR;
-  if (readSuccess &= _Pala.getPower(&PWR, &FDR))
-  {
-    _statusEventSource.send((String(F("{\"PWR\":")) + PWR + F(",\"FDR\":") + FDR + '}').c_str());
-  }
-
-  uint16_t DP_TARGET, DP_PRESS;
-  if (readSuccess &= _Pala.getDPressData(&DP_TARGET, &DP_PRESS))
-  {
-    _statusEventSource.send((String(F("{\"DP_TARGET\":")) + DP_TARGET + F(",\"DP_PRESS\":") + DP_PRESS + '}').c_str());
-  }
-
-  // if a read failed then send message to webClient (eventSource) and return
-  if (!readSuccess)
-  {
-    _statusEventSource.send("{\"MSG\":\"Stove communication failed! please check cabling to your stove.\"}");
-    return;
-  }
-
-  //------------------------------------------------------------------------
-  // if Home Automation upload not enabled then return
-  if (_ha.protocol == HA_PROTO_DISABLED)
-    return;
-
-  //----- MQTT Protocol configured -----
-  if (_ha.protocol == HA_PROTO_MQTT)
-  {
-    // if we are connected
-    if (_mqttMan.connected())
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
     {
-      // prepare base topic
-      String baseTopic = _ha.mqtt.generic.baseTopic;
+      serializeJson(jsonDoc[F("DATA")], strData);
+      _haSendResult &= _mqttMan.publish((baseTopic + F("TMPS")).c_str(), strData.c_str());
+      _mqttMan.loop();
+    }
+  }
 
-      // Replace placeholders
-      MQTTMan::prepareTopic(baseTopic);
+  jsonDoc.clear();
+  strData.clear();
 
-      _haSendResult = true;
+  if (readSuccess &= executePalaCmd(F("GET FAND"), jsonDoc))
+  {
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
+    {
+      serializeJson(jsonDoc[F("DATA")], strData);
+      _haSendResult &= _mqttMan.publish((baseTopic + F("FAND")).c_str(), strData.c_str());
+      _mqttMan.loop();
+    }
+  }
 
-      if (_haSendResult)
-      {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("STATUS")).c_str(), String(STATUS).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("LSTATUS")).c_str(), String(LSTATUS).c_str());
-      }
-      else
-        return;
+  jsonDoc.clear();
+  strData.clear();
 
-      if (_haSendResult)
-      {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("T1")).c_str(), String(T1).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("T2")).c_str(), String(T2).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("T3")).c_str(), String(T3).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("T4")).c_str(), String(T4).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("T5")).c_str(), String(T5).c_str());
-      }
-      else
-        return;
+  if (readSuccess &= executePalaCmd(F("GET CNTR"), jsonDoc))
+  {
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
+    {
+      serializeJson(jsonDoc[F("DATA")], strData);
+      _haSendResult &= _mqttMan.publish((baseTopic + F("CNTR")).c_str(), strData.c_str());
+      _mqttMan.loop();
+    }
+  }
 
-      if (_haSendResult)
-      {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("F1V")).c_str(), String(F1V).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("F2V")).c_str(), String(F2V).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("F2L")).c_str(), String(F2L).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("F2LF")).c_str(), String(F2LF).c_str());
-        if (isF3SF4SValid)
-        {
-          _haSendResult &= _mqttMan.publish((baseTopic + F("F3S")).c_str(), String(F3S).c_str());
-          _haSendResult &= _mqttMan.publish((baseTopic + F("F4S")).c_str(), String(F4S).c_str());
-        }
-        if (isF3LF4LValid)
-        {
-          _haSendResult &= _mqttMan.publish((baseTopic + F("F3L")).c_str(), String(F3L).c_str());
-          _haSendResult &= _mqttMan.publish((baseTopic + F("F4L")).c_str(), String(F4L).c_str());
-        }
-      }
-      else
-        return;
+  jsonDoc.clear();
+  strData.clear();
 
-      if (_haSendResult)
-      {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("IGN")).c_str(), String(IGN).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("IGNERRORS")).c_str(), String(IGNERRORS).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("POWERTIME")).c_str(), String(POWERTIMEh).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("HEATTIME")).c_str(), String(HEATTIMEh).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("SERVICETIME")).c_str(), String(SERVICETIMEh).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("ONTIME")).c_str(), String(ONTIMEh).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("OVERTMPERRORS")).c_str(), String(OVERTMPERRORS).c_str());
-      }
-      else
-        return;
+  if (readSuccess &= executePalaCmd(F("GET TIME"), jsonDoc))
+  {
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
+    {
+      serializeJson(jsonDoc[F("DATA")], strData);
+      _haSendResult &= _mqttMan.publish((baseTopic + F("TIME")).c_str(), strData.c_str());
+      _mqttMan.loop();
+    }
+  }
 
-      if (_haSendResult)
-      {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("STOVE_DATETIME")).c_str(), String(STOVE_DATETIME).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("STOVE_WDAY")).c_str(), String(STOVE_WDAY).c_str());
-      }
-      else
-        return;
+  jsonDoc.clear();
+  strData.clear();
 
-      if (_haSendResult)
-      {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("SETP")).c_str(), String(SETP).c_str());
-      }
-      else
-        return;
+  if (readSuccess &= executePalaCmd(F("GET SETP"), jsonDoc))
+  {
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
+    {
+      serializeJson(jsonDoc[F("DATA")], strData);
+      _haSendResult &= _mqttMan.publish((baseTopic + F("SETP")).c_str(), strData.c_str());
+      _mqttMan.loop();
+    }
+  }
 
-      if (_haSendResult)
-      {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("PQT")).c_str(), String(PQT).c_str());
-      }
-      else
-        return;
+  jsonDoc.clear();
+  strData.clear();
 
-      if (_haSendResult)
-      {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("PWR")).c_str(), String(PWR).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("FDR")).c_str(), String(FDR).c_str());
-      }
-      else
-        return;
+  if (readSuccess &= executePalaCmd(F("GET POWR"), jsonDoc))
+  {
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
+    {
+      serializeJson(jsonDoc[F("DATA")], strData);
+      _haSendResult &= _mqttMan.publish((baseTopic + F("POWR")).c_str(), strData.c_str());
+      _mqttMan.loop();
+    }
+  }
 
-      if (_haSendResult)
-      {
-        _haSendResult &= _mqttMan.publish((baseTopic + F("DP_TARGET")).c_str(), String(DP_TARGET).c_str());
-        _haSendResult &= _mqttMan.publish((baseTopic + F("DP_PRESS")).c_str(), String(DP_PRESS).c_str());
-      }
-      else
-        return;
+  jsonDoc.clear();
+  strData.clear();
+
+  if (readSuccess &= executePalaCmd(F("GET DPRS"), jsonDoc))
+  {
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
+    {
+      serializeJson(jsonDoc[F("DATA")], strData);
+      _haSendResult &= _mqttMan.publish((baseTopic + F("DPRS")).c_str(), strData.c_str());
+      _mqttMan.loop();
     }
   }
 }
