@@ -1528,6 +1528,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
       String strData;
       serializeJson(data, strData);
       _statusEventSource.send(strData.c_str());
+      return true;
     }
     else
     {
@@ -1551,7 +1552,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
     data[F("NODATA")] = true;
   }
 
-  return jsonDoc[F("SUCCESS")];
+  return false;
 }
 
 //------------------------------------------
