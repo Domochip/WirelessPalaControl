@@ -2,16 +2,13 @@ import sys
 import os
 import gzip
 import shutil
-import struct
 
 #Convert one file to header
-#file is first GZipped then convert to header file (hex in PROGMEM)
+#file is first GZipped then converted to header file (hex in PROGMEM)
 def convert_file_to_cppheader(filename):
     with open(filename,'rb') as webfile:
         with gzip.open(filename+'.gz','wb',9) as intogzipfile:
             shutil.copyfileobj(webfile,intogzipfile)
-            intogzipfile.close()
-            webfile.close()
     with open(filename+'.gz','rb') as gzfile:
         with open(filename+'.gz.h','w') as hfile:
             hfile.write('const PROGMEM char '+filename.replace(' ','').replace('.','').replace('-','')+'gz[] = {')
@@ -27,9 +24,40 @@ def convert_file_to_cppheader(filename):
                 first=False
                 byte=gzfile.read(1)
             hfile.write('};')
-            hfile.close()
-            gzfile.close()
     os.remove(filename+'.gz')
+
+#Check if file needs to be converted
+#header is converted back to gz file and file inside is compared to web file
+def is_convert_needed(filename):
+    # check if gz.h file exists
+    hfilename=filename+'.gz.h'
+    if not os.path.exists(hfilename):
+        return True
+    # convert h file to gz file
+    with open(hfilename) as hfile:
+        with open(filename+'.gz','wb') as gzfile:
+            # read the one line header file
+            line=hfile.readline()
+            # keep content between '{' and '}'
+            hexvalues=line[line.find('{')+1:line.find('}')]
+            # split hex values by ','
+            hexvalues=hexvalues.split(',')
+            # convert hex values to bytes
+            bytes=bytearray()
+            for hexvalue in hexvalues:
+                bytes.append(int(hexvalue,16))
+            # write bytes to gzip file
+            gzfile.write(bytes)
+    # read file inside gz
+    with gzip.open(filename+'.gz','rb') as intogzipfile:
+        intogzipfilecontent=intogzipfile.read()
+    # remove gz file
+    os.remove(filename+'.gz')
+    # read web file
+    with open(filename,'rb') as webfile:
+        webfilecontent=webfile.read()
+    # return True if gz file and web file are different
+    return (intogzipfilecontent != webfilecontent)
 
 #Convert all Web Files in a folder
 def convert_all_webfiles(dir):
@@ -37,8 +65,14 @@ def convert_all_webfiles(dir):
     os.chdir(dir)
     for file in os.listdir('.'):
         if file.endswith(('.html','.js','.css')):
-            convert_file_to_cppheader(file)
+            if is_convert_needed(file):
+                print('Converting %s to header' % file)
+                convert_file_to_cppheader(file)
     os.chdir(curentDir)
+
+print('--- Converting web files ---')
 
 convert_all_webfiles(r'.\src\base\data')
 convert_all_webfiles(r'.\src\data')
+
+print('----------------------------')
