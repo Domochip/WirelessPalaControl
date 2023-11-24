@@ -123,6 +123,11 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
     publishTick();
 }
 
+bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &palaCategory, const JsonObject &data){
+
+  return true;
+}
+
 void WebPalaControl::publishTick()
 {
   // Execute a defined list of commands and publish results to MQTT if needed

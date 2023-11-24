@@ -67,6 +67,7 @@ private:
 
   void mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnection);
   void mqttCallback(char *topic, uint8_t *payload, unsigned int length);
+  bool publishDataToMqtt(const String &baseTopic, const String &palaCategory, const JsonObject &data);
   void publishTick();
   bool executePalaCmd(const String &cmd, DynamicJsonDocument &jsonDoc);
 
