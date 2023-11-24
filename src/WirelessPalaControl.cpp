@@ -123,9 +123,17 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
     publishTick();
 }
 
-bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &palaCategory, const JsonObject &data){
-
-  return true;
+bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &palaCategory, const JsonObject &data)
+{
+  bool res = false;
+  if (_mqttMan.connected())
+  {
+    String serializedData;
+    serializeJson(data, serializedData);
+    res = _mqttMan.publish((baseTopic + palaCategory).c_str(), serializedData.c_str());
+    _mqttMan.loop();
+  }
+  return res;
 }
 
 void WebPalaControl::publishTick()
