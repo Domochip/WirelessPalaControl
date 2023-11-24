@@ -143,109 +143,85 @@ void WebPalaControl::publishTick()
   bool execSuccess = true;
   _haSendResult = true;
   DynamicJsonDocument jsonDoc(2048);
-  String strData;
   String baseTopic = _ha.mqtt.generic.baseTopic;
 
   MQTTMan::prepareTopic(baseTopic);
 
   if (execSuccess &= executePalaCmd(F("GET STAT"), jsonDoc))
   {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      serializeJson(jsonDoc[F("DATA")], strData);
-      _haSendResult &= _mqttMan.publish((baseTopic + F("STAT")).c_str(), strData.c_str());
-      _mqttMan.loop();
+      _haSendResult &= publishDataToMqtt(baseTopic, F("STAT"), jsonDoc[F("DATA")]);
     }
   }
 
   jsonDoc.clear();
-  strData.clear();
 
   if (execSuccess &= executePalaCmd(F("GET TMPS"), jsonDoc))
   {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      serializeJson(jsonDoc[F("DATA")], strData);
-      _haSendResult &= _mqttMan.publish((baseTopic + F("TMPS")).c_str(), strData.c_str());
-      _mqttMan.loop();
+      _haSendResult &= publishDataToMqtt(baseTopic, F("TMPS"), jsonDoc[F("DATA")]);
     }
   }
 
   jsonDoc.clear();
-  strData.clear();
 
   if (execSuccess &= executePalaCmd(F("GET FAND"), jsonDoc))
   {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      serializeJson(jsonDoc[F("DATA")], strData);
-      _haSendResult &= _mqttMan.publish((baseTopic + F("FAND")).c_str(), strData.c_str());
-      _mqttMan.loop();
+      _haSendResult &= publishDataToMqtt(baseTopic, F("FAND"), jsonDoc[F("DATA")]);
     }
   }
 
   jsonDoc.clear();
-  strData.clear();
 
   if (execSuccess &= executePalaCmd(F("GET CNTR"), jsonDoc))
   {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      serializeJson(jsonDoc[F("DATA")], strData);
-      _haSendResult &= _mqttMan.publish((baseTopic + F("CNTR")).c_str(), strData.c_str());
-      _mqttMan.loop();
+      _haSendResult &= publishDataToMqtt(baseTopic, F("CNTR"), jsonDoc[F("DATA")]);
     }
   }
 
   jsonDoc.clear();
-  strData.clear();
 
   if (execSuccess &= executePalaCmd(F("GET TIME"), jsonDoc))
   {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
+     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      serializeJson(jsonDoc[F("DATA")], strData);
-      _haSendResult &= _mqttMan.publish((baseTopic + F("TIME")).c_str(), strData.c_str());
-      _mqttMan.loop();
+      _haSendResult &= publishDataToMqtt(baseTopic, F("TIME"), jsonDoc[F("DATA")]);
     }
   }
 
   jsonDoc.clear();
-  strData.clear();
 
   if (execSuccess &= executePalaCmd(F("GET SETP"), jsonDoc))
   {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      serializeJson(jsonDoc[F("DATA")], strData);
-      _haSendResult &= _mqttMan.publish((baseTopic + F("SETP")).c_str(), strData.c_str());
-      _mqttMan.loop();
+      _haSendResult &= publishDataToMqtt(baseTopic, F("SETP"), jsonDoc[F("DATA")]);
     }
   }
 
   jsonDoc.clear();
-  strData.clear();
 
   if (execSuccess &= executePalaCmd(F("GET POWR"), jsonDoc))
   {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      serializeJson(jsonDoc[F("DATA")], strData);
-      _haSendResult &= _mqttMan.publish((baseTopic + F("POWR")).c_str(), strData.c_str());
-      _mqttMan.loop();
+      _haSendResult &= publishDataToMqtt(baseTopic, F("POWR"), jsonDoc[F("DATA")]);
     }
   }
 
   jsonDoc.clear();
-  strData.clear();
 
   if (execSuccess &= executePalaCmd(F("GET DPRS"), jsonDoc))
   {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      serializeJson(jsonDoc[F("DATA")], strData);
-      _haSendResult &= _mqttMan.publish((baseTopic + F("DPRS")).c_str(), strData.c_str());
-      _mqttMan.loop();
+      _haSendResult &= publishDataToMqtt(baseTopic, F("DPRS"), jsonDoc[F("DATA")]);
     }
   }
 }
