@@ -125,19 +125,17 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
 
 void WebPalaControl::publishTick()
 {
-  //------------------------------------------------------------------------
-  // Read all necessary info from stove and send it to webClient (eventSource connected)
+  // Execute a defined list of commands and publish results to MQTT if needed
 
-  bool readSuccess = true;
+  bool execSuccess = true;
   _haSendResult = true;
   DynamicJsonDocument jsonDoc(2048);
-  String msg;
   String strData;
   String baseTopic = _ha.mqtt.generic.baseTopic;
 
   MQTTMan::prepareTopic(baseTopic);
 
-  if (readSuccess &= executePalaCmd(F("GET STAT"), jsonDoc))
+  if (execSuccess &= executePalaCmd(F("GET STAT"), jsonDoc))
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
     {
@@ -150,7 +148,7 @@ void WebPalaControl::publishTick()
   jsonDoc.clear();
   strData.clear();
 
-  if (readSuccess &= executePalaCmd(F("GET TMPS"), jsonDoc))
+  if (execSuccess &= executePalaCmd(F("GET TMPS"), jsonDoc))
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
     {
@@ -163,7 +161,7 @@ void WebPalaControl::publishTick()
   jsonDoc.clear();
   strData.clear();
 
-  if (readSuccess &= executePalaCmd(F("GET FAND"), jsonDoc))
+  if (execSuccess &= executePalaCmd(F("GET FAND"), jsonDoc))
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
     {
@@ -176,7 +174,7 @@ void WebPalaControl::publishTick()
   jsonDoc.clear();
   strData.clear();
 
-  if (readSuccess &= executePalaCmd(F("GET CNTR"), jsonDoc))
+  if (execSuccess &= executePalaCmd(F("GET CNTR"), jsonDoc))
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
     {
@@ -189,7 +187,7 @@ void WebPalaControl::publishTick()
   jsonDoc.clear();
   strData.clear();
 
-  if (readSuccess &= executePalaCmd(F("GET TIME"), jsonDoc))
+  if (execSuccess &= executePalaCmd(F("GET TIME"), jsonDoc))
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
     {
@@ -202,7 +200,7 @@ void WebPalaControl::publishTick()
   jsonDoc.clear();
   strData.clear();
 
-  if (readSuccess &= executePalaCmd(F("GET SETP"), jsonDoc))
+  if (execSuccess &= executePalaCmd(F("GET SETP"), jsonDoc))
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
     {
@@ -215,7 +213,7 @@ void WebPalaControl::publishTick()
   jsonDoc.clear();
   strData.clear();
 
-  if (readSuccess &= executePalaCmd(F("GET POWR"), jsonDoc))
+  if (execSuccess &= executePalaCmd(F("GET POWR"), jsonDoc))
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
     {
@@ -228,7 +226,7 @@ void WebPalaControl::publishTick()
   jsonDoc.clear();
   strData.clear();
 
-  if (readSuccess &= executePalaCmd(F("GET DPRS"), jsonDoc))
+  if (execSuccess &= executePalaCmd(F("GET DPRS"), jsonDoc))
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult && _mqttMan.connected())
     {
