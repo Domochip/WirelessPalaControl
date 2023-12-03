@@ -189,7 +189,7 @@ void WebPalaControl::publishTick()
 
   if (execSuccess &= executePalaCmd(F("GET TIME"), jsonDoc))
   {
-     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
+    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
       _haSendResult &= publishDataToMqtt(baseTopic, F("TIME"), jsonDoc[F("DATA")]);
     }
@@ -1674,6 +1674,8 @@ bool WebPalaControl::appInit(bool reInit)
     _mqttMan.connect(_ha.mqtt.username, _ha.mqtt.password);
   }
 
+  LOG_SERIAL.println(F("Connecting to Stove..."));
+
   bool res = true;
   res &= _Pala.initialize(
       std::bind(&WebPalaControl::myOpenSerial, this, std::placeholders::_1),
@@ -1685,10 +1687,16 @@ bool WebPalaControl::appInit(bool reInit)
       std::bind(&WebPalaControl::myFlushSerial, this),
       std::bind(&WebPalaControl::myUSleep, this, std::placeholders::_1));
 
-  float setPoint;
-  res &= _Pala.getSetPoint(&setPoint);
   if (res)
-    LOG_SERIAL.printf("setpoint=%.2f", setPoint);
+  {
+    LOG_SERIAL.println(F("Stove connected"));
+    char SN[28];
+    _Pala.getSN(&SN);
+    LOG_SERIAL.printf("Stove Serial Number: %s", SN);
+  }
+  else{
+    LOG_SERIAL.println(F("Stove connection failed"));
+  }
 
   if (res)
     publishTick(); // if configuration changed, publish immediately
