@@ -1450,7 +1450,7 @@ void WebPalaControl::setConfigDefaultValues()
   _ha.hostname[0] = 0;
   _ha.uploadPeriod = 60;
 
-  _ha.mqtt.type = HA_MQTT_GENERIC;
+  _ha.mqtt.type = HA_MQTT_GENERIC_JSON;
   _ha.mqtt.port = 1883;
   _ha.mqtt.username[0] = 0;
   _ha.mqtt.password[0] = 0;

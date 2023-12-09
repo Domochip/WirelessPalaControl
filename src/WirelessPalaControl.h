@@ -25,7 +25,7 @@ private:
 
   typedef struct
   {
-    byte type = HA_MQTT_GENERIC;
+    byte type = HA_MQTT_GENERIC_JSON;
     uint32_t port = 1883;
     char username[128 + 1] = {0};
     char password[150 + 1] = {0};
