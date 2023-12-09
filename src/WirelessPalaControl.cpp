@@ -71,54 +71,29 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
   // if topic is basetopic/cmd
   // commented because only this topic is subscribed
 
-  bool isCmdExecuted = false;
+  String cmd;
+  DynamicJsonDocument jsonDoc(2048);
 
-  if (!isCmdExecuted && length == 6 && !memcmp_P(payload, F("CMD+ON"), length))
-  {
-    _Pala.switchOn();
-    isCmdExecuted = true;
-  }
+  // convert payload to String cmd
+  cmd.reserve(length + 1);
+  for (unsigned int i = 0; i < length; i++)
+    cmd += (char)payload[i];
 
-  if (!isCmdExecuted && length == 7 && !memcmp_P(payload, F("CMD+OFF"), length))
-  {
-    _Pala.switchOff();
-    isCmdExecuted = true;
-  }
+  // replace '+' by ' '
+  cmd.replace('+', ' ');
 
-  if (!isCmdExecuted && length > 9 && length <= 14 && !memcmp_P(payload, F("SET+SETP+"), 9))
-  {
-    char strSetPoint[6];
-    memcpy(strSetPoint, payload + 9, length - 9);
-    strSetPoint[length - 9] = 0;
+  // execute Palazzetti command
+  bool isCmdExecuted = executePalaCmd(cmd, jsonDoc);
 
-    float setPointFloat = atof(strSetPoint);
+  // publish json result to MQTT
+  String baseTopic = _ha.mqtt.generic.baseTopic;
+  MQTTMan::prepareTopic(baseTopic);
+  String serializedData;
+  serializeJson(jsonDoc, serializedData);
+  _mqttMan.publish((baseTopic + F("result")).c_str(), serializedData.c_str());
+  _mqttMan.loop();
 
-    if (setPointFloat != 0.0f)
-    {
-      _Pala.setSetpoint(setPointFloat);
-      isCmdExecuted = true;
-    }
-  }
-
-  if (!isCmdExecuted && length == 10 && !memcmp_P(payload, F("SET+POWR+"), 9))
-  {
-    if (payload[9] >= '1' && payload[9] <= '5')
-    {
-      _Pala.setPower(payload[9] - '0');
-      isCmdExecuted = true;
-    }
-  }
-
-  if (!isCmdExecuted && length == 10 && !memcmp_P(payload, F("SET+RFAN+"), 9))
-  {
-    if (payload[9] >= '0' && payload[9] <= '7')
-    {
-      _Pala.setRoomFan(payload[9] - '0');
-      isCmdExecuted = true;
-    }
-  }
-
-  // Finally if Cmd has been executed, Run a Publish to push back to HA
+  // if Palazzetti command execution has been successful, Run a publish to push back to HA
   if (isCmdExecuted)
     publishTick();
 }
@@ -1695,7 +1670,8 @@ bool WebPalaControl::appInit(bool reInit)
     _Pala.getSN(&SN);
     LOG_SERIAL.printf("Stove Serial Number: %s", SN);
   }
-  else{
+  else
+  {
     LOG_SERIAL.println(F("Stove connection failed"));
   }
 
