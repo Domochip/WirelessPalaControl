@@ -344,6 +344,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
   if (!cmdProcessed && cmd == F("GET LABL"))
   {
     cmdProcessed = true;
+    cmdSuccess = true;
 
     data[F("LABEL")] = WiFi.getHostname();
   }
