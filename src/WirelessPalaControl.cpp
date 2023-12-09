@@ -123,13 +123,13 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
     publishTick();
 }
 
-bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &palaCategory, const JsonObject &data)
+bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &palaCategory, const DynamicJsonDocument &jsonDoc)
 {
   bool res = false;
   if (_mqttMan.connected())
   {
     String serializedData;
-    serializeJson(data, serializedData);
+    serializeJson(jsonDoc[F("DATA")], serializedData);
     res = _mqttMan.publish((baseTopic + palaCategory).c_str(), serializedData.c_str());
     _mqttMan.loop();
   }
@@ -151,7 +151,7 @@ void WebPalaControl::publishTick()
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("STAT"), jsonDoc[F("DATA")]);
+      _haSendResult &= publishDataToMqtt(baseTopic, F("STAT"), jsonDoc);
     }
   }
 
@@ -161,7 +161,7 @@ void WebPalaControl::publishTick()
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("TMPS"), jsonDoc[F("DATA")]);
+      _haSendResult &= publishDataToMqtt(baseTopic, F("TMPS"), jsonDoc);
     }
   }
 
@@ -171,7 +171,7 @@ void WebPalaControl::publishTick()
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("FAND"), jsonDoc[F("DATA")]);
+      _haSendResult &= publishDataToMqtt(baseTopic, F("FAND"), jsonDoc);
     }
   }
 
@@ -181,7 +181,7 @@ void WebPalaControl::publishTick()
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("CNTR"), jsonDoc[F("DATA")]);
+      _haSendResult &= publishDataToMqtt(baseTopic, F("CNTR"), jsonDoc);
     }
   }
 
@@ -191,7 +191,7 @@ void WebPalaControl::publishTick()
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("TIME"), jsonDoc[F("DATA")]);
+      _haSendResult &= publishDataToMqtt(baseTopic, F("TIME"), jsonDoc);
     }
   }
 
@@ -201,7 +201,7 @@ void WebPalaControl::publishTick()
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("SETP"), jsonDoc[F("DATA")]);
+      _haSendResult &= publishDataToMqtt(baseTopic, F("SETP"), jsonDoc);
     }
   }
 
@@ -211,7 +211,7 @@ void WebPalaControl::publishTick()
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("POWR"), jsonDoc[F("DATA")]);
+      _haSendResult &= publishDataToMqtt(baseTopic, F("POWR"), jsonDoc);
     }
   }
 
@@ -221,7 +221,7 @@ void WebPalaControl::publishTick()
   {
     if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
     {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("DPRS"), jsonDoc[F("DATA")]);
+      _haSendResult &= publishDataToMqtt(baseTopic, F("DPRS"), jsonDoc);
     }
   }
 }
