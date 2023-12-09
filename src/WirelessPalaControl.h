@@ -20,6 +20,8 @@ class WebPalaControl : public Application
 {
 private:
 #define HA_MQTT_GENERIC 0
+#define HA_MQTT_GENERIC_JSON 1
+#define HA_MQTT_GENERIC_CATEGORIZED 2
 
   typedef struct
   {

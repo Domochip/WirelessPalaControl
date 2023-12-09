@@ -57,6 +57,8 @@ void WebPalaControl::mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnectio
   switch (_ha.mqtt.type) // switch on MQTT type
   {
   case HA_MQTT_GENERIC:
+  case HA_MQTT_GENERIC_JSON:
+  case HA_MQTT_GENERIC_CATEGORIZED:
     subscribeTopic += F("cmd");
     break;
   }
@@ -1518,6 +1520,8 @@ bool WebPalaControl::parseConfigWebRequest(AsyncWebServerRequest *request)
     switch (_ha.mqtt.type)
     {
     case HA_MQTT_GENERIC:
+    case HA_MQTT_GENERIC_JSON:
+    case HA_MQTT_GENERIC_CATEGORIZED:
       if (request->hasParam(F("hamgbt"), true) && request->getParam(F("hamgbt"), true)->value().length() < sizeof(_ha.mqtt.generic.baseTopic))
         strcpy(_ha.mqtt.generic.baseTopic, request->getParam(F("hamgbt"), true)->value().c_str());
 
