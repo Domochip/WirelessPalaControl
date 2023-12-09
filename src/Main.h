@@ -26,7 +26,7 @@
 //Log Serial Object
 #define LOG_SERIAL Serial1 //
 //Choose Log Serial Speed
-#define LOG_SERIAL_SPEED 115200
+#define LOG_SERIAL_SPEED 38400
 
 //Choose Pin used to boot in Rescue Mode
 //#define RESCUE_BTN_PIN 2
