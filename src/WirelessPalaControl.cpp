@@ -124,82 +124,30 @@ void WebPalaControl::publishTick()
 
   MQTTMan::prepareTopic(baseTopic);
 
-  if (execSuccess &= executePalaCmd(F("GET STAT"), jsonDoc))
+  // create an array of commands to execute
+  String cmdList[] = {
+      F("STAT"),
+      F("TMPS"),
+      F("FAND"),
+      F("CNTR"),
+      F("TIME"),
+      F("SETP"),
+      F("POWR"),
+      F("DPRS")};
+
+  // execute commands
+  for (String cmd : cmdList)
   {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
+    String getCmd(F("GET "));
+    getCmd += cmd;
+    if (execSuccess &= executePalaCmd(getCmd, jsonDoc))
     {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("STAT"), jsonDoc);
+      if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
+      {
+        _haSendResult &= publishDataToMqtt(baseTopic, cmd, jsonDoc);
+      }
     }
-  }
-
-  jsonDoc.clear();
-
-  if (execSuccess &= executePalaCmd(F("GET TMPS"), jsonDoc))
-  {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
-    {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("TMPS"), jsonDoc);
-    }
-  }
-
-  jsonDoc.clear();
-
-  if (execSuccess &= executePalaCmd(F("GET FAND"), jsonDoc))
-  {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
-    {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("FAND"), jsonDoc);
-    }
-  }
-
-  jsonDoc.clear();
-
-  if (execSuccess &= executePalaCmd(F("GET CNTR"), jsonDoc))
-  {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
-    {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("CNTR"), jsonDoc);
-    }
-  }
-
-  jsonDoc.clear();
-
-  if (execSuccess &= executePalaCmd(F("GET TIME"), jsonDoc))
-  {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
-    {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("TIME"), jsonDoc);
-    }
-  }
-
-  jsonDoc.clear();
-
-  if (execSuccess &= executePalaCmd(F("GET SETP"), jsonDoc))
-  {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
-    {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("SETP"), jsonDoc);
-    }
-  }
-
-  jsonDoc.clear();
-
-  if (execSuccess &= executePalaCmd(F("GET POWR"), jsonDoc))
-  {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
-    {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("POWR"), jsonDoc);
-    }
-  }
-
-  jsonDoc.clear();
-
-  if (execSuccess &= executePalaCmd(F("GET DPRS"), jsonDoc))
-  {
-    if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
-    {
-      _haSendResult &= publishDataToMqtt(baseTopic, F("DPRS"), jsonDoc);
-    }
+    jsonDoc.clear();
   }
 }
 
