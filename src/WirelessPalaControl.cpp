@@ -106,9 +106,54 @@ bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &pa
   if (_mqttMan.connected())
   {
     String serializedData;
-    serializeJson(jsonDoc[F("DATA")], serializedData);
-    res = _mqttMan.publish((baseTopic + palaCategory).c_str(), serializedData.c_str());
-    _mqttMan.loop();
+    String topic;
+
+    switch (_ha.mqtt.type) // switch on MQTT type
+    {
+    case HA_MQTT_GENERIC:
+      // for each key/value pair in DATA
+      for (JsonPairConst kv : jsonDoc[F("DATA")].as<JsonObjectConst>())
+      {
+        // prepare topic
+        topic = baseTopic;
+        topic += kv.key().c_str();
+        // prepare value
+        String value = kv.value().as<String>();
+        // publish
+        res = _mqttMan.publish(topic.c_str(), value.c_str());
+        _mqttMan.loop();
+      }
+      break;
+    case HA_MQTT_GENERIC_JSON:
+      // prepare topic
+      topic = baseTopic;
+      topic += palaCategory;
+      // serialize DATA to JSON
+      serializeJson(jsonDoc[F("DATA")], serializedData);
+      // publish
+      res = _mqttMan.publish(topic.c_str(), serializedData.c_str());
+      _mqttMan.loop();
+      break;
+    case HA_MQTT_GENERIC_CATEGORIZED:
+      // prepare category topic
+      String categoryTopic(baseTopic);
+      categoryTopic += palaCategory;
+      categoryTopic += '/';
+
+      // for each key/value pair in DATA
+      for (JsonPairConst kv : jsonDoc[F("DATA")].as<JsonObjectConst>())
+      {
+        // prepare topic
+        topic = categoryTopic;
+        topic += kv.key().c_str();
+        // prepare value
+        String value = kv.value().as<String>();
+        // publish
+        res = _mqttMan.publish(topic.c_str(), value.c_str());
+        _mqttMan.loop();
+      }
+      break;
+    }
   }
   return res;
 }
