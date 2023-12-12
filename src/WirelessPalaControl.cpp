@@ -203,7 +203,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
 
   // Prepare answer structure
   JsonObject info = jsonDoc.createNestedObject(F("INFO"));
-  info[F("CMD")] = cmd;
   JsonObject data = jsonDoc.createNestedObject(F("DATA"));
 
   if (!cmdProcessed && cmd == F("GET STDT"))
@@ -1465,6 +1464,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
   // if command has been processed
   if (cmdProcessed)
   {
+    info[F("CMD")] = cmd;
     // successfully
     if (cmdSuccess)
     {
