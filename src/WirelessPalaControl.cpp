@@ -1483,6 +1483,8 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
         info[F("RSP")] = F("TIMEOUT");
         info[F("MSG")] = F("Stove communication failed");
       }
+      else
+        info[F("RSP")] = F("ERROR");
 
       jsonDoc[F("SUCCESS")] = false;
       data[F("NODATA")] = true;
@@ -1491,6 +1493,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
   else
   {
     // command is unknown and not processed
+    info[F("RSP")] = F("ERROR");
     info[F("CMD")] = F("UNKNOWN");
     info[F("MSG")] = F("No valid request received");
     jsonDoc[F("SUCCESS")] = false;
