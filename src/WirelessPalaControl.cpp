@@ -825,6 +825,71 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
     }
   }
 
+  if (!cmdProcessed && cmd.startsWith(F("SET TIME ")))
+  {
+    cmdProcessed = true;
+
+    String workingCmd(cmd);
+    byte posInWorkingCmd = 9;
+    String strParams[6];
+    uint16_t params[6];
+    const __FlashStringHelper *errorMessage[6] = {F("Year"), F("Month"), F("Day"), F("Hour"), F("Minute"), F("Second")};
+
+    // Check format
+    if (cmd.length() != 28 || cmd[13] != '-' || cmd[16] != '-' || cmd[19] != ' ' || cmd[22] != ':' || cmd[25] != ':')
+    {
+      info[F("MSG")] = F("Incorrect DateTime format");
+    }
+
+    // replace '-' and ':' by ' '
+    workingCmd.replace('-', ' ');
+    workingCmd.replace(':', ' ');
+
+    // parse parameters
+    for (byte i = 0; i < 6 && info[F("MSG")].isNull(); i++)
+    {
+      strParams[i] = workingCmd.substring(posInWorkingCmd, workingCmd.indexOf(' ', posInWorkingCmd));
+      params[i] = strParams[i].toInt();
+      if (params[i] == 0 && strParams[i][0] != '0')
+        info[F("MSG")] = String(F("Incorrect ")) + errorMessage[i] + F(" : ") + strParams[i];
+
+      posInWorkingCmd += strParams[i].length() + 1;
+    }
+
+    // Check if date is valid
+    // basic control
+    if (params[0] < 2000 || params[0] > 2099)
+      info[F("MSG")] = F("Incorrect Year");
+    else if (params[1] < 1 || params[1] > 12)
+      info[F("MSG")] = F("Incorrect Month");
+    else if ((params[2] < 1 || params[2] > 31) ||
+             ((params[2] == 4 || params[2] == 6 || params[2] == 9 || params[2] == 11) && params[3] > 30) ||                        // 30 days month control
+             (params[2] == 2 && params[3] > 29) ||                                                                                 // February leap year control
+             (params[2] == 2 && params[3] == 29 && !(((params[0] % 4 == 0) && (params[0] % 100 != 0)) || (params[0] % 400 == 0)))) // February not leap year control
+      info[F("MSG")] = F("Incorrect Day");
+    else if (params[3] > 23)
+      info[F("MSG")] = F("Incorrect Hour");
+    else if (params[4] > 59)
+      info[F("MSG")] = F("Incorrect Minute");
+    else if (params[5] > 59)
+      info[F("MSG")] = F("Incorrect Second");
+
+    if (info[F("MSG")].isNull())
+    {
+      char STOVE_DATETIMEReturn[20];
+      byte STOVE_WDAYReturn;
+      cmdSuccess = _Pala.setDateTime(params[0], params[1], params[2], params[3], params[4], params[5], &STOVE_DATETIMEReturn, &STOVE_WDAYReturn);
+
+      if (cmdSuccess)
+      {
+        data[F("STOVE_DATETIME")] = STOVE_DATETIMEReturn;
+        data[F("STOVE_WDAY")] = STOVE_WDAYReturn;
+      }
+    }
+    else
+      info[F("CMD")] = F("SET TIME");
+  }
+
   if (!cmdProcessed && cmd.startsWith(F("SET RFAN ")))
   {
     cmdProcessed = true;
