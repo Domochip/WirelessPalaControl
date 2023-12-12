@@ -674,14 +674,20 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
     byte paramNumber = strParamNumber.toInt();
 
     if (paramNumber == 0 && strParamNumber[0] != '0')
+    {
+      info[F("CMD")] = F("GET PARM");
       info[F("MSG")] = String(F("Incorrect Parameter Number : ")) + strParamNumber;
-    else
+    }
+
+    if (info[F("MSG")].isNull())
     {
       byte paramValue;
       cmdSuccess = _Pala.getParameter(paramNumber, &paramValue);
 
       if (cmdSuccess)
+      {
         data[F("PAR")] = paramValue;
+      }
     }
   }
 
