@@ -6,7 +6,7 @@
 #include <EEPROM.h>
 #include <LittleFS.h>
 #include <FS.h>
-#include <ESPAsyncWebServer.h>
+#include <ESP8266WebServer.h>
 
 #include "Version.h"
 #include "..\Main.h"
@@ -31,8 +31,8 @@ Core core('0', "Core");
 //WifiMan
 WifiMan wifiMan('w', "WiFi");
 
-//AsyncWebServer
-AsyncWebServer server(80);
+//ESP8266WebServer
+ESP8266WebServer server(80);
 //flag to pause application Run during Firmware Update
 bool pauseApplication = false;
 //variable used by objects to indicate system reboot is required
@@ -167,6 +167,9 @@ void setup()
 //-----------------------------------------------------------------------
 void loop(void)
 {
+
+  //Handle WebServer
+  server.handleClient();
 
   if (!pauseApplication)
   {
