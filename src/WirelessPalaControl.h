@@ -14,7 +14,6 @@ const char appDataPredefPassword[] PROGMEM = "ewcXoCt4HHjZUvY1";
 #include <PolledTimeout.h>
 #include <Palazzetti.h>
 #include <ESPAsyncUDP.h>
-#include <AsyncJson.h>
 
 class WebPalaControl : public Application
 {
@@ -75,13 +74,13 @@ private:
 
   void setConfigDefaultValues();
   void parseConfigJSON(DynamicJsonDocument &doc);
-  bool parseConfigWebRequest(AsyncWebServerRequest *request);
+  bool parseConfigWebRequest(ESP8266WebServer &server);
   String generateConfigJSON(bool forSaveFile);
   String generateStatusJSON();
   bool appInit(bool reInit);
-  const uint8_t *getHTMLContent(WebPageForPlaceHolder wp);
+  const PROGMEM char *getHTMLContent(WebPageForPlaceHolder wp);
   size_t getHTMLContentSize(WebPageForPlaceHolder wp);
-  void appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication);
+  void appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication);
   void appRun();
 
 public:

@@ -1542,7 +1542,7 @@ void WebPalaControl::parseConfigJSON(DynamicJsonDocument &doc)
 };
 //------------------------------------------
 // Parse HTTP POST parameters in request into configuration properties
-bool WebPalaControl::parseConfigWebRequest(AsyncWebServerRequest *request)
+bool WebPalaControl::parseConfigWebRequest(ESP8266WebServer &server)
 {
 
   // Parse HA protocol
@@ -1773,7 +1773,7 @@ bool WebPalaControl::appInit(bool reInit)
 };
 //------------------------------------------
 // Return HTML Code to insert into Status Web page
-const uint8_t *WebPalaControl::getHTMLContent(WebPageForPlaceHolder wp)
+const PROGMEM char *WebPalaControl::getHTMLContent(WebPageForPlaceHolder wp)
 {
   switch (wp)
   {
@@ -1809,7 +1809,7 @@ size_t WebPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
 
 //------------------------------------------
 // code to register web request answer to the web server
-void WebPalaControl::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
+void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication){
 {
   // Handle HTTP GET requests
   server.on("/cgi-bin/sendmsg.lua", HTTP_GET, [this](AsyncWebServerRequest *request)
