@@ -1549,7 +1549,8 @@ void WebPalaControl::setConfigDefaultValues()
   _ha.mqtt.username[0] = 0;
   _ha.mqtt.password[0] = 0;
   strcpy_P(_ha.mqtt.generic.baseTopic, PSTR("$model$"));
-};
+}
+
 //------------------------------------------
 // Parse JSON object into configuration properties
 void WebPalaControl::parseConfigJSON(DynamicJsonDocument &doc)
@@ -1572,7 +1573,8 @@ void WebPalaControl::parseConfigJSON(DynamicJsonDocument &doc)
 
   if (!doc[F("hamgbt")].isNull())
     strlcpy(_ha.mqtt.generic.baseTopic, doc[F("hamgbt")], sizeof(_ha.mqtt.generic.baseTopic));
-};
+}
+
 //------------------------------------------
 // Parse HTTP POST parameters in request into configuration properties
 bool WebPalaControl::parseConfigWebRequest(ESP8266WebServer &server)
@@ -1626,7 +1628,8 @@ bool WebPalaControl::parseConfigWebRequest(ESP8266WebServer &server)
     break;
   }
   return true;
-};
+}
+
 //------------------------------------------
 // Generate JSON from configuration properties
 String WebPalaControl::generateConfigJSON(bool forSaveFile = false)
@@ -1654,7 +1657,8 @@ String WebPalaControl::generateConfigJSON(bool forSaveFile = false)
   gc += '}';
 
   return gc;
-};
+}
+
 //------------------------------------------
 // Generate JSON of application status
 String WebPalaControl::generateStatusJSON()
@@ -1716,7 +1720,8 @@ String WebPalaControl::generateStatusJSON()
   gs += '}';
 
   return gs;
-};
+}
+
 //------------------------------------------
 // code to execute during initialization and reinitialization of the app
 bool WebPalaControl::appInit(bool reInit)
@@ -1782,7 +1787,8 @@ bool WebPalaControl::appInit(bool reInit)
   _udpServer.begin(54549);
 
   return res;
-};
+}
+
 //------------------------------------------
 // Return HTML Code to insert into Status Web page
 const PROGMEM char *WebPalaControl::getHTMLContent(WebPageForPlaceHolder wp)
@@ -1800,7 +1806,8 @@ const PROGMEM char *WebPalaControl::getHTMLContent(WebPageForPlaceHolder wp)
     break;
   };
   return nullptr;
-};
+}
+
 // and his Size
 size_t WebPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
 {
@@ -1817,7 +1824,7 @@ size_t WebPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
     break;
   };
   return 0;
-};
+}
 
 //------------------------------------------
 // code to register web request answer to the web server
@@ -1990,7 +1997,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
         String toReturn;
         serializeJson(jsonDoc, toReturn); // serialize returned JSON as-is
         server.send(200, F("text/json"), toReturn); });
-};
+}
 
 //------------------------------------------
 // Run for timer
