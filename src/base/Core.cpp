@@ -36,7 +36,7 @@ String Core::generateStatusJSON()
   gs = gs + '}';
 
   return gs;
-};
+}
 bool Core::appInit(bool reInit = false) { return true; };
 const PROGMEM char *Core::getHTMLContent(WebPageForPlaceHolder wp)
 {
@@ -56,7 +56,7 @@ const PROGMEM char *Core::getHTMLContent(WebPageForPlaceHolder wp)
     break;
   };
   return nullptr;
-};
+}
 size_t Core::getHTMLContentSize(WebPageForPlaceHolder wp)
 {
   switch (wp)
@@ -75,7 +75,7 @@ size_t Core::getHTMLContentSize(WebPageForPlaceHolder wp)
     break;
   };
   return 0;
-};
+}
 void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   // root is index

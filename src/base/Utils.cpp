@@ -15,7 +15,7 @@ bool Utils::isFingerPrintEmpty(byte *fingerPrintArray)
   for (byte i = 0; i < 20; i++)
     ret &= (fingerPrintArray[i] == 0);
   return ret;
-};
+}
 
 //------------------------------------------
 // Function to decode https FingerPrint String into array of 20 bytes
@@ -45,6 +45,7 @@ bool Utils::fingerPrintS2A(byte *fingerPrintArray, const char *fingerPrintToDeco
 
   return true;
 }
+
 //------------------------------------------
 // Function that convert fingerprint Array to char array (with separator) (char array need to be provided)
 char *Utils::fingerPrintA2S(char *fpBuffer, byte *fingerPrintArray, char separator)

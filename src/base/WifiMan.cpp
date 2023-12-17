@@ -176,6 +176,7 @@ bool WifiMan::parseConfigWebRequest(ESP8266WebServer &server)
 
   return true;
 }
+
 String WifiMan::generateConfigJSON(bool forSaveFile = false)
 {
 
@@ -347,7 +348,7 @@ bool WifiMan::appInit(bool reInit = false)
   WiFi.persistent(false);
 
   return (ssid[0] ? WiFi.isConnected() : true);
-};
+}
 
 const PROGMEM char *WifiMan::getHTMLContent(WebPageForPlaceHolder wp)
 {
@@ -380,7 +381,7 @@ size_t WifiMan::getHTMLContentSize(WebPageForPlaceHolder wp)
     break;
   };
   return 0;
-};
+}
 
 void WifiMan::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
@@ -424,4 +425,4 @@ void WifiMan::appRun()
     _needRefreshWifi = false;
     refreshWiFi();
   }
-};
+}
