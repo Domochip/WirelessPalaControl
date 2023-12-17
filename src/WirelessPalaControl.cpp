@@ -1546,16 +1546,16 @@ bool WebPalaControl::parseConfigWebRequest(ESP8266WebServer &server)
 {
 
   // Parse HA protocol
-  if (request->hasParam(F("haproto"), true))
-    _ha.protocol = request->getParam(F("haproto"), true)->value().toInt();
+  if (server.hasArg(F("haproto")))
+    _ha.protocol = server.arg(F("haproto")).toInt();
 
   // if an home Automation protocol has been selected then get common param
   if (_ha.protocol != HA_PROTO_DISABLED)
   {
-    if (request->hasParam(F("hahost"), true) && request->getParam(F("hahost"), true)->value().length() < sizeof(_ha.hostname))
-      strcpy(_ha.hostname, request->getParam(F("hahost"), true)->value().c_str());
-    if (request->hasParam(F("haupperiod"), true))
-      _ha.uploadPeriod = request->getParam(F("haupperiod"), true)->value().toInt();
+    if (server.hasArg(F("hahost")) && server.arg(F("hahost")).length() < sizeof(_ha.hostname))
+      strcpy(_ha.hostname, server.arg(F("hahost")).c_str());
+    if (server.hasArg(F("haupperiod")))
+      _ha.uploadPeriod = server.arg(F("haupperiod")).toInt();
   }
 
   // Now get specific param
@@ -1564,16 +1564,16 @@ bool WebPalaControl::parseConfigWebRequest(ESP8266WebServer &server)
 
   case HA_PROTO_MQTT:
 
-    if (request->hasParam(F("hamtype"), true))
-      _ha.mqtt.type = request->getParam(F("hamtype"), true)->value().toInt();
-    if (request->hasParam(F("hamport"), true))
-      _ha.mqtt.port = request->getParam(F("hamport"), true)->value().toInt();
-    if (request->hasParam(F("hamu"), true) && request->getParam(F("hamu"), true)->value().length() < sizeof(_ha.mqtt.username))
-      strcpy(_ha.mqtt.username, request->getParam(F("hamu"), true)->value().c_str());
+    if (server.hasArg(F("hamtype")))
+      _ha.mqtt.type = server.arg(F("hamtype")).toInt();
+    if (server.hasArg(F("hamport")))
+      _ha.mqtt.port = server.arg(F("hamport")).toInt();
+    if (server.hasArg(F("hamu")) && server.arg(F("hamu")).length() < sizeof(_ha.mqtt.username))
+      strcpy(_ha.mqtt.username, server.arg(F("hamu")).c_str());
     char tempPassword[64 + 1] = {0};
     // put MQTT password into temporary one for predefpassword
-    if (request->hasParam(F("hamp"), true) && request->getParam(F("hamp"), true)->value().length() < sizeof(tempPassword))
-      strcpy(tempPassword, request->getParam(F("hamp"), true)->value().c_str());
+    if (server.hasArg(F("hamp")) && server.arg(F("hamp")).length() < sizeof(tempPassword))
+      strcpy(tempPassword, server.arg(F("hamp")).c_str());
     // check for previous password (there is a predefined special password that mean to keep already saved one)
     if (strcmp_P(tempPassword, appDataPredefPassword))
       strcpy(_ha.mqtt.password, tempPassword);
@@ -1583,8 +1583,8 @@ bool WebPalaControl::parseConfigWebRequest(ESP8266WebServer &server)
     case HA_MQTT_GENERIC:
     case HA_MQTT_GENERIC_JSON:
     case HA_MQTT_GENERIC_CATEGORIZED:
-      if (request->hasParam(F("hamgbt"), true) && request->getParam(F("hamgbt"), true)->value().length() < sizeof(_ha.mqtt.generic.baseTopic))
-        strcpy(_ha.mqtt.generic.baseTopic, request->getParam(F("hamgbt"), true)->value().c_str());
+      if (server.hasArg(F("hamgbt")) && server.arg(F("hamgbt")).length() < sizeof(_ha.mqtt.generic.baseTopic))
+        strcpy(_ha.mqtt.generic.baseTopic, server.arg(F("hamgbt")).c_str());
 
       if (!_ha.hostname[0] || !_ha.mqtt.generic.baseTopic[0])
         _ha.protocol = HA_PROTO_DISABLED;
