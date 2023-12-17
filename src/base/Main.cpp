@@ -14,7 +14,7 @@
 #include "Core.h"
 #include "WifiMan.h"
 
-//include Application header files
+// include Application header files
 #ifdef APPLICATION1_HEADER
 #include APPLICATION1_HEADER
 #endif
@@ -25,28 +25,28 @@
 #include APPLICATION3_HEADER
 #endif
 
-//System
+// System
 Core core('0', "Core");
 
-//WifiMan
+// WifiMan
 WifiMan wifiMan('w', "WiFi");
 
-//ESP8266WebServer
+// ESP8266WebServer
 ESP8266WebServer server(80);
-//flag to pause application Run during Firmware Update
+// flag to pause application Run during Firmware Update
 bool pauseApplication = false;
-//variable used by objects to indicate system reboot is required
+// variable used by objects to indicate system reboot is required
 bool shouldReboot = false;
 
-//Application1 object
+// Application1 object
 #ifdef APPLICATION1_CLASS
 APPLICATION1_CLASS application1('1', APPLICATION1_NAME);
 #endif
-//Application2 object
+// Application2 object
 #ifdef APPLICATION2_CLASS
 APPLICATION2_CLASS application2('2', APPLICATION2_NAME);
 #endif
-//Application3 object
+// Application3 object
 #ifdef APPLICATION3_CLASS
 APPLICATION3_CLASS application3('3', APPLICATION3_NAME);
 #endif
@@ -82,7 +82,7 @@ void setup()
 
   bool skipExistingConfig = false;
 
-  //look into EEPROM for Rescue mode flag
+  // look into EEPROM for Rescue mode flag
   EEPROM.begin(4);
   skipExistingConfig = EEPROM.read(0) != 0;
   if (skipExistingConfig)
@@ -90,7 +90,7 @@ void setup()
   EEPROM.end();
 
 #ifdef RESCUE_BTN_PIN
-  //if config already skipped, don't wait for rescue button
+  // if config already skipped, don't wait for rescue button
   if (!skipExistingConfig)
   {
 #ifdef LOG_SERIAL
@@ -123,13 +123,13 @@ void setup()
 #endif
   }
 
-  //Init Core
+  // Init Core
   core.init(skipExistingConfig);
 
-  //Init WiFi
+  // Init WiFi
   wifiMan.init(skipExistingConfig);
 
-//Init Application
+// Init Application
 #ifdef APPLICATION1_CLASS
   application1.init(skipExistingConfig);
 #endif
@@ -168,7 +168,7 @@ void setup()
 void loop(void)
 {
 
-  //Handle WebServer
+  // Handle WebServer
   server.handleClient();
 
   if (!pauseApplication)

@@ -19,7 +19,7 @@ void MQTTMan::prepareTopic(String &topic)
     if (topic.indexOf(F("$model$")) != -1)
         topic.replace(F("$model$"), APPLICATION1_NAME);
 
-    //check for final slash
+    // check for final slash
     if (topic.length() && topic.charAt(topic.length() - 1) != '/')
         topic += '/';
 }
@@ -36,11 +36,11 @@ bool MQTTMan::connect(bool firstConnection)
     sprintf_P(sn, PSTR("%08x"), (uint32_t)(ESP.getEfuseMac() << 40 >> 40));
 #endif
 
-    //generate clientID
+    // generate clientID
     String clientID(F(APPLICATION1_NAME));
     clientID += sn;
 
-    //Connect
+    // Connect
     char *username = (_username[0] ? _username : nullptr);
     char *password = (_username[0] ? _password : nullptr);
     char *willTopic = (_connectedAndWillTopic[0] ? _connectedAndWillTopic : nullptr);
@@ -52,7 +52,7 @@ bool MQTTMan::connect(bool firstConnection)
         if (_connectedAndWillTopic[0])
             publish(_connectedAndWillTopic, "1", true);
 
-        //Subscribe to needed topic
+        // Subscribe to needed topic
         if (_connectedCallBack)
             _connectedCallBack(this, firstConnection);
     }
@@ -78,7 +78,7 @@ MQTTMan &MQTTMan::setConnectedCallback(CONNECTED_CALLBACK_SIGNATURE connectedCal
 
 bool MQTTMan::connect(const char *username, const char *password)
 {
-    //check logins
+    // check logins
     if (username && strlen(username) >= sizeof(_username))
         return false;
     if (password && strlen(password) >= sizeof(_password))
@@ -99,14 +99,14 @@ bool MQTTMan::connect(const char *username, const char *password)
 
 void MQTTMan::disconnect()
 {
-    //publish disconnected just before disconnect...
+    // publish disconnected just before disconnect...
     if (_connectedAndWillTopic[0])
         publish(_connectedAndWillTopic, "0");
 
-    //Stop MQTT Reconnect
+    // Stop MQTT Reconnect
     _mqttReconnectTicker.detach();
-    //Disconnect
-    if (connected()) //Issue #598 : disconnect() crash if client not yet set
+    // Disconnect
+    if (connected()) // Issue #598 : disconnect() crash if client not yet set
         PubSubClient::disconnect();
 }
 
@@ -127,14 +127,15 @@ bool MQTTMan::loop()
 #endif
     }
 
-    //if not connected and reconnect ticker not started
+    // if not connected and reconnect ticker not started
     if (!connected() && !_mqttReconnectTicker.active())
     {
 #ifdef LOG_SERIAL
         LOG_SERIAL.println(F("MQTT Disconnected"));
 #endif
-        //set Ticker to reconnect after 20 or 60 sec (Wifi connected or not)
-        _mqttReconnectTicker.once_scheduled((WiFi.isConnected() ? 20 : 60), [this]() { _needMqttReconnect = true; _mqttReconnectTicker.detach(); });
+        // set Ticker to reconnect after 20 or 60 sec (Wifi connected or not)
+        _mqttReconnectTicker.once_scheduled((WiFi.isConnected() ? 20 : 60), [this]()
+                                            { _needMqttReconnect = true; _mqttReconnectTicker.detach(); });
     }
 
     return PubSubClient::loop();

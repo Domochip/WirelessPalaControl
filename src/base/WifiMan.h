@@ -15,7 +15,7 @@ class WifiMan : public Application
 {
 
 private:
-  //Configuration Properties
+  // Configuration Properties
   char ssid[32 + 1] = {0};
   char password[64 + 1] = {0};
   char hostname[24 + 1] = {0};
@@ -25,7 +25,7 @@ private:
   uint32_t dns1 = 0;
   uint32_t dns2 = 0;
 
-  //Run properties
+  // Run properties
   WiFiEventHandler _discoEventHandler;
   WiFiEventHandler _staConnectedHandler;
   WiFiEventHandler _staDisconnectedHandler;
@@ -34,8 +34,8 @@ private:
   bool _needRefreshWifi = false;
   bool _stationConnectedToSoftAP = false;
   Ticker _refreshTicker;
-  uint8_t _refreshPeriod = 60; //try to reconnect as station mode every 60 seconds
-  uint8_t _reconnectDuration = 20; //duration to try to connect to Wifi in seconds
+  uint8_t _refreshPeriod = 60;     // try to reconnect as station mode every 60 seconds
+  uint8_t _reconnectDuration = 20; // duration to try to connect to Wifi in seconds
 
   void enableAP(bool force);
   void refreshWiFi();

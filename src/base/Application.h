@@ -7,7 +7,7 @@
 #include <ArduinoJson.h>
 #include <Ticker.h>
 
-//Maximum size that can be allocated to Parsed JSON
+// Maximum size that can be allocated to Parsed JSON
 #define JSON_DOC_MAX_MEM_SIZE 4096
 #define JSON_DOC_MEM_STEP 256
 
@@ -36,17 +36,17 @@ protected:
 
 #if ENABLE_STATUS_EVTSRC
   void statusEventSourceHandler(ESP8266WebServer &server);
-  void statusEventSourceBroadcast(const String &message,const String &eventType = "message");
+  void statusEventSourceBroadcast(const String &message, const String &eventType = "message");
 #if ENABLE_STATUS_EVTSRC_KEEPALIVE
   void statusEventSourceKeepAlive();
 #endif
 #endif
 
-  //already built methods
+  // already built methods
   bool saveConfig();
   bool loadConfig();
 
-  //specialization required from the application
+  // specialization required from the application
   virtual void setConfigDefaultValues() = 0;
   virtual void parseConfigJSON(DynamicJsonDocument &doc) = 0;
   virtual bool parseConfigWebRequest(ESP8266WebServer &server) = 0;
@@ -59,7 +59,7 @@ protected:
   virtual void appRun() = 0;
 
 public:
-  //already built methods
+  // already built methods
   Application(char appId, String appName)
   {
     _appId = appId;

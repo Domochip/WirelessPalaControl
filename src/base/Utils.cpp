@@ -1,7 +1,7 @@
 #include "Utils.h"
 
 //------------------------------------------
-//simple function that convert an hexadecimal char to byte
+// simple function that convert an hexadecimal char to byte
 byte Utils::asciiToHex(char c)
 {
   return (c < 0x3A) ? (c - 0x30) : (c > 0x60 ? c - 0x57 : c - 0x37);
@@ -25,7 +25,7 @@ bool Utils::fingerPrintS2A(byte *fingerPrintArray, const char *fingerPrintToDeco
   if (strlen(fingerPrintToDecode) < 40)
     return false;
 
-  //first set array bytes to 0;
+  // first set array bytes to 0;
   memset(fingerPrintArray, 0, 20);
 
   byte arrayPos = 0;

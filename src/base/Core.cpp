@@ -57,7 +57,6 @@ const PROGMEM char *Core::getHTMLContent(WebPageForPlaceHolder wp)
   };
   return nullptr;
 };
-//and his Size
 size_t Core::getHTMLContentSize(WebPageForPlaceHolder wp)
 {
   switch (wp)
@@ -79,20 +78,21 @@ size_t Core::getHTMLContentSize(WebPageForPlaceHolder wp)
 };
 void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
-  //root is index
-  server.on("/", HTTP_GET, [&server]() {
+  // root is index
+  server.on("/", HTTP_GET, [&server]()
+            {
     server.sendHeader(F("Content-Encoding"), F("gzip"));
-    server.send_P(200, PSTR("text/html"), indexhtmlgz, sizeof(indexhtmlgz));
-  });
+    server.send_P(200, PSTR("text/html"), indexhtmlgz, sizeof(indexhtmlgz)); });
 
-  //sn url is a way to find module on network
+  // sn url is a way to find module on network
   char discoURL[10];
 #ifdef ESP8266
   sprintf_P(discoURL, PSTR("/%08x"), ESP.getChipId());
 #else
   sprintf_P(discoURL, PSTR("/%08x"), (uint32_t)(ESP.getEfuseMac() << 40 >> 40));
 #endif
-  server.on(discoURL, HTTP_GET, [&server]() {
+  server.on(discoURL, HTTP_GET, [&server]()
+            {
     char chipID[9];
 #ifdef ESP8266
     sprintf_P(chipID, PSTR("%08x"), ESP.getChipId());
@@ -101,11 +101,11 @@ void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &
 #endif
     server.sendHeader(F("Access-Control-Allow-Origin"), F("*")); //allow this URL to be requested from everywhere
     server.sendHeader(F("Cache-Control"), F("no-cache"));
-    server.send(200, "text/html", chipID);
-  });
+    server.send(200, "text/html", chipID); });
 
-  //ffffffff url is a way to find all modules on the network
-  server.on("/ffffffff", HTTP_GET, [&server]() {
+  // ffffffff url is a way to find all modules on the network
+  server.on("/ffffffff", HTTP_GET, [&server]()
+            {
     //answer with a JSON string containing sn, model and version numbers
     char discoJSON[128];
 #ifdef ESP8266
@@ -115,11 +115,12 @@ void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &
 #endif
     server.sendHeader(F("Access-Control-Allow-Origin"), F("*")); //allow this URL to be requested from everywhere
     server.sendHeader(F("Cache-Control"), F("no-cache"));
-    server.send(200, "text/json", discoJSON);
-  });
+    server.send(200, "text/json", discoJSON); });
 
-  //FirmWare POST URL allows to push new firmware
-  server.on("/fw", HTTP_POST, [&shouldReboot, &pauseApplication, &server]() {
+  // FirmWare POST URL allows to push new firmware
+  server.on(
+      "/fw", HTTP_POST, [&shouldReboot, &pauseApplication, &server]()
+      {
     shouldReboot = !Update.hasError();
     if (shouldReboot) {
       server.sendHeader(F("Connection"), F("close"));
@@ -175,61 +176,74 @@ void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &
 #endif
       server.sendHeader(F("Connection"), F("close"));
       server.send(500, "text/html", errorMsg);
-    } }, [&pauseApplication, &server]() {
-    HTTPUpload& upload = server.upload();
-    if (upload.status == UPLOAD_FILE_START) {
-      //stop to Run Application in loop
-      pauseApplication = true;
+    } },
+      [&pauseApplication, &server]()
+      {
+        HTTPUpload &upload = server.upload();
+        if (upload.status == UPLOAD_FILE_START)
+        {
+          // stop to Run Application in loop
+          pauseApplication = true;
 
 #ifdef LOG_SERIAL
-      LOG_SERIAL.printf("Update Start: %s\n", upload.filename.c_str());
+          LOG_SERIAL.printf("Update Start: %s\n", upload.filename.c_str());
 #endif
 
 #ifdef ESP8266
-      if (!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000)) {
+          if (!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000))
+          {
 #else
-      if (!Update.begin()) {
+          if (!Update.begin())
+          {
 #endif
 #ifdef LOG_SERIAL
-        Update.printError(LOG_SERIAL);
+            Update.printError(LOG_SERIAL);
 #endif
-      }
-
-    } else if (upload.status == UPLOAD_FILE_WRITE) {
-
-      if (!Update.hasError()) {
-#ifdef ESP8266
-        //Feed the dog otherwise big firmware won't pass
-        ESP.wdtFeed();
-#endif
-        if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
-#ifdef LOG_SERIAL
-          Update.printError(LOG_SERIAL);
-#endif
+          }
         }
-      }
+        else if (upload.status == UPLOAD_FILE_WRITE)
+        {
 
-    } else if (upload.status == UPLOAD_FILE_END) {
-
-      if (Update.end(true)) {
-#ifdef LOG_SERIAL
-        LOG_SERIAL.printf("Update Success: %uB\n", upload.totalSize);
-      } else {
-        Update.printError(LOG_SERIAL);
+          if (!Update.hasError())
+          {
+#ifdef ESP8266
+            // Feed the dog otherwise big firmware won't pass
+            ESP.wdtFeed();
 #endif
-      }
+            if (Update.write(upload.buf, upload.currentSize) != upload.currentSize)
+            {
+#ifdef LOG_SERIAL
+              Update.printError(LOG_SERIAL);
+#endif
+            }
+          }
+        }
+        else if (upload.status == UPLOAD_FILE_END)
+        {
 
-    }
-    yield();
-  });
+          if (Update.end(true))
+          {
+#ifdef LOG_SERIAL
+            LOG_SERIAL.printf("Update Success: %uB\n", upload.totalSize);
+          }
+          else
+          {
+            Update.printError(LOG_SERIAL);
+#endif
+          }
+        }
+        yield();
+      });
 
-  //reboot POST
-  server.on("/rbt", HTTP_POST, [&shouldReboot, &server]() {
+  // reboot POST
+  server.on("/rbt", HTTP_POST, [&shouldReboot, &server]()
+            {
     server.send_P(200,PSTR("text/html"),PSTR("Reboot command received<script>setTimeout(function(){if('referrer' in document)window.location=document.referrer;},30000);</script>"));
     shouldReboot = true; });
 
-  //reboot Rescue POST
-  server.on("/rbtrsc", HTTP_POST, [&shouldReboot, &server]() {
+  // reboot Rescue POST
+  server.on("/rbtrsc", HTTP_POST, [&shouldReboot, &server]()
+            {
     server.send_P(200,PSTR("text/html"),PSTR("Reboot in rescue command received<script>setTimeout(function(){if('referrer' in document)window.location=document.referrer;},30000);</script>"));
     //Set EEPROM for Rescue mode flag
     EEPROM.begin(4);
@@ -237,27 +251,26 @@ void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &
     EEPROM.end();
     shouldReboot = true; });
 
-  //Ressources URLs
-  server.on("/pure-min.css", HTTP_GET, [&server]() {
+  // Ressources URLs
+  server.on("/pure-min.css", HTTP_GET, [&server]()
+            {
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.sendHeader(F("Cache-Control"), F("max-age=604800, public"));
-    server.send_P(200, PSTR("text/css"), puremincssgz, sizeof(puremincssgz));
-  });
+    server.send_P(200, PSTR("text/css"), puremincssgz, sizeof(puremincssgz)); });
 
-  server.on("/side-menu.css", HTTP_GET, [&server]() {
+  server.on("/side-menu.css", HTTP_GET, [&server]()
+            {
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.sendHeader(F("Cache-Control"), F("max-age=604800, public"));
-    server.send_P(200, PSTR("text/css"), sidemenucssgz, sizeof(sidemenucssgz));
-  });
+    server.send_P(200, PSTR("text/css"), sidemenucssgz, sizeof(sidemenucssgz)); });
 
-  server.on("/side-menu.js", HTTP_GET, [&server]() {
+  server.on("/side-menu.js", HTTP_GET, [&server]()
+            {
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.sendHeader(F("Cache-Control"), F("max-age=604800, public"));
-    server.send_P(200, PSTR("text/javascript"), sidemenujsgz, sizeof(sidemenujsgz));
-  });
+    server.send_P(200, PSTR("text/javascript"), sidemenujsgz, sizeof(sidemenujsgz)); });
 
-  //404 on not found
-  server.onNotFound([&server]() {
-    server.send(404);
-  });
+  // 404 on not found
+  server.onNotFound([&server]()
+                    { server.send(404); });
 }

@@ -26,10 +26,10 @@ void Application::statusEventSourceHandler(ESP8266WebServer &server)
       return server.send(500);
   }
 
-    server.client().setSync(true); // disable Nagle's algorithm and flush immediately
+  server.client().setSync(true); // disable Nagle's algorithm and flush immediately
 
-    // create/update subscription
-    _statusEvtSrcClient[subPos] = server.client();
+  // create/update subscription
+  _statusEvtSrcClient[subPos] = server.client();
   server.setContentLength(CONTENT_LENGTH_UNKNOWN); // the payload can go on forever
   server.sendContent_P(PSTR("HTTP/1.1 200 OK\nContent-Type: text/event-stream;\nConnection: keep-alive\nCache-Control: no-cache\nAccess-Control-Allow-Origin: *\n\n"));
 
@@ -38,7 +38,7 @@ void Application::statusEventSourceHandler(ESP8266WebServer &server)
 #endif
 }
 
-void Application::statusEventSourceBroadcast(const String &message,const String &eventType) //default eventType is "message"
+void Application::statusEventSourceBroadcast(const String &message, const String &eventType) // default eventType is "message"
 {
   for (uint8_t i = 0; i < STATUS_EVTSRC_MAX_CLIENTS; i++)
   {
@@ -54,8 +54,9 @@ void Application::statusEventSourceBroadcast(const String &message,const String 
 }
 
 #if ENABLE_STATUS_EVTSRC_KEEPALIVE
-void Application::statusEventSourceKeepAlive(){
-    for (uint8_t i = 0; i < STATUS_EVTSRC_MAX_CLIENTS; i++)
+void Application::statusEventSourceKeepAlive()
+{
+  for (uint8_t i = 0; i < STATUS_EVTSRC_MAX_CLIENTS; i++)
   {
     if (_statusEvtSrcClient[i])
     {
@@ -67,8 +68,8 @@ void Application::statusEventSourceKeepAlive(){
     }
   }
 }
-#endif //ENABLE_STATUS_EVTSRC_KEEPALIVE
-#endif //ENABLE_STATUS_EVTSRC
+#endif // ENABLE_STATUS_EVTSRC_KEEPALIVE
+#endif // ENABLE_STATUS_EVTSRC
 
 bool Application::saveConfig()
 {
@@ -88,7 +89,7 @@ bool Application::saveConfig()
 
 bool Application::loadConfig()
 {
-  //special exception for Core, there is no Core.json file to Load
+  // special exception for Core, there is no Core.json file to Load
   if (_appId == '0')
     return true;
 
@@ -106,14 +107,14 @@ bool Application::loadConfig()
       configFile.seek(0);
 
       auto deserializeJsonError = deserializeJson(jsonDoc, configFile);
-      //if parsing OK, pass it to application then stop loop
+      // if parsing OK, pass it to application then stop loop
       if (deserializeJsonError.code() == DeserializationError::Ok)
       {
         parseConfigJSON(jsonDoc);
         result = true;
         break;
       }
-      //if parsing result is not a NoMemory, there is a problem in JSON
+      // if parsing result is not a NoMemory, there is a problem in JSON
       if (deserializeJsonError.code() != DeserializationError::NoMemory)
       {
 #ifdef LOG_SERIAL
@@ -123,14 +124,14 @@ bool Application::loadConfig()
         break;
       }
 
-      //there, we need to increase memorySize and loop
+      // there, we need to increase memorySize and loop
       memoryAllocation += JSON_DOC_MEM_STEP;
     }
 
     configFile.close();
   }
 
-  //if loading failed, then run a Save to write a good one
+  // if loading failed, then run a Save to write a good one
   if (!result)
     saveConfig();
 
@@ -152,7 +153,7 @@ void Application::init(bool skipExistingConfig)
   if (!skipExistingConfig)
     result = loadConfig();
 
-  //Execute specific Application Init Code
+  // Execute specific Application Init Code
   result = appInit() && result;
 
 #ifdef LOG_SERIAL
@@ -167,50 +168,51 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
 {
   char url[16];
 
-  //HTML Status handler
+  // HTML Status handler
   sprintf_P(url, PSTR("/status%c.html"), _appId);
-  server.on(url, HTTP_GET, [this, &server]() {
+  server.on(url, HTTP_GET, [this, &server]()
+            {
     server.sendHeader(F("Content-Encoding"), F("gzip"));
-    server.send_P(200, PSTR("text/html"), getHTMLContent(status), getHTMLContentSize(status));
-  });
+    server.send_P(200, PSTR("text/html"), getHTMLContent(status), getHTMLContentSize(status)); });
 
-  //HTML Config handler
+  // HTML Config handler
   sprintf_P(url, PSTR("/config%c.html"), _appId);
-  server.on(url, HTTP_GET, [this, &server]() {
+  server.on(url, HTTP_GET, [this, &server]()
+            {
     server.sendHeader(F("Content-Encoding"), F("gzip"));
-    server.send_P(200, PSTR("text/html"), getHTMLContent(config), getHTMLContentSize(config));
-  });
+    server.send_P(200, PSTR("text/html"), getHTMLContent(config), getHTMLContentSize(config)); });
 
-  //HTML fw handler
+  // HTML fw handler
   sprintf_P(url, PSTR("/fw%c.html"), _appId);
-  server.on(url, HTTP_GET, [this, &server]() {
+  server.on(url, HTTP_GET, [this, &server]()
+            {
     server.sendHeader(F("Content-Encoding"), F("gzip"));
-    server.send_P(200, PSTR("text/html"), getHTMLContent(fw), getHTMLContentSize(fw));
-  });
+    server.send_P(200, PSTR("text/html"), getHTMLContent(fw), getHTMLContentSize(fw)); });
 
-  //HTML discover handler
+  // HTML discover handler
   sprintf_P(url, PSTR("/discover%c.html"), _appId);
-  server.on(url, HTTP_GET, [this, &server]() {
+  server.on(url, HTTP_GET, [this, &server]()
+            {
     server.sendHeader(F("Content-Encoding"), F("gzip"));
-    server.send_P(200, PSTR("text/html"), getHTMLContent(discover), getHTMLContentSize(discover));
-  });
+    server.send_P(200, PSTR("text/html"), getHTMLContent(discover), getHTMLContentSize(discover)); });
 
-  //JSON Status handler
+  // JSON Status handler
   sprintf_P(url, PSTR("/gs%c"), _appId);
-  server.on(url, HTTP_GET, [this, &server]() {
+  server.on(url, HTTP_GET, [this, &server]()
+            {
     server.sendHeader(F("Cache-Control"), F("no-cache"));
-    server.send(200, F("text/json"), generateStatusJSON());
-  });
+    server.send(200, F("text/json"), generateStatusJSON()); });
 
-  //JSON Config handler
+  // JSON Config handler
   sprintf_P(url, PSTR("/gc%c"), _appId);
-  server.on(url, HTTP_GET, [this, &server]() {
+  server.on(url, HTTP_GET, [this, &server]()
+            {
     server.sendHeader(F("Cache-Control"), F("no-cache"));
-    server.send(200, F("text/json"), generateConfigJSON());
-  });
+    server.send(200, F("text/json"), generateConfigJSON()); });
 
   sprintf_P(url, PSTR("/sc%c"), _appId);
-  server.on(url, HTTP_POST, [this, &server]() {
+  server.on(url, HTTP_POST, [this, &server]()
+            {
     if (!parseConfigWebRequest(server))
       return;
 
@@ -224,19 +226,20 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
       _reInit = true;
     }
     else
-      server.send(500, F("text/html"), F("Configuration hasn't been saved"));
-  });
+      server.send(500, F("text/html"), F("Configuration hasn't been saved")); });
 
 #if ENABLE_STATUS_EVTSRC
-  //register EventSource Uri
-  server.on(String(F("/statusEvt")) + _appId, [this, &server]() {statusEventSourceHandler(server);});
+  // register EventSource Uri
+  server.on(String(F("/statusEvt")) + _appId, [this, &server]()
+            { statusEventSourceHandler(server); });
 #if ENABLE_STATUS_EVTSRC_KEEPALIVE
   // send keep alive event every 60 seconds
-  _statusEvtSrcKeepAliveTicker.attach_scheduled(60.0f, [this](){ _needStatusEvtSrcKeepAlive = true; });
+  _statusEvtSrcKeepAliveTicker.attach_scheduled(60.0f, [this]()
+                                                { _needStatusEvtSrcKeepAlive = true; });
 #endif
 #endif
 
-  //Execute Specific Application Web Server initialization
+  // Execute Specific Application Web Server initialization
   appInitWebServer(server, shouldReboot, pauseApplication);
 }
 
@@ -266,7 +269,8 @@ void Application::run()
 
 #if ENABLE_STATUS_EVTSRC
 #if ENABLE_STATUS_EVTSRC_KEEPALIVE
-  if(_needStatusEvtSrcKeepAlive){
+  if (_needStatusEvtSrcKeepAlive)
+  {
     _needStatusEvtSrcKeepAlive = false;
     statusEventSourceKeepAlive();
   }
