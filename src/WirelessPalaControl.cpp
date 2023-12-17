@@ -1514,10 +1514,9 @@ void WebPalaControl::udpRequestHandler(WiFiUDP &udpServer)
   strData.reserve(packetSize + 1);
   DynamicJsonDocument jsonDoc(2048);
 
-  // while udpServer.read() do not return -1, get returned value and add it to strData
-  int bufferByte;
-  while ((bufferByte = udpServer.read()) >= 0)
-    strData += (char)bufferByte;
+  // read the packet directly into strData buffer
+  udpServer.read(strData.begin(), packetSize);
+  strData.begin()[packetSize] = 0; // terminate string
 
   // process request
   if (strData.endsWith(F("bridge?")))
