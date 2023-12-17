@@ -1472,7 +1472,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
       jsonDoc[F("SUCCESS")] = true;
       String strData;
       serializeJson(data, strData);
-      _statusEventSource.send(strData.c_str());
+      statusEventSourceBroadcast(strData);
       return true;
     }
     else
