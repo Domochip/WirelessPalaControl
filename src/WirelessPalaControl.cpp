@@ -1809,7 +1809,7 @@ size_t WebPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
 
 //------------------------------------------
 // code to register web request answer to the web server
-void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication){
+void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   // Handle HTTP GET requests
   server.on("/cgi-bin/sendmsg.lua", HTTP_GET, [this, &server]()
@@ -1977,7 +1977,8 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
         // send response
         String toReturn;
         serializeJson(jsonDoc, toReturn); // serialize returned JSON as-is
-        server.send(200, F("text/json"), toReturn); });
+        server.send(200, F("text/json"), toReturn);
+      });
 };
 
 //------------------------------------------
