@@ -1812,12 +1812,12 @@ size_t WebPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
 void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication){
 {
   // Handle HTTP GET requests
-  server.on("/cgi-bin/sendmsg.lua", HTTP_GET, [this](AsyncWebServerRequest *request)
+  server.on("/cgi-bin/sendmsg.lua", HTTP_GET, [this, &server]()
             {
     String cmd;
     DynamicJsonDocument jsonDoc(2048);
 
-    if (request->hasParam(F("cmd"))) cmd = request->getParam(F("cmd"))->value();
+    if (server.hasArg(F("cmd"))) cmd = server.arg(F("cmd"));
 
     // WPalaControl specific command
     if (cmd.startsWith(F("BKP PARM ")))
@@ -1837,7 +1837,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
         String ret(F("{\"INFO\":{\"CMD\":\"BKP PARM\",\"MSG\":\"Incorrect File Type : "));
         ret += strFileType;
         ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-        request->send(200, F("text/json"), ret);
+        server.send(200, F("text/json"), ret);
         return;
       }
 
@@ -1847,7 +1847,6 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
       if (res)
       {
         String toReturn;
-        AsyncWebServerResponse *response;
 
         switch (fileType)
         {
@@ -1856,11 +1855,10 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
           for (byte i = 0; i < 0x6A; i++)
             toReturn += String(i) + ';' + params[i] + '\r' + '\n';
 
-          response = request->beginResponse(200, F("text/csv"), toReturn);
-          response->addHeader("Content-Disposition", "attachment; filename=\"PARM.csv\"");
-          request->send(response);
-
+          server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"PARM.csv\""));
+          server.send(200, F("text/csv"), toReturn);
           break;
+
         case 1: //JSON
           toReturn += F("{\"PARM\":[");
           for (byte i = 0; i < 0x6A; i++)
@@ -1871,10 +1869,8 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
           }
           toReturn += F("]}");
 
-          response = request->beginResponse(200, F("text/json"), toReturn);
-          response->addHeader("Content-Disposition", "attachment; filename=\"PARM.json\"");
-          request->send(response);
-
+          server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"PARM.json\""));
+          server.send(200, F("text/json"), toReturn);
           break;
         }
 
@@ -1882,7 +1878,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
       }
       else
       {
-        request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP PARM\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
+        server.send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP PARM\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
         return;
       }
     }
@@ -1905,7 +1901,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
         String ret(F("{\"INFO\":{\"CMD\":\"BKP HPAR\",\"MSG\":\"Incorrect File Type : "));
         ret += strFileType;
         ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-        request->send(200, F("text/json"), ret);
+        server.send(200, F("text/json"), ret);
         return;
       }
 
@@ -1915,7 +1911,6 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
       if (res)
       {
         String toReturn;
-        AsyncWebServerResponse *response;
 
         switch (fileType)
         {
@@ -1924,11 +1919,10 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
           for (byte i = 0; i < 0x6F; i++)
             toReturn += String(i) + ';' + hiddenParams[i] + '\r' + '\n';
 
-          response = request->beginResponse(200, F("text/csv"), toReturn);
-          response->addHeader("Content-Disposition", "attachment; filename=\"HPAR.csv\"");
-          request->send(response);
-
+          server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"HPAR.csv\""));
+          server.send(200, F("text/csv"), toReturn);
           break;
+
         case 1: //JSON
           toReturn += F("{\"HPAR\":[");
           for (byte i = 0; i < 0x6F; i++)
@@ -1939,10 +1933,8 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
           }
           toReturn += F("]}");
 
-          response = request->beginResponse(200, F("text/json"), toReturn);
-          response->addHeader("Content-Disposition", "attachment; filename=\"HPAR.json\"");
-          request->send(response);
-
+          server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"HPAR.json\""));
+          server.send(200, F("text/json"), toReturn);
           break;
         }
 
@@ -1950,7 +1942,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
       }
       else
       {
-        request->send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP HPAR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
+        server.send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP HPAR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
         return;
       }
     }
@@ -1959,19 +1951,18 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
     executePalaCmd(cmd, jsonDoc);
 
     // send response
-    AsyncResponseStream *response = request->beginResponseStream(F("text/json"));
-    response->setCode(200);
-    serializeJson(jsonDoc, *response); // serialize returned JSON as-is
-    request->send(response); });
+    String toReturn;
+    serializeJson(jsonDoc, toReturn); // serialize returned JSON as-is
+    server.send(200, F("text/json"), toReturn); });
 
   // Handle HTTP POST requests (Body contains a JSON)
   server.on(
-      "/cgi-bin/sendmsg.lua", HTTP_POST, [this](AsyncWebServerRequest *request)
+      "/cgi-bin/sendmsg.lua", HTTP_POST, [this, &server]()
       {
         String cmd;
         DynamicJsonDocument jsonDoc(2048);
 
-        DeserializationError error = deserializeJson(jsonDoc, (char *)(request->_tempObject));
+        DeserializationError error = deserializeJson(jsonDoc, server.arg(F("plain")));
 
         if (!error && !jsonDoc[F("command")].isNull())
           cmd = jsonDoc[F("command")].as<String>();
@@ -1984,19 +1975,9 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
         executePalaCmd(cmd, jsonDoc);
 
         // send response
-        AsyncResponseStream *response = request->beginResponseStream(F("text/json"));
-        response->setCode(200);
-        serializeJson(jsonDoc, *response); // serialize returned JSON as-is
-        request->send(response); },
-      nullptr, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
-      {
-    if (total > 0 && request->_tempObject == NULL) {
-      request->_tempObject = malloc(total+1);
-      if (request->_tempObject != NULL) ((char*)(request->_tempObject))[total] = 0;
-    }
-    if (request->_tempObject != NULL) {
-      memcpy((uint8_t*)(request->_tempObject) + index, data, len);
-    } });
+        String toReturn;
+        serializeJson(jsonDoc, toReturn); // serialize returned JSON as-is
+        server.send(200, F("text/json"), toReturn); });
 };
 
 //------------------------------------------
