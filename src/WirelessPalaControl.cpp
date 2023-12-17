@@ -1977,8 +1977,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
         // send response
         String toReturn;
         serializeJson(jsonDoc, toReturn); // serialize returned JSON as-is
-        server.send(200, F("text/json"), toReturn);
-      });
+        server.send(200, F("text/json"), toReturn); });
 };
 
 //------------------------------------------
