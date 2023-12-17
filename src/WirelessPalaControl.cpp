@@ -1503,6 +1503,39 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
   return false;
 }
 
+void WebPalaControl::udpRequestHandler(WiFiUDP &udpServer)
+{
+
+  int packetSize = udpServer.parsePacket();
+  if (packetSize <= 0)
+    return;
+
+  String strData;
+  strData.reserve(packetSize + 1);
+  DynamicJsonDocument jsonDoc(2048);
+
+  // while udpServer.read() do not return -1, get returned value and add it to strData
+  int bufferByte;
+  while ((bufferByte = udpServer.read()) >= 0)
+    strData += (char)bufferByte;
+
+  // process request
+  if (strData.endsWith(F("bridge?")))
+    executePalaCmd(F("GET STDT"), jsonDoc);
+  else if (strData.endsWith(F("bridge?GET ALLS")))
+    executePalaCmd(F("GET ALLS"), jsonDoc);
+  else
+    executePalaCmd("", jsonDoc);
+
+  String strAnswer;
+  serializeJson(jsonDoc, strAnswer); // serialize resturned JSON as-is
+
+  // answer to the requester
+  udpServer.beginPacket(udpServer.remoteIP(), udpServer.remotePort());
+  udpServer.write(strAnswer.c_str(), strAnswer.length());
+  udpServer.endPacket();
+}
+
 //------------------------------------------
 // Used to initialize configuration properties to default values
 void WebPalaControl::setConfigDefaultValues()
@@ -1689,7 +1722,7 @@ String WebPalaControl::generateStatusJSON()
 bool WebPalaControl::appInit(bool reInit)
 {
   // Stop UdpServer
-  _udpServer.close();
+  _udpServer.stop();
 
   // Stop Publish
   _publishTicker.detach();
@@ -1746,28 +1779,7 @@ bool WebPalaControl::appInit(bool reInit)
                         { this->_needPublish = true; });
 
   // Start UDP Server
-  _udpServer.listen(54549);
-  _udpServer.onPacket([this](AsyncUDPPacket packet)
-                      {
-    String strData;
-    strData.reserve(packet.length()+1);
-    DynamicJsonDocument jsonDoc(2048);
-    String strAnswer;
-
-    uint8_t* data = packet.data();
-
-    // read request received through UDP
-    for (size_t i = 0; i < packet.length(); i++) strData += (char)data[i];
-
-    // process request
-    if (strData.endsWith(F("bridge?"))) executePalaCmd(F("GET STDT"), jsonDoc);
-    else if (strData.endsWith(F("bridge?GET ALLS"))) executePalaCmd(F("GET ALLS"), jsonDoc);
-    else executePalaCmd("", jsonDoc);
-
-    serializeJson(jsonDoc, strAnswer); // serialize resturned JSON as-is
-
-    // answer to the requester
-    packet.write((const uint8_t *)strAnswer.c_str(), strAnswer.length()); });
+  _udpServer.begin(54549);
 
   return res;
 };
@@ -1993,6 +2005,9 @@ void WebPalaControl::appRun()
     LOG_SERIAL.println(F("PublishTick"));
     publishTick();
   }
+
+  // Handle UDP requests
+  udpRequestHandler(_udpServer);
 }
 
 //------------------------------------------

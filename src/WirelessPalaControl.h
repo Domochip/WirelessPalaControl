@@ -13,7 +13,7 @@ const char appDataPredefPassword[] PROGMEM = "ewcXoCt4HHjZUvY1";
 
 #include <PolledTimeout.h>
 #include <Palazzetti.h>
-#include <ESPAsyncUDP.h>
+#include <WiFiUDP.h>
 
 class WebPalaControl : public Application
 {
@@ -49,7 +49,7 @@ private:
   int _haSendResult = 0;
   WiFiClient _wifiClient;
   MQTTMan _mqttMan;
-  AsyncUDP _udpServer;
+  WiFiUDP _udpServer;
 
   Palazzetti _Pala;
   unsigned long _lastAllStatusRefreshMillis = 0;
@@ -71,6 +71,8 @@ private:
   bool publishDataToMqtt(const String &baseTopic, const String &palaCategory, const DynamicJsonDocument &jsonDoc);
   void publishTick();
   bool executePalaCmd(const String &cmd, DynamicJsonDocument &jsonDoc);
+
+  void udpRequestHandler(WiFiUDP &udpServer);
 
   void setConfigDefaultValues();
   void parseConfigJSON(DynamicJsonDocument &doc);
