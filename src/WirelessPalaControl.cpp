@@ -1778,10 +1778,10 @@ const PROGMEM char *WebPalaControl::getHTMLContent(WebPageForPlaceHolder wp)
   switch (wp)
   {
   case status:
-    return (const uint8_t *)status1htmlgz;
+    return status1htmlgz;
     break;
   case config:
-    return (const uint8_t *)config1htmlgz;
+    return config1htmlgz;
     break;
   default:
     return nullptr;
