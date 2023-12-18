@@ -70,7 +70,7 @@ private:
   void mqttCallback(char *topic, uint8_t *payload, unsigned int length);
   bool publishDataToMqtt(const String &baseTopic, const String &palaCategory, const DynamicJsonDocument &jsonDoc);
   void publishTick();
-  bool executePalaCmd(const String &cmd, DynamicJsonDocument &jsonDoc);
+  bool executePalaCmd(const String &cmd, String &strJson, bool publish = false);
 
   void udpRequestHandler(WiFiUDP &udpServer);
 

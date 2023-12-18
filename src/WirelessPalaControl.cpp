@@ -74,7 +74,7 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
   // commented because only this topic is subscribed
 
   String cmd;
-  DynamicJsonDocument jsonDoc(2048);
+  String strJson;
 
   // convert payload to String cmd
   cmd.reserve(length + 1);
@@ -85,19 +85,13 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
   cmd.replace('+', ' ');
 
   // execute Palazzetti command
-  bool isCmdExecuted = executePalaCmd(cmd, jsonDoc);
+  executePalaCmd(cmd, strJson, true);
 
   // publish json result to MQTT
   String baseTopic = _ha.mqtt.generic.baseTopic;
   MQTTMan::prepareTopic(baseTopic);
-  String serializedData;
-  serializeJson(jsonDoc, serializedData);
-  _mqttMan.publish((baseTopic + F("result")).c_str(), serializedData.c_str());
+  _mqttMan.publish((baseTopic + F("result")).c_str(), strJson.c_str());
   _mqttMan.loop();
-
-  // if Palazzetti command execution has been successful, Run a publish to push back to HA
-  if (isCmdExecuted)
-    publishTick();
 }
 
 bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &palaCategory, const DynamicJsonDocument &jsonDoc)
@@ -162,9 +156,8 @@ void WebPalaControl::publishTick()
 {
   // Execute a defined list of commands and publish results to MQTT if needed
 
-  bool execSuccess = true;
   _haSendResult = true;
-  DynamicJsonDocument jsonDoc(2048);
+  String strJson;
   String baseTopic = _ha.mqtt.generic.baseTopic;
 
   MQTTMan::prepareTopic(baseTopic);
@@ -173,35 +166,31 @@ void WebPalaControl::publishTick()
   String cmdList[] = {
       F("STAT"),
       F("TMPS"),
-      F("FAND"),
+      F("FAND")/*,
       F("CNTR"),
       F("TIME"),
       F("SETP"),
       F("POWR"),
-      F("DPRS")};
+      F("DPRS")*/};
 
   // execute commands
   for (String cmd : cmdList)
   {
     String getCmd(F("GET "));
     getCmd += cmd;
-    if (execSuccess &= executePalaCmd(getCmd, jsonDoc))
-    {
-      if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
-      {
-        _haSendResult &= publishDataToMqtt(baseTopic, cmd, jsonDoc);
-      }
-    }
-    jsonDoc.clear();
+    if (!executePalaCmd(getCmd, strJson, true))
+      break;
+    strJson.clear();
   }
 }
 
-bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &jsonDoc)
+bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool publish /* = false*/)
 {
   bool cmdProcessed = false; // cmd has been processed
   bool cmdSuccess = false;   // Palazzetti function calls successful
 
   // Prepare answer structure
+  DynamicJsonDocument jsonDoc(2048);
   JsonObject info = jsonDoc.createNestedObject(F("INFO"));
   JsonObject data = jsonDoc.createNestedObject(F("DATA"));
 
@@ -1473,7 +1462,18 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
       String strData;
       serializeJson(data, strData);
       statusEventSourceBroadcast(strData);
-      return true;
+
+      if (publish)
+      {
+        String baseTopic = _ha.mqtt.generic.baseTopic;
+        MQTTMan::prepareTopic(baseTopic);
+        String palaCategory = cmd.substring(4);
+
+        if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
+        {
+          _haSendResult &= publishDataToMqtt(baseTopic, palaCategory, jsonDoc);
+        }
+      }
     }
     else
     {
@@ -1500,7 +1500,10 @@ bool WebPalaControl::executePalaCmd(const String &cmd, DynamicJsonDocument &json
     data[F("NODATA")] = true;
   }
 
-  return false;
+  // serialize result to the provided strJson
+  serializeJson(jsonDoc, strJson);
+
+  return jsonDoc[F("SUCCESS")];
 }
 
 void WebPalaControl::udpRequestHandler(WiFiUDP &udpServer)
@@ -1511,8 +1514,9 @@ void WebPalaControl::udpRequestHandler(WiFiUDP &udpServer)
     return;
 
   String strData;
+  String strAnswer;
+
   strData.reserve(packetSize + 1);
-  DynamicJsonDocument jsonDoc(2048);
 
   // read the packet directly into strData buffer
   udpServer.read(strData.begin(), packetSize);
@@ -1520,14 +1524,11 @@ void WebPalaControl::udpRequestHandler(WiFiUDP &udpServer)
 
   // process request
   if (strData.endsWith(F("bridge?")))
-    executePalaCmd(F("GET STDT"), jsonDoc);
+    executePalaCmd(F("GET STDT"), strAnswer);
   else if (strData.endsWith(F("bridge?GET ALLS")))
-    executePalaCmd(F("GET ALLS"), jsonDoc);
+    executePalaCmd(F("GET ALLS"), strAnswer);
   else
-    executePalaCmd("", jsonDoc);
-
-  String strAnswer;
-  serializeJson(jsonDoc, strAnswer); // serialize resturned JSON as-is
+    executePalaCmd("", strAnswer);
 
   // answer to the requester
   udpServer.beginPacket(udpServer.remoteIP(), udpServer.remotePort());
@@ -1833,7 +1834,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
   server.on("/cgi-bin/sendmsg.lua", HTTP_GET, [this, &server]()
             {
     String cmd;
-    DynamicJsonDocument jsonDoc(2048);
+    String strJson;
 
     if (server.hasArg(F("cmd"))) cmd = server.arg(F("cmd"));
 
@@ -1966,36 +1967,29 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
     }
 
     // Other commands processed using normal Palazzetti logic
-    executePalaCmd(cmd, jsonDoc);
+    executePalaCmd(cmd, strJson);
 
     // send response
-    String toReturn;
-    serializeJson(jsonDoc, toReturn); // serialize returned JSON as-is
-    server.send(200, F("text/json"), toReturn); });
+    server.send(200, F("text/json"), strJson); });
 
   // Handle HTTP POST requests (Body contains a JSON)
   server.on(
       "/cgi-bin/sendmsg.lua", HTTP_POST, [this, &server]()
       {
         String cmd;
-        DynamicJsonDocument jsonDoc(2048);
+        DynamicJsonDocument jsonDoc(128);
+        String strJson;
 
         DeserializationError error = deserializeJson(jsonDoc, server.arg(F("plain")));
 
         if (!error && !jsonDoc[F("command")].isNull())
           cmd = jsonDoc[F("command")].as<String>();
 
-
-        // clear jsonDoc to reuse it
-        jsonDoc.clear();
-
         // process cmd
-        executePalaCmd(cmd, jsonDoc);
+        executePalaCmd(cmd, strJson);
 
         // send response
-        String toReturn;
-        serializeJson(jsonDoc, toReturn); // serialize returned JSON as-is
-        server.send(200, F("text/json"), toReturn); });
+        server.send(200, F("text/json"), strJson); });
 }
 
 //------------------------------------------
