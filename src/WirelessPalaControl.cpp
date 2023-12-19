@@ -16,13 +16,10 @@ void WebPalaControl::myCloseSerial()
 }
 int WebPalaControl::mySelectSerial(unsigned long timeout)
 {
-  unsigned long startmillis = millis();
-  esp8266::polledTimeout::periodicMs timeOut(10);
-  while (!Serial.available() && (startmillis + timeout) > millis())
+  esp8266::polledTimeout::oneShotMs timeOut(timeout);
+  while (!Serial.available() && !timeOut)
   {
-    timeOut.reset();
-    while (!timeOut)
-      ;
+    delay(10);
     ESP.wdtFeed(); // feed the WDT to prevent bite
   }
 
