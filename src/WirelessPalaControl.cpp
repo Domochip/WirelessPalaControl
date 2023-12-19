@@ -74,9 +74,7 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
   String strJson;
 
   // convert payload to String cmd
-  cmd.reserve(length + 1);
-  for (unsigned int i = 0; i < length; i++)
-    cmd += (char)payload[i];
+  cmd.concat((char *)payload, length);
 
   // replace '+' by ' '
   cmd.replace('+', ' ');
