@@ -154,30 +154,25 @@ void WebPalaControl::publishTick()
   // Execute a defined list of commands and publish results to MQTT if needed
 
   _haSendResult = true;
-  String strJson;
-  String baseTopic = _ha.mqtt.generic.baseTopic;
-
-  MQTTMan::prepareTopic(baseTopic);
 
   // create an array of commands to execute
-  String cmdList[] = {
-      F("STAT"),
-      F("TMPS"),
-      F("FAND")/*,
-      F("CNTR"),
-      F("TIME"),
-      F("SETP"),
-      F("POWR"),
-      F("DPRS")*/};
+  const char *cmdList[] = {
+      "GET STAT",
+      "GET TMPS",
+      "GET FAND" ,
+       "GET CNTR"/*,
+       "GET TIME",
+       "GET SETP",
+       "GET POWR",
+       "GET DPRS"*/
+  };
 
   // execute commands
-  for (String cmd : cmdList)
+  for (const char *cmd : cmdList)
   {
-    String getCmd(F("GET "));
-    getCmd += cmd;
-    if (!executePalaCmd(getCmd, strJson, true))
+    String strJson;
+    if (!executePalaCmd(cmd, strJson, true))
       break;
-    strJson.clear();
   }
 }
 
