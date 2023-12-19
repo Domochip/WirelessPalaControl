@@ -1771,7 +1771,8 @@ bool WebPalaControl::appInit(bool reInit)
     LOG_SERIAL.println(F("Stove connected"));
     char SN[28];
     _Pala.getSN(&SN);
-    LOG_SERIAL.printf("Stove Serial Number: %s", SN);
+    LOG_SERIAL.print(F("Stove Serial Number: "));
+    LOG_SERIAL.println(SN);
   }
   else
   {
@@ -1831,7 +1832,7 @@ size_t WebPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
 void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   // Handle HTTP GET requests
-  server.on("/cgi-bin/sendmsg.lua", HTTP_GET, [this, &server]()
+  server.on(F("/cgi-bin/sendmsg.lua"), HTTP_GET, [this, &server]()
             {
     String cmd;
     String strJson;
@@ -1974,7 +1975,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
 
   // Handle HTTP POST requests (Body contains a JSON)
   server.on(
-      "/cgi-bin/sendmsg.lua", HTTP_POST, [this, &server]()
+      F("/cgi-bin/sendmsg.lua"), HTTP_POST, [this, &server]()
       {
         String cmd;
         DynamicJsonDocument jsonDoc(128);
