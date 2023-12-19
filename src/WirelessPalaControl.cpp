@@ -96,54 +96,52 @@ bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &pa
   bool res = false;
   if (_mqttMan.connected())
   {
-    String serializedData;
-    String topic;
-
-    switch (_ha.mqtt.type) // switch on MQTT type
+    if (_ha.mqtt.type == HA_MQTT_GENERIC)
     {
-    case HA_MQTT_GENERIC:
+      String topic;
       // for each key/value pair in DATA
       for (JsonPairConst kv : jsonDoc[F("DATA")].as<JsonObjectConst>())
       {
         // prepare topic
         topic = baseTopic;
         topic += kv.key().c_str();
-        // prepare value
-        String value = kv.value().as<String>();
         // publish
-        res = _mqttMan.publish(topic.c_str(), value.c_str());
+        res = _mqttMan.publish(topic.c_str(), kv.value().as<String>().c_str());
         _mqttMan.loop();
       }
-      break;
-    case HA_MQTT_GENERIC_JSON:
+    }
+
+    if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+    {
       // prepare topic
-      topic = baseTopic;
+      String topic = baseTopic;
       topic += palaCategory;
       // serialize DATA to JSON
+      String serializedData;
       serializeJson(jsonDoc[F("DATA")], serializedData);
       // publish
       res = _mqttMan.publish(topic.c_str(), serializedData.c_str());
       _mqttMan.loop();
-      break;
-    case HA_MQTT_GENERIC_CATEGORIZED:
+    }
+
+    if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+    {
       // prepare category topic
       String categoryTopic(baseTopic);
       categoryTopic += palaCategory;
       categoryTopic += '/';
 
+      String topic;
       // for each key/value pair in DATA
       for (JsonPairConst kv : jsonDoc[F("DATA")].as<JsonObjectConst>())
       {
         // prepare topic
         topic = categoryTopic;
         topic += kv.key().c_str();
-        // prepare value
-        String value = kv.value().as<String>();
         // publish
-        res = _mqttMan.publish(topic.c_str(), value.c_str());
+        res = _mqttMan.publish(topic.c_str(), kv.value().as<String>().c_str());
         _mqttMan.loop();
       }
-      break;
     }
   }
   return res;
