@@ -1969,8 +1969,8 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
 
         DeserializationError error = deserializeJson(jsonDoc, server.arg(F("plain")));
 
-        if (!error && !jsonDoc[F("command")].isNull())
-          cmd = jsonDoc[F("command")].as<String>();
+        if (!error && !jsonDoc["command"].isNull())
+          cmd = jsonDoc["command"].as<String>();
 
         // process cmd
         executePalaCmd(cmd, strJson);
