@@ -60,7 +60,7 @@ void setup()
   LOG_SERIAL.begin(LOG_SERIAL_SPEED);
   LOG_SERIAL.println();
   LOG_SERIAL.println();
-  delay(200);
+  LOG_SERIAL.flush();
 #endif
 
 #ifdef STATUS_LED_SETUP
@@ -109,12 +109,12 @@ void setup()
   }
 #endif
 
+#ifdef LOG_SERIAL
   if (skipExistingConfig)
   {
-#ifdef LOG_SERIAL
     LOG_SERIAL.println(F("-> RESCUE MODE : Stored configuration won't be loaded."));
-#endif
   }
+#endif
   if (!LittleFS.begin())
   {
 #ifdef LOG_SERIAL
@@ -195,5 +195,4 @@ void loop(void)
 #endif
     ESP.restart();
   }
-  yield();
 }

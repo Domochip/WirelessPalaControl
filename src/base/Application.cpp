@@ -172,6 +172,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/status%c.html"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
+    server.keepAlive(false);
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), getHTMLContent(status), getHTMLContentSize(status)); });
 
@@ -179,6 +180,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/config%c.html"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
+    server.keepAlive(false);
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), getHTMLContent(config), getHTMLContentSize(config)); });
 
@@ -186,6 +188,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/fw%c.html"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
+    server.keepAlive(false);
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), getHTMLContent(fw), getHTMLContentSize(fw)); });
 
@@ -193,6 +196,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/discover%c.html"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
+    server.keepAlive(false);
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), getHTMLContent(discover), getHTMLContentSize(discover)); });
 
@@ -200,6 +204,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/gs%c"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
+    server.keepAlive(false);
     server.sendHeader(F("Cache-Control"), F("no-cache"));
     server.send(200, F("text/json"), generateStatusJSON()); });
 
@@ -207,6 +212,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/gc%c"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
+    server.keepAlive(false);
     server.sendHeader(F("Cache-Control"), F("no-cache"));
     server.send(200, F("text/json"), generateConfigJSON()); });
 
@@ -222,15 +228,19 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
     //Send client answer
     if (result)
     {
+      server.keepAlive(false);
       server.send(200);
       _reInit = true;
     }
-    else
-      server.send(500, F("text/html"), F("Configuration hasn't been saved")); });
+    else{
+      server.keepAlive(false);
+      server.send(500, F("text/html"), F("Configuration hasn't been saved"));
+    } });
 
 #if ENABLE_STATUS_EVTSRC
   // register EventSource Uri
-  server.on(String(F("/statusEvt")) + _appId, [this, &server]()
+  sprintf_P(url, PSTR("/statusEvt%c"), _appId);
+  server.on(url, HTTP_GET, [this, &server]()
             { statusEventSourceHandler(server); });
 #if ENABLE_STATUS_EVTSRC_KEEPALIVE
   // send keep alive event every 60 seconds
