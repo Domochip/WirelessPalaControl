@@ -151,13 +151,13 @@ void WebPalaControl::publishTick()
   // create an array of commands to execute
   const char *cmdList[] = {
       "GET STAT",
-      "GET TMPS",
-      "GET FAND" ,
-       "GET CNTR"/*,
-       "GET TIME",
-       "GET SETP",
-       "GET POWR",
-       "GET DPRS"*/
+       "GET TMPS",
+       "GET FAND" ,
+        "GET CNTR",
+        "GET TIME",
+        "GET SETP",
+        "GET POWR",
+        "GET DPRS"
   };
 
   // execute commands
