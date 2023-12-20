@@ -85,8 +85,10 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
   // publish json result to MQTT
   String baseTopic = _ha.mqtt.generic.baseTopic;
   MQTTMan::prepareTopic(baseTopic);
-  _mqttMan.publish((baseTopic + F("result")).c_str(), strJson.c_str());
-  _mqttMan.loop();
+  String resTopic(baseTopic);
+  resTopic += F("result");
+  _mqttMan.publish(resTopic.c_str(), strJson.c_str());
+
 }
 
 bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &palaCategory, const DynamicJsonDocument &jsonDoc)
@@ -96,30 +98,27 @@ bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &pa
   {
     if (_ha.mqtt.type == HA_MQTT_GENERIC)
     {
-      String topic;
       // for each key/value pair in DATA
       for (JsonPairConst kv : jsonDoc[F("DATA")].as<JsonObjectConst>())
       {
         // prepare topic
-        topic = baseTopic;
+        String topic(baseTopic);
         topic += kv.key().c_str();
         // publish
         res = _mqttMan.publish(topic.c_str(), kv.value().as<String>().c_str());
-        _mqttMan.loop();
       }
     }
 
     if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
     {
       // prepare topic
-      String topic = baseTopic;
+      String topic(baseTopic);
       topic += palaCategory;
       // serialize DATA to JSON
       String serializedData;
       serializeJson(jsonDoc[F("DATA")], serializedData);
       // publish
       res = _mqttMan.publish(topic.c_str(), serializedData.c_str());
-      _mqttMan.loop();
     }
 
     if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
@@ -129,16 +128,14 @@ bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &pa
       categoryTopic += palaCategory;
       categoryTopic += '/';
 
-      String topic;
       // for each key/value pair in DATA
       for (JsonPairConst kv : jsonDoc[F("DATA")].as<JsonObjectConst>())
       {
         // prepare topic
-        topic = categoryTopic;
+        String topic(categoryTopic);
         topic += kv.key().c_str();
         // publish
         res = _mqttMan.publish(topic.c_str(), kv.value().as<String>().c_str());
-        _mqttMan.loop();
       }
     }
   }
