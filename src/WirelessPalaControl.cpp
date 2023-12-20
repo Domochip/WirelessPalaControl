@@ -660,7 +660,9 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
       if (cmdSuccess)
       {
-        data["PAR"] = paramValue;
+        String paramName("PAR");
+        paramName += paramNumber;
+        data[paramName] = paramValue;
       }
     }
   }
@@ -686,7 +688,9 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
       if (cmdSuccess)
       {
-        data["HPAR"] = hiddenParamValue;
+        String hiddenParamName("HPAR");
+        hiddenParamName += hiddenParamNumber;
+        data[hiddenParamName] = hiddenParamValue;
       }
     }
   }
