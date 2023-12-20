@@ -99,7 +99,7 @@ bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &pa
     if (_ha.mqtt.type == HA_MQTT_GENERIC)
     {
       // for each key/value pair in DATA
-      for (JsonPairConst kv : jsonDoc[F("DATA")].as<JsonObjectConst>())
+      for (JsonPairConst kv : jsonDoc["DATA"].as<JsonObjectConst>())
       {
         // prepare topic
         String topic(baseTopic);
@@ -116,7 +116,7 @@ bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &pa
       topic += palaCategory;
       // serialize DATA to JSON
       String serializedData;
-      serializeJson(jsonDoc[F("DATA")], serializedData);
+      serializeJson(jsonDoc["DATA"], serializedData);
       // publish
       res = _mqttMan.publish(topic.c_str(), serializedData.c_str());
     }
@@ -129,7 +129,7 @@ bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &pa
       categoryTopic += '/';
 
       // for each key/value pair in DATA
-      for (JsonPairConst kv : jsonDoc[F("DATA")].as<JsonObjectConst>())
+      for (JsonPairConst kv : jsonDoc["DATA"].as<JsonObjectConst>())
       {
         // prepare topic
         String topic(categoryTopic);
