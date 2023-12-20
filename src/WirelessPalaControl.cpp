@@ -1488,7 +1488,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   // serialize result to the provided strJson
   serializeJson(jsonDoc, strJson);
 
-  return jsonDoc[F("SUCCESS")];
+  return jsonDoc["SUCCESS"].as<bool>();
 }
 
 void WebPalaControl::udpRequestHandler(WiFiUDP &udpServer)
