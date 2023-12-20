@@ -69,9 +69,9 @@ private:
   void mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnection);
   void mqttCallback(char *topic, uint8_t *payload, unsigned int length);
   bool publishDataToMqtt(const String &baseTopic, const String &palaCategory, const DynamicJsonDocument &jsonDoc);
-  void publishTick();
   bool executePalaCmd(const String &cmd, String &strJson, bool publish = false);
 
+  void publishTick();
   void udpRequestHandler(WiFiUDP &udpServer);
 
   void setConfigDefaultValues();

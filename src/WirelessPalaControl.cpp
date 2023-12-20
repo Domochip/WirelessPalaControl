@@ -141,32 +141,6 @@ bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &pa
   return res;
 }
 
-void WebPalaControl::publishTick()
-{
-  // Execute a defined list of commands and publish results to MQTT if needed
-
-  _haSendResult = true;
-
-  // create an array of commands to execute
-  const char *cmdList[] = {
-      "GET STAT",
-      "GET TMPS",
-      "GET FAND",
-      "GET CNTR",
-      "GET TIME",
-      "GET SETP",
-      "GET POWR",
-      "GET DPRS"};
-
-  // execute commands
-  for (const char *cmd : cmdList)
-  {
-    String strJson;
-    if (!executePalaCmd(cmd, strJson, true))
-      break;
-  }
-}
-
 bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool publish /* = false*/)
 {
   bool cmdProcessed = false; // cmd has been processed
@@ -1493,6 +1467,32 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   return jsonDoc["SUCCESS"].as<bool>();
 }
 
+void WebPalaControl::publishTick()
+{
+  // array of commands to execute
+  const char *cmdList[] = {
+      "GET STAT",
+      "GET TMPS",
+      "GET FAND",
+      "GET CNTR",
+      "GET TIME",
+      "GET SETP",
+      "GET POWR",
+      "GET DPRS"};
+
+  // initialize _haSendResult for publish session
+  _haSendResult = true;
+
+  // execute commands
+  for (const char *cmd : cmdList)
+  {
+    String strJson;
+    // execute command with publish flag to true
+    if (!executePalaCmd(cmd, strJson, true))
+      break;
+  }
+}
+
 void WebPalaControl::udpRequestHandler(WiFiUDP &udpServer)
 {
 
@@ -1732,7 +1732,7 @@ bool WebPalaControl::appInit(bool reInit)
     willTopic += F("connected");
 
     // setup MQTT
-    _mqttMan.setBufferSize(1100); //max JSON size (STDT is the longest one)
+    _mqttMan.setBufferSize(1100); // max JSON size (STDT is the longest one)
     _mqttMan.setClient(_wifiClient).setServer(_ha.hostname, _ha.mqtt.port);
     _mqttMan.setConnectedAndWillTopic(willTopic.c_str());
     _mqttMan.setConnectedCallback(std::bind(&WebPalaControl::mqttConnectedCallback, this, std::placeholders::_1, std::placeholders::_2));
