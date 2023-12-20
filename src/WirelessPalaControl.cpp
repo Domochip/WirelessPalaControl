@@ -1446,12 +1446,13 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     {
       info["RSP"] = F("OK");
       jsonDoc["SUCCESS"] = true;
-      String strData;
-      serializeJson(data, strData);
-      statusEventSourceBroadcast(strData);
 
       if (publish)
       {
+        String strData;
+        serializeJson(data, strData);
+        statusEventSourceBroadcast(strData);
+
         String baseTopic = _ha.mqtt.generic.baseTopic;
         MQTTMan::prepareTopic(baseTopic);
 
