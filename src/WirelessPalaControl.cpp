@@ -176,8 +176,8 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
   // Prepare answer structure
   DynamicJsonDocument jsonDoc(2048);
-  JsonObject info = jsonDoc.createNestedObject(F("INFO"));
-  JsonObject data = jsonDoc.createNestedObject(F("DATA"));
+  JsonObject info = jsonDoc.createNestedObject("INFO");
+  JsonObject data = jsonDoc.createNestedObject("DATA");
 
   if (!cmdProcessed && cmd == F("GET STDT"))
   {
@@ -211,76 +211,76 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     if (cmdSuccess)
     {
       // ----- WPalaControl generated values -----
-      data[F("LABEL")] = WiFi.getHostname();
+      data["LABEL"] = WiFi.getHostname();
 
       // Network infos
-      data[F("GWDEVICE")] = F("wlan0"); // always wifi
-      data[F("MAC")] = WiFi.macAddress();
-      data[F("GATEWAY")] = WiFi.gatewayIP().toString();
+      data["GWDEVICE"] = F("wlan0"); // always wifi
+      data["MAC"] = WiFi.macAddress();
+      data["GATEWAY"] = WiFi.gatewayIP().toString();
       JsonArray dns = data.createNestedArray("DNS");
       dns.add(WiFi.dnsIP().toString());
 
       // Wifi infos
-      data[F("WMAC")] = WiFi.macAddress();
-      data[F("WMODE")] = (WiFi.getMode() & WIFI_STA) ? F("sta") : F("ap");
-      data[F("WADR")] = (WiFi.getMode() & WIFI_STA) ? WiFi.localIP().toString() : WiFi.softAPIP().toString();
-      data[F("WGW")] = WiFi.gatewayIP().toString();
-      data[F("WENC")] = F("psk2");
-      data[F("WPWR")] = String(WiFi.RSSI()) + F(" dBm"); // need conversion to dBm?
-      data[F("WSSID")] = WiFi.SSID();
-      data[F("WPR")] = (true) ? F("dhcp") : F("static");
-      data[F("WMSK")] = WiFi.subnetMask().toString();
-      data[F("WBCST")] = WiFi.broadcastIP().toString();
-      data[F("WCH")] = String(WiFi.channel());
+      data["WMAC"] = WiFi.macAddress();
+      data["WMODE"] = (WiFi.getMode() & WIFI_STA) ? F("sta") : F("ap");
+      data["WADR"] = (WiFi.getMode() & WIFI_STA) ? WiFi.localIP().toString() : WiFi.softAPIP().toString();
+      data["WGW"] = WiFi.gatewayIP().toString();
+      data["WENC"] = F("psk2");
+      data["WPWR"] = String(WiFi.RSSI()) + F(" dBm"); // need conversion to dBm?
+      data["WSSID"] = WiFi.SSID();
+      data["WPR"] = (true) ? F("dhcp") : F("static");
+      data["WMSK"] = WiFi.subnetMask().toString();
+      data["WBCST"] = WiFi.broadcastIP().toString();
+      data["WCH"] = String(WiFi.channel());
 
       // Ethernet infos
-      data[F("EPR")] = F("dhcp");
-      data[F("EGW")] = F("0.0.0.0");
-      data[F("EMSK")] = F("0.0.0.0");
-      data[F("EADR")] = F("0.0.0.0");
-      data[F("EMAC")] = WiFi.macAddress();
-      data[F("ECBL")] = F("down");
-      data[F("EBCST")] = "";
+      data["EPR"] = F("dhcp");
+      data["EGW"] = F("0.0.0.0");
+      data["EMSK"] = F("0.0.0.0");
+      data["EADR"] = F("0.0.0.0");
+      data["EMAC"] = WiFi.macAddress();
+      data["ECBL"] = F("down");
+      data["EBCST"] = "";
 
-      data[F("APLCONN")] = 1; // appliance connected
-      data[F("ICONN")] = 0;   // internet connected
+      data["APLCONN"] = 1; // appliance connected
+      data["ICONN"] = 0;   // internet connected
 
-      data[F("CBTYPE")] = F("miniembplug"); // CBox model
-      data[F("sendmsg")] = F("2.1.2 2018-03-28 10:19:09");
-      data[F("plzbridge")] = F("2.2.1 2021-10-08 09:30:45");
-      data[F("SYSTEM")] = F("2.5.3 2021-10-08 10:30:20 (657c8cf)");
+      data["CBTYPE"] = F("miniembplug"); // CBox model
+      data["sendmsg"] = F("2.1.2 2018-03-28 10:19:09");
+      data["plzbridge"] = F("2.2.1 2021-10-08 09:30:45");
+      data["SYSTEM"] = F("2.5.3 2021-10-08 10:30:20 (657c8cf)");
 
-      data[F("CLOUD_ENABLED")] = true;
+      data["CLOUD_ENABLED"] = true;
 
       // ----- Values from stove -----
-      data[F("SN")] = SN;
-      data[F("SNCHK")] = SNCHK;
-      data[F("MBTYPE")] = MBTYPE;
-      data[F("MOD")] = MOD;
-      data[F("VER")] = VER;
-      data[F("CORE")] = CORE;
-      data[F("FWDATE")] = FWDATE;
-      data[F("FLUID")] = FLUID;
-      data[F("SPLMIN")] = SPLMIN;
-      data[F("SPLMAX")] = SPLMAX;
-      data[F("UICONFIG")] = UICONFIG;
-      data[F("HWTYPE")] = HWTYPE;
-      data[F("DSPFWVER")] = DSPFWVER;
-      data[F("CONFIG")] = CONFIG;
-      data[F("PELLETTYPE")] = PELLETTYPE;
-      data[F("PSENSTYPE")] = PSENSTYPE;
-      data[F("PSENSLMAX")] = PSENSLMAX;
-      data[F("PSENSLTSH")] = PSENSLTSH;
-      data[F("PSENSLMIN")] = PSENSLMIN;
-      data[F("MAINTPROBE")] = MAINTPROBE;
-      data[F("STOVETYPE")] = STOVETYPE;
-      data[F("FAN2TYPE")] = FAN2TYPE;
-      data[F("FAN2MODE")] = FAN2MODE;
-      data[F("BLEMBMODE")] = BLEMBMODE;
-      data[F("BLEDSPMODE")] = BLEDSPMODE;
-      data[F("CHRONOTYPE")] = 0; // disable chronothermostat (no planning) (enabled if > 1)
-      data[F("AUTONOMYTYPE")] = AUTONOMYTYPE;
-      data[F("NOMINALPWR")] = NOMINALPWR;
+      data["SN"] = SN;
+      data["SNCHK"] = SNCHK;
+      data["MBTYPE"] = MBTYPE;
+      data["MOD"] = MOD;
+      data["VER"] = VER;
+      data["CORE"] = CORE;
+      data["FWDATE"] = FWDATE;
+      data["FLUID"] = FLUID;
+      data["SPLMIN"] = SPLMIN;
+      data["SPLMAX"] = SPLMAX;
+      data["UICONFIG"] = UICONFIG;
+      data["HWTYPE"] = HWTYPE;
+      data["DSPFWVER"] = DSPFWVER;
+      data["CONFIG"] = CONFIG;
+      data["PELLETTYPE"] = PELLETTYPE;
+      data["PSENSTYPE"] = PSENSTYPE;
+      data["PSENSLMAX"] = PSENSLMAX;
+      data["PSENSLTSH"] = PSENSLTSH;
+      data["PSENSLMIN"] = PSENSLMIN;
+      data["MAINTPROBE"] = MAINTPROBE;
+      data["STOVETYPE"] = STOVETYPE;
+      data["FAN2TYPE"] = FAN2TYPE;
+      data["FAN2MODE"] = FAN2MODE;
+      data["BLEMBMODE"] = BLEMBMODE;
+      data["BLEDSPMODE"] = BLEDSPMODE;
+      data["CHRONOTYPE"] = 0; // disable chronothermostat (no planning) (enabled if > 1)
+      data["AUTONOMYTYPE"] = AUTONOMYTYPE;
+      data["NOMINALPWR"] = NOMINALPWR;
     }
   }
 
@@ -289,7 +289,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     cmdProcessed = true;
     cmdSuccess = true;
 
-    data[F("LABEL")] = WiFi.getHostname();
+    data["LABEL"] = WiFi.getHostname();
   }
 
   if (!cmdProcessed && cmd == F("GET ALLS"))
@@ -338,54 +338,54 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       if (refreshStatus)
         _lastAllStatusRefreshMillis = currentMillis;
 
-      data[F("MBTYPE")] = MBTYPE;
-      data[F("MAC")] = WiFi.macAddress();
-      data[F("MOD")] = MOD;
-      data[F("VER")] = VER;
-      data[F("CORE")] = CORE;
-      data[F("FWDATE")] = FWDATE;
-      data[F("APLTS")] = APLTS;
-      data[F("APLWDAY")] = APLWDAY;
-      data[F("CHRSTATUS")] = CHRSTATUS;
-      data[F("STATUS")] = STATUS;
-      data[F("LSTATUS")] = LSTATUS;
+      data["MBTYPE"] = MBTYPE;
+      data["MAC"] = WiFi.macAddress();
+      data["MOD"] = MOD;
+      data["VER"] = VER;
+      data["CORE"] = CORE;
+      data["FWDATE"] = FWDATE;
+      data["APLTS"] = APLTS;
+      data["APLWDAY"] = APLWDAY;
+      data["CHRSTATUS"] = CHRSTATUS;
+      data["STATUS"] = STATUS;
+      data["LSTATUS"] = LSTATUS;
       if (isMFSTATUSValid)
-        data[F("MFSTATUS")] = MFSTATUS;
-      data[F("SETP")] = serialized(String(SETP, 2));
-      data[F("PUMP")] = PUMP;
-      data[F("PQT")] = PQT;
-      data[F("F1V")] = F1V;
-      data[F("F1RPM")] = F1RPM;
-      data[F("F2L")] = F2L;
-      data[F("F2LF")] = F2LF;
-      JsonArray fanlminmax = data.createNestedArray(F("FANLMINMAX"));
+        data["MFSTATUS"] = MFSTATUS;
+      data["SETP"] = serialized(String(SETP, 2));
+      data["PUMP"] = PUMP;
+      data["PQT"] = PQT;
+      data["F1V"] = F1V;
+      data["F1RPM"] = F1RPM;
+      data["F2L"] = F2L;
+      data["F2LF"] = F2LF;
+      JsonArray fanlminmax = data.createNestedArray("FANLMINMAX");
       fanlminmax.add(FANLMINMAX[0]);
       fanlminmax.add(FANLMINMAX[1]);
       fanlminmax.add(FANLMINMAX[2]);
       fanlminmax.add(FANLMINMAX[3]);
       fanlminmax.add(FANLMINMAX[4]);
       fanlminmax.add(FANLMINMAX[5]);
-      data[F("F2V")] = F2V;
+      data["F2V"] = F2V;
       if (isF3LF4LValid)
       {
-        data[F("F3L")] = F3L;
-        data[F("F4L")] = F4L;
+        data["F3L"] = F3L;
+        data["F4L"] = F4L;
       }
-      data[F("PWR")] = PWR;
-      data[F("FDR")] = serialized(String(FDR, 2));
-      data[F("DPT")] = DPT;
-      data[F("DP")] = DP;
-      data[F("IN")] = IN;
-      data[F("OUT")] = OUT;
-      data[F("T1")] = serialized(String(T1, 2));
-      data[F("T2")] = serialized(String(T2, 2));
-      data[F("T3")] = serialized(String(T3, 2));
-      data[F("T4")] = serialized(String(T4, 2));
-      data[F("T5")] = serialized(String(T5, 2));
+      data["PWR"] = PWR;
+      data["FDR"] = serialized(String(FDR, 2));
+      data["DPT"] = DPT;
+      data["DP"] = DP;
+      data["IN"] = IN;
+      data["OUT"] = OUT;
+      data["T1"] = serialized(String(T1, 2));
+      data["T2"] = serialized(String(T2, 2));
+      data["T3"] = serialized(String(T3, 2));
+      data["T4"] = serialized(String(T4, 2));
+      data["T5"] = serialized(String(T5, 2));
 
-      data[F("EFLAGS")] = 0; // new ErrorFlags not implemented
+      data["EFLAGS"] = 0; // new ErrorFlags not implemented
       if (isSNValid)
-        data[F("SN")] = SN;
+        data["SN"] = SN;
     }
   }
 
@@ -398,8 +398,8 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("STATUS")] = STATUS;
-      data[F("LSTATUS")] = LSTATUS;
+      data["STATUS"] = STATUS;
+      data["LSTATUS"] = LSTATUS;
     }
   }
 
@@ -412,11 +412,11 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("T1")] = serialized(String(T1, 2));
-      data[F("T2")] = serialized(String(T2, 2));
-      data[F("T3")] = serialized(String(T3, 2));
-      data[F("T4")] = serialized(String(T4, 2));
-      data[F("T5")] = serialized(String(T5, 2));
+      data["T1"] = serialized(String(T1, 2));
+      data["T2"] = serialized(String(T2, 2));
+      data["T3"] = serialized(String(T3, 2));
+      data["T4"] = serialized(String(T4, 2));
+      data["T5"] = serialized(String(T5, 2));
     }
   }
 
@@ -433,20 +433,20 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("F1V")] = F1V;
-      data[F("F2V")] = F2V;
-      data[F("F1RPM")] = F1RPM;
-      data[F("F2L")] = F2L;
-      data[F("F2LF")] = F2LF;
+      data["F1V"] = F1V;
+      data["F2V"] = F2V;
+      data["F1RPM"] = F1RPM;
+      data["F2L"] = F2L;
+      data["F2LF"] = F2LF;
       if (isF3SF4SValid)
       {
-        data[F("F3S")] = serialized(String(F3S, 2));
-        data[F("F4S")] = serialized(String(F4S, 2));
+        data["F3S"] = serialized(String(F3S, 2));
+        data["F4S"] = serialized(String(F4S, 2));
       }
       if (isF3LF4LValid)
       {
-        data[F("F3L")] = F3L;
-        data[F("F4L")] = F4L;
+        data["F3L"] = F3L;
+        data["F4L"] = F4L;
       }
     }
   }
@@ -460,7 +460,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("SETP")] = serialized(String(SETP, 2));
+      data["SETP"] = serialized(String(SETP, 2));
     }
   }
 
@@ -474,8 +474,8 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("PWR")] = PWR;
-      data[F("FDR")] = serialized(String(FDR, 2));
+      data["PWR"] = PWR;
+      data["FDR"] = serialized(String(FDR, 2));
     }
   }
 
@@ -488,14 +488,14 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("IGN")] = IGN;
-      data[F("POWERTIME")] = String(POWERTIMEh) + ':' + (POWERTIMEm / 10) + (POWERTIMEm % 10);
-      data[F("HEATTIME")] = String(HEATTIMEh) + ':' + (HEATTIMEm / 10) + (HEATTIMEm % 10);
-      data[F("SERVICETIME")] = String(SERVICETIMEh) + ':' + (SERVICETIMEm / 10) + (SERVICETIMEm % 10);
-      data[F("ONTIME")] = String(ONTIMEh) + ':' + (ONTIMEm / 10) + (ONTIMEm % 10);
-      data[F("OVERTMPERRORS")] = OVERTMPERRORS;
-      data[F("IGNERRORS")] = IGNERRORS;
-      data[F("PQT")] = PQT;
+      data["IGN"] = IGN;
+      data["POWERTIME"] = String(POWERTIMEh) + ':' + (POWERTIMEm / 10) + (POWERTIMEm % 10);
+      data["HEATTIME"] = String(HEATTIMEh) + ':' + (HEATTIMEm / 10) + (HEATTIMEm % 10);
+      data["SERVICETIME"] = String(SERVICETIMEh) + ':' + (SERVICETIMEm / 10) + (SERVICETIMEm % 10);
+      data["ONTIME"] = String(ONTIMEh) + ':' + (ONTIMEm / 10) + (ONTIMEm % 10);
+      data["OVERTMPERRORS"] = OVERTMPERRORS;
+      data["IGNERRORS"] = IGNERRORS;
+      data["PQT"] = PQT;
     }
   }
 
@@ -508,8 +508,8 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("DP_TARGET")] = DP_TARGET;
-      data[F("DP_PRESS")] = DP_PRESS;
+      data["DP_TARGET"] = DP_TARGET;
+      data["DP_PRESS"] = DP_PRESS;
     }
   }
 
@@ -523,8 +523,8 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("STOVE_DATETIME")] = STOVE_DATETIME;
-      data[F("STOVE_WDAY")] = STOVE_WDAY;
+      data["STOVE_DATETIME"] = STOVE_DATETIME;
+      data["STOVE_WDAY"] = STOVE_WDAY;
     }
   }
 
@@ -538,17 +538,17 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("IN_I01")] = IN_I01;
-      data[F("IN_I02")] = IN_I02;
-      data[F("IN_I03")] = IN_I03;
-      data[F("IN_I04")] = IN_I04;
-      data[F("OUT_O01")] = OUT_O01;
-      data[F("OUT_O02")] = OUT_O02;
-      data[F("OUT_O03")] = OUT_O03;
-      data[F("OUT_O04")] = OUT_O04;
-      data[F("OUT_O05")] = OUT_O05;
-      data[F("OUT_O06")] = OUT_O06;
-      data[F("OUT_O07")] = OUT_O07;
+      data["IN_I01"] = IN_I01;
+      data["IN_I02"] = IN_I02;
+      data["IN_I03"] = IN_I03;
+      data["IN_I04"] = IN_I04;
+      data["OUT_O01"] = OUT_O01;
+      data["OUT_O02"] = OUT_O02;
+      data["OUT_O03"] = OUT_O03;
+      data["OUT_O04"] = OUT_O04;
+      data["OUT_O05"] = OUT_O05;
+      data["OUT_O06"] = OUT_O06;
+      data["OUT_O07"] = OUT_O07;
     }
   }
 
@@ -561,7 +561,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("SN")] = SN;
+      data["SN"] = SN;
     }
   }
 
@@ -575,10 +575,10 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("MOD")] = MOD;
-      data[F("VER")] = VER;
-      data[F("CORE")] = CORE;
-      data[F("FWDATE")] = FWDATE;
+      data["MOD"] = MOD;
+      data["VER"] = VER;
+      data["CORE"] = CORE;
+      data["FWDATE"] = FWDATE;
     }
   }
 
@@ -595,7 +595,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("CHRSTATUS")] = CHRSTATUS;
+      data["CHRSTATUS"] = CHRSTATUS;
 
       // Add Programs (P1->P6)
       char programName[3] = {'P', 'X', 0};
@@ -604,17 +604,17 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       {
         programName[1] = i + '1';
         JsonObject px = data.createNestedObject(programName);
-        px[F("CHRSETP")] = serialized(String(PCHRSETP[i], 2));
+        px["CHRSETP"] = serialized(String(PCHRSETP[i], 2));
         time[0] = PSTART[i][0] / 10 + '0';
         time[1] = PSTART[i][0] % 10 + '0';
         time[3] = PSTART[i][1] / 10 + '0';
         time[4] = PSTART[i][1] % 10 + '0';
-        px[F("START")] = time;
+        px["START"] = time;
         time[0] = PSTOP[i][0] / 10 + '0';
         time[1] = PSTOP[i][0] % 10 + '0';
         time[3] = PSTOP[i][1] / 10 + '0';
         time[4] = PSTOP[i][1] % 10 + '0';
-        px[F("STOP")] = time;
+        px["STOP"] = time;
       }
 
       // Add Days (D1->D7)
@@ -649,18 +649,18 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (paramNumber == 0 && strParamNumber[0] != '0')
     {
-      info[F("CMD")] = F("GET PARM");
-      info[F("MSG")] = String(F("Incorrect Parameter Number : ")) + strParamNumber;
+      info["CMD"] = F("GET PARM");
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + strParamNumber;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       byte paramValue;
       cmdSuccess = _Pala.getParameter(paramNumber, &paramValue);
 
       if (cmdSuccess)
       {
-        data[F("PAR")] = paramValue;
+        data["PAR"] = paramValue;
       }
     }
   }
@@ -675,18 +675,18 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (hiddenParamNumber == 0 && strHiddenParamNumber[0] != '0')
     {
-      info[F("CMD")] = F("GET HPAR");
-      info[F("MSG")] = String(F("Incorrect Hidden Parameter Number : ")) + strHiddenParamNumber;
+      info["CMD"] = F("GET HPAR");
+      info["MSG"] = String(F("Incorrect Hidden Parameter Number : ")) + strHiddenParamNumber;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       uint16_t hiddenParamValue;
       cmdSuccess = _Pala.getHiddenParameter(hiddenParamNumber, &hiddenParamValue);
 
       if (cmdSuccess)
       {
-        data[F("HPAR")] = hiddenParamValue;
+        data["HPAR"] = hiddenParamValue;
       }
     }
   }
@@ -699,11 +699,11 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (strOrder != F("ON") && strOrder != F("OFF"))
     {
-      info[F("CMD")] = F("CMD");
-      info[F("MSG")] = String(F("Incorrect ON/OFF value : ")) + cmd.substring(4);
+      info["CMD"] = F("CMD");
+      info["MSG"] = String(F("Incorrect ON/OFF value : ")) + cmd.substring(4);
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       if (strOrder == F("ON"))
         cmdSuccess = _Pala.switchOn();
@@ -720,11 +720,11 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (powerLevel == 0)
     {
-      info[F("CMD")] = F("SET POWR");
-      info[F("MSG")] = String(F("Incorrect Power value : ")) + cmd.substring(9);
+      info["CMD"] = F("SET POWR");
+      info["MSG"] = String(F("Incorrect Power value : ")) + cmd.substring(9);
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       byte PWRReturn;
       bool isF2LReturnValid;
@@ -734,10 +734,10 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
       if (cmdSuccess)
       {
-        data[F("PWR")] = PWRReturn;
+        data["PWR"] = PWRReturn;
         if (isF2LReturnValid)
-          data[F("F2L")] = _F2LReturn;
-        JsonArray fanlminmax = data.createNestedArray(F("FANLMINMAX"));
+          data["F2L"] = _F2LReturn;
+        JsonArray fanlminmax = data.createNestedArray("FANLMINMAX");
         fanlminmax.add(FANLMINMAXReturn[0]);
         fanlminmax.add(FANLMINMAXReturn[1]);
         fanlminmax.add(FANLMINMAXReturn[2]);
@@ -760,10 +760,10 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("PWR")] = PWRReturn;
+      data["PWR"] = PWRReturn;
       if (isF2LReturnValid)
-        data[F("F2L")] = _F2LReturn;
-      JsonArray fanlminmax = data.createNestedArray(F("FANLMINMAX"));
+        data["F2L"] = _F2LReturn;
+      JsonArray fanlminmax = data.createNestedArray("FANLMINMAX");
       fanlminmax.add(FANLMINMAXReturn[0]);
       fanlminmax.add(FANLMINMAXReturn[1]);
       fanlminmax.add(FANLMINMAXReturn[2]);
@@ -785,10 +785,10 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("PWR")] = PWRReturn;
+      data["PWR"] = PWRReturn;
       if (isF2LReturnValid)
-        data[F("F2L")] = _F2LReturn;
-      JsonArray fanlminmax = data.createNestedArray(F("FANLMINMAX"));
+        data["F2L"] = _F2LReturn;
+      JsonArray fanlminmax = data.createNestedArray("FANLMINMAX");
       fanlminmax.add(FANLMINMAXReturn[0]);
       fanlminmax.add(FANLMINMAXReturn[1]);
       fanlminmax.add(FANLMINMAXReturn[2]);
@@ -811,7 +811,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     // Check format
     if (cmd.length() != 28 || cmd[13] != '-' || cmd[16] != '-' || cmd[19] != ' ' || cmd[22] != ':' || cmd[25] != ':')
     {
-      info[F("MSG")] = F("Incorrect DateTime format");
+      info["MSG"] = F("Incorrect DateTime format");
     }
 
     // replace '-' and ':' by ' '
@@ -819,12 +819,12 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     workingCmd.replace(':', ' ');
 
     // parse parameters
-    for (byte i = 0; i < 6 && info[F("MSG")].isNull(); i++)
+    for (byte i = 0; i < 6 && info["MSG"].isNull(); i++)
     {
       strParams[i] = workingCmd.substring(posInWorkingCmd, workingCmd.indexOf(' ', posInWorkingCmd));
       params[i] = strParams[i].toInt();
       if (params[i] == 0 && strParams[i][0] != '0')
-        info[F("MSG")] = String(F("Incorrect ")) + errorMessage[i] + F(" : ") + strParams[i];
+        info["MSG"] = String(F("Incorrect ")) + errorMessage[i] + F(" : ") + strParams[i];
 
       posInWorkingCmd += strParams[i].length() + 1;
     }
@@ -832,22 +832,22 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     // Check if date is valid
     // basic control
     if (params[0] < 2000 || params[0] > 2099)
-      info[F("MSG")] = F("Incorrect Year");
+      info["MSG"] = F("Incorrect Year");
     else if (params[1] < 1 || params[1] > 12)
-      info[F("MSG")] = F("Incorrect Month");
+      info["MSG"] = F("Incorrect Month");
     else if ((params[2] < 1 || params[2] > 31) ||
              ((params[2] == 4 || params[2] == 6 || params[2] == 9 || params[2] == 11) && params[3] > 30) ||                        // 30 days month control
              (params[2] == 2 && params[3] > 29) ||                                                                                 // February leap year control
              (params[2] == 2 && params[3] == 29 && !(((params[0] % 4 == 0) && (params[0] % 100 != 0)) || (params[0] % 400 == 0)))) // February not leap year control
-      info[F("MSG")] = F("Incorrect Day");
+      info["MSG"] = F("Incorrect Day");
     else if (params[3] > 23)
-      info[F("MSG")] = F("Incorrect Hour");
+      info["MSG"] = F("Incorrect Hour");
     else if (params[4] > 59)
-      info[F("MSG")] = F("Incorrect Minute");
+      info["MSG"] = F("Incorrect Minute");
     else if (params[5] > 59)
-      info[F("MSG")] = F("Incorrect Second");
+      info["MSG"] = F("Incorrect Second");
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       char STOVE_DATETIMEReturn[20];
       byte STOVE_WDAYReturn;
@@ -855,12 +855,12 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
       if (cmdSuccess)
       {
-        data[F("STOVE_DATETIME")] = STOVE_DATETIMEReturn;
-        data[F("STOVE_WDAY")] = STOVE_WDAYReturn;
+        data["STOVE_DATETIME"] = STOVE_DATETIMEReturn;
+        data["STOVE_WDAY"] = STOVE_WDAYReturn;
       }
     }
     else
-      info[F("CMD")] = F("SET TIME");
+      info["CMD"] = F("SET TIME");
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET RFAN ")))
@@ -873,11 +873,11 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (roomFanLevel == 0 && strRoomFanLevel[0] != '0')
     {
-      info[F("CMD")] = F("SET RFAN");
-      info[F("MSG")] = String(F("Incorrect Room Fan value : ")) + strRoomFanLevel;
+      info["CMD"] = F("SET RFAN");
+      info["MSG"] = String(F("Incorrect Room Fan value : ")) + strRoomFanLevel;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       bool isPWRReturnValid;
       byte PWRReturn;
@@ -888,9 +888,9 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       if (cmdSuccess)
       {
         if (isPWRReturnValid)
-          data[F("PWR")] = PWRReturn;
-        data[F("F2L")] = F2LReturn;
-        data[F("F2LF")] = F2LFReturn;
+          data["PWR"] = PWRReturn;
+        data["F2L"] = F2LReturn;
+        data["F2LF"] = F2LFReturn;
       }
     }
   }
@@ -908,9 +908,9 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     if (cmdSuccess)
     {
       if (isPWRReturnValid)
-        data[F("PWR")] = PWRReturn;
-      data[F("F2L")] = F2LReturn;
-      data[F("F2LF")] = F2LFReturn;
+        data["PWR"] = PWRReturn;
+      data["F2L"] = F2LReturn;
+      data["F2LF"] = F2LFReturn;
     }
   }
 
@@ -927,9 +927,9 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     if (cmdSuccess)
     {
       if (isPWRReturnValid)
-        data[F("PWR")] = PWRReturn;
-      data[F("F2L")] = F2LReturn;
-      data[F("F2LF")] = F2LFReturn;
+        data["PWR"] = PWRReturn;
+      data["F2L"] = F2LReturn;
+      data["F2LF"] = F2LFReturn;
     }
   }
 
@@ -943,18 +943,18 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (roomFan3Level == 0 && strRoomFan3Level[0] != '0')
     {
-      info[F("CMD")] = F("SET FN3L");
-      info[F("MSG")] = String(F("Incorrect Room Fan 3 value : ")) + strRoomFan3Level;
+      info["CMD"] = F("SET FN3L");
+      info["MSG"] = String(F("Incorrect Room Fan 3 value : ")) + strRoomFan3Level;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       uint16_t F3LReturn;
       cmdSuccess = _Pala.setRoomFan3(roomFan3Level, &F3LReturn);
 
       if (cmdSuccess)
       {
-        data[F("F3L")] = F3LReturn;
+        data["F3L"] = F3LReturn;
       }
     }
   }
@@ -969,18 +969,18 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (roomFan4Level == 0 && strRoomFan4Level[0] != '0')
     {
-      info[F("CMD")] = F("SET FN4L");
-      info[F("MSG")] = String(F("Incorrect Room Fan 4 value : ")) + strRoomFan4Level;
+      info["CMD"] = F("SET FN4L");
+      info["MSG"] = String(F("Incorrect Room Fan 4 value : ")) + strRoomFan4Level;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       uint16_t F4LReturn;
       cmdSuccess = _Pala.setRoomFan4(roomFan4Level, &F4LReturn);
 
       if (cmdSuccess)
       {
-        data[F("F4L")] = F4LReturn;
+        data["F4L"] = F4LReturn;
       }
     }
   }
@@ -995,11 +995,11 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (silentMode == 0 && strSilentMode[0] != '0')
     {
-      info[F("CMD")] = F("SET SLNT");
-      info[F("MSG")] = String(F("Incorrect Silent Mode value : ")) + strSilentMode;
+      info["CMD"] = F("SET SLNT");
+      info["MSG"] = String(F("Incorrect Silent Mode value : ")) + strSilentMode;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       byte SLNTReturn;
       byte PWRReturn;
@@ -1012,14 +1012,14 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
       if (cmdSuccess)
       {
-        data[F("SLNT")] = SLNTReturn;
-        data[F("PWR")] = PWRReturn;
-        data[F("F2L")] = F2LReturn;
-        data[F("F2LF")] = F2LFReturn;
+        data["SLNT"] = SLNTReturn;
+        data["PWR"] = PWRReturn;
+        data["F2L"] = F2LReturn;
+        data["F2LF"] = F2LFReturn;
         if (isF3LF4LReturnValid)
         {
-          data[F("F3L")] = F3LReturn;
-          data[F("F4L")] = F4LReturn;
+          data["F3L"] = F3LReturn;
+          data["F4L"] = F4LReturn;
         }
       }
     }
@@ -1035,18 +1035,18 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (!chronoStatus && strChronoStatus[0] != '0')
     {
-      info[F("CMD")] = F("SET CSST");
-      info[F("MSG")] = String(F("Incorrect Chrono Status value : ")) + strChronoStatus;
+      info["CMD"] = F("SET CSST");
+      info["MSG"] = String(F("Incorrect Chrono Status value : ")) + strChronoStatus;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       byte CHRSTATUSReturn;
       cmdSuccess = _Pala.setChronoStatus(chronoStatus, &CHRSTATUSReturn);
 
       if (cmdSuccess)
       {
-        data[F("CHRSTATUS")] = CHRSTATUSReturn;
+        data["CHRSTATUS"] = CHRSTATUSReturn;
       }
     }
   }
@@ -1063,17 +1063,17 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (programNumber == 0 && strProgramNumber[0] != '0')
     {
-      info[F("CMD")] = F("SET CSTH");
-      info[F("MSG")] = String(F("Incorrect Program Number : ")) + strProgramNumber;
+      info["CMD"] = F("SET CSTH");
+      info["MSG"] = String(F("Incorrect Program Number : ")) + strProgramNumber;
     }
 
-    if (info[F("MSG")].isNull() && startHour == 0 && strStartHour[0] != '0')
+    if (info["MSG"].isNull() && startHour == 0 && strStartHour[0] != '0')
     {
-      info[F("CMD")] = F("SET CSTH");
-      info[F("MSG")] = String(F("Incorrect Start Hour : ")) + strStartHour;
+      info["CMD"] = F("SET CSTH");
+      info["MSG"] = String(F("Incorrect Start Hour : ")) + strStartHour;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       cmdSuccess = _Pala.setChronoStartHH(programNumber, startHour);
     }
@@ -1091,17 +1091,17 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (programNumber == 0 && strProgramNumber[0] != '0')
     {
-      info[F("CMD")] = F("SET CSTM");
-      info[F("MSG")] = String(F("Incorrect Program Number : ")) + strProgramNumber;
+      info["CMD"] = F("SET CSTM");
+      info["MSG"] = String(F("Incorrect Program Number : ")) + strProgramNumber;
     }
 
-    if (info[F("MSG")].isNull() && startMinute == 0 && strStartMinute[0] != '0')
+    if (info["MSG"].isNull() && startMinute == 0 && strStartMinute[0] != '0')
     {
-      info[F("CMD")] = F("SET CSTM");
-      info[F("MSG")] = String(F("Incorrect Start Minute : ")) + startMinute;
+      info["CMD"] = F("SET CSTM");
+      info["MSG"] = String(F("Incorrect Start Minute : ")) + startMinute;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       cmdSuccess = _Pala.setChronoStartMM(programNumber, startMinute);
     }
@@ -1120,17 +1120,17 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     if (programNumber == 0 && strProgramNumber[0] != '0')
     {
 
-      info[F("CMD")] = F("SET CSPH");
-      info[F("MSG")] = String(F("Incorrect Program Number : ")) + strProgramNumber;
+      info["CMD"] = F("SET CSPH");
+      info["MSG"] = String(F("Incorrect Program Number : ")) + strProgramNumber;
     }
 
-    if (info[F("MSG")].isNull() && stopHour == 0 && strStopHour[0] != '0')
+    if (info["MSG"].isNull() && stopHour == 0 && strStopHour[0] != '0')
     {
-      info[F("CMD")] = F("SET CSPH");
-      info[F("MSG")] = String(F("Incorrect Stop Hour : ")) + strStopHour;
+      info["CMD"] = F("SET CSPH");
+      info["MSG"] = String(F("Incorrect Stop Hour : ")) + strStopHour;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       cmdSuccess = _Pala.setChronoStopHH(programNumber, stopHour);
     }
@@ -1148,17 +1148,17 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (programNumber == 0 && strProgramNumber[0] != '0')
     {
-      info[F("CMD")] = F("SET CSPM");
-      info[F("MSG")] = String(F("Incorrect Program Number : ")) + strProgramNumber;
+      info["CMD"] = F("SET CSPM");
+      info["MSG"] = String(F("Incorrect Program Number : ")) + strProgramNumber;
     }
 
-    if (info[F("MSG")].isNull() && stopMinute == 0 && strStopMinute[0] != '0')
+    if (info["MSG"].isNull() && stopMinute == 0 && strStopMinute[0] != '0')
     {
-      info[F("CMD")] = F("SET CSPM");
-      info[F("MSG")] = String(F("Incorrect Stop Minute : ")) + strStopMinute;
+      info["CMD"] = F("SET CSPM");
+      info["MSG"] = String(F("Incorrect Stop Minute : ")) + strStopMinute;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       cmdSuccess = _Pala.setChronoStopMM(programNumber, stopMinute);
     }
@@ -1176,17 +1176,17 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (programNumber == 0 && strProgramNumber[0] != '0')
     {
-      info[F("CMD")] = F("SET CSET");
-      info[F("MSG")] = String(F("Incorrect Program Number : ")) + strProgramNumber;
+      info["CMD"] = F("SET CSET");
+      info["MSG"] = String(F("Incorrect Program Number : ")) + strProgramNumber;
     }
 
-    if (info[F("MSG")].isNull() && setPoint == 0 && strSetPoint[0] != '0')
+    if (info["MSG"].isNull() && setPoint == 0 && strSetPoint[0] != '0')
     {
-      info[F("CMD")] = F("SET CSET");
-      info[F("MSG")] = String(F("Incorrect SetPoint : ")) + strSetPoint;
+      info["CMD"] = F("SET CSET");
+      info["MSG"] = String(F("Incorrect SetPoint : ")) + strSetPoint;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       cmdSuccess = _Pala.setChronoSetpoint(programNumber, setPoint);
     }
@@ -1209,23 +1209,23 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (dayNumber == 0 && strDayNumber[0] != '0')
     {
-      info[F("CMD")] = F("SET CDAY");
-      info[F("MSG")] = String(F("Incorrect Day Number : ")) + strDayNumber;
+      info["CMD"] = F("SET CDAY");
+      info["MSG"] = String(F("Incorrect Day Number : ")) + strDayNumber;
     }
 
-    if (info[F("MSG")].isNull() && memoryNumber == 0 && strMemoryNumber[0] != '0')
+    if (info["MSG"].isNull() && memoryNumber == 0 && strMemoryNumber[0] != '0')
     {
-      info[F("CMD")] = F("SET CDAY");
-      info[F("MSG")] = String(F("Incorrect Memory Number : ")) + strMemoryNumber;
+      info["CMD"] = F("SET CDAY");
+      info["MSG"] = String(F("Incorrect Memory Number : ")) + strMemoryNumber;
     }
 
-    if (info[F("MSG")].isNull() && programNumber == 0 && strProgramNumber[0] != '0')
+    if (info["MSG"].isNull() && programNumber == 0 && strProgramNumber[0] != '0')
     {
-      info[F("CMD")] = F("SET CDAY");
-      info[F("MSG")] = String(F("Incorrect Program Number : ")) + strProgramNumber;
+      info["CMD"] = F("SET CDAY");
+      info["MSG"] = String(F("Incorrect Program Number : ")) + strProgramNumber;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       cmdSuccess = _Pala.setChronoDay(dayNumber, memoryNumber, programNumber);
 
@@ -1257,19 +1257,19 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     byte params[6];
     const __FlashStringHelper *errorMessage[6] = {F("Program Number"), F("SetPoint"), F("Start Hour"), F("Start Minute"), F("Stop Hour"), F("Stop Minute")};
 
-    for (byte i = 0; i < 6 && info[F("MSG")].isNull(); i++)
+    for (byte i = 0; i < 6 && info["MSG"].isNull(); i++)
     {
       strParams[i] = cmd.substring(posInCmd, cmd.indexOf(' ', posInCmd));
       params[i] = strParams[i].toInt();
       if (params[i] == 0 && strParams[i][0] != '0')
       {
-        info[F("CMD")] = F("SET CPRD");
-        info[F("MSG")] = String(F("Incorrect ")) + errorMessage[i] + F(" : ") + strParams[i];
+        info["CMD"] = F("SET CPRD");
+        info["MSG"] = String(F("Incorrect ")) + errorMessage[i] + F(" : ") + strParams[i];
       }
       posInCmd += strParams[i].length() + 1;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       cmdSuccess = _Pala.setChronoPrg(params[0], params[1], params[2], params[3], params[4], params[5]);
 
@@ -1280,17 +1280,17 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
         programName[1] = params[0] + '0';
         JsonObject px = data.createNestedObject(programName);
-        px[F("CHRSETP")] = (float)params[1];
+        px["CHRSETP"] = (float)params[1];
         time[0] = params[2] / 10 + '0';
         time[1] = params[2] % 10 + '0';
         time[3] = params[3] / 10 + '0';
         time[4] = params[3] % 10 + '0';
-        px[F("START")] = time;
+        px["START"] = time;
         time[0] = params[4] / 10 + '0';
         time[1] = params[4] % 10 + '0';
         time[3] = params[5] / 10 + '0';
         time[4] = params[5] % 10 + '0';
-        px[F("STOP")] = time;
+        px["STOP"] = time;
       }
     }
   }
@@ -1303,18 +1303,18 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (setPoint == 0)
     {
-      info[F("CMD")] = F("SET SETP");
-      info[F("MSG")] = String(F("Incorrect SetPoint value : ")) + cmd.substring(9);
+      info["CMD"] = F("SET SETP");
+      info["MSG"] = String(F("Incorrect SetPoint value : ")) + cmd.substring(9);
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       float SETPReturn;
       cmdSuccess = _Pala.setSetpoint(setPoint, &SETPReturn);
 
       if (cmdSuccess)
       {
-        data[F("SETP")] = serialized(String(SETPReturn, 2));
+        data["SETP"] = serialized(String(SETPReturn, 2));
       }
     }
   }
@@ -1328,7 +1328,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("SETP")] = serialized(String(SETPReturn, 2));
+      data["SETP"] = serialized(String(SETPReturn, 2));
     }
   }
 
@@ -1341,7 +1341,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdSuccess)
     {
-      data[F("SETP")] = serialized(String(SETPReturn, 2));
+      data["SETP"] = serialized(String(SETPReturn, 2));
     }
   }
 
@@ -1353,18 +1353,18 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (setPointFloat == 0.0f)
     {
-      info[F("CMD")] = F("SET STPF");
-      info[F("MSG")] = String(F("Incorrect SetPoint Float value : ")) + cmd.substring(9);
+      info["CMD"] = F("SET STPF");
+      info["MSG"] = String(F("Incorrect SetPoint Float value : ")) + cmd.substring(9);
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       float SETPReturn;
       cmdSuccess = _Pala.setSetpoint(setPointFloat, &SETPReturn);
 
       if (cmdSuccess)
       {
-        data[F("SETP")] = serialized(String(SETPReturn, 2));
+        data["SETP"] = serialized(String(SETPReturn, 2));
       }
     }
   }
@@ -1381,17 +1381,17 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (paramNumber == 0 && strParamNumber[0] != '0')
     {
-      info[F("CMD")] = F("SET PARM");
-      info[F("MSG")] = String(F("Incorrect Parameter Number : ")) + strParamNumber;
+      info["CMD"] = F("SET PARM");
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + strParamNumber;
     }
 
-    if (info[F("MSG")].isNull() && paramValue == 0 && strParamValue[0] != '0')
+    if (info["MSG"].isNull() && paramValue == 0 && strParamValue[0] != '0')
     {
-      info[F("CMD")] = F("SET PARM");
-      info[F("MSG")] = String(F("Incorrect Parameter Value : ")) + strParamValue;
+      info["CMD"] = F("SET PARM");
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strParamValue;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       cmdSuccess = _Pala.setParameter(paramNumber, paramValue);
 
@@ -1414,17 +1414,17 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (hiddenParamNumber == 0 && strHiddenParamNumber[0] != '0')
     {
-      info[F("CMD")] = F("SET HPAR");
-      info[F("MSG")] = String(F("Incorrect Hidden Parameter Number : ")) + strHiddenParamNumber;
+      info["CMD"] = F("SET HPAR");
+      info["MSG"] = String(F("Incorrect Hidden Parameter Number : ")) + strHiddenParamNumber;
     }
 
-    if (info[F("MSG")].isNull() && hiddenParamValue == 0 && strHiddenParamValue[0] != '0')
+    if (info["MSG"].isNull() && hiddenParamValue == 0 && strHiddenParamValue[0] != '0')
     {
-      info[F("CMD")] = F("SET HPAR");
-      info[F("MSG")] = String(F("Incorrect Hidden Parameter Value : ")) + strHiddenParamValue;
+      info["CMD"] = F("SET HPAR");
+      info["MSG"] = String(F("Incorrect Hidden Parameter Value : ")) + strHiddenParamValue;
     }
 
-    if (info[F("MSG")].isNull())
+    if (info["MSG"].isNull())
     {
       cmdSuccess = _Pala.setHiddenParameter(hiddenParamNumber, hiddenParamValue);
 
@@ -1438,12 +1438,12 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   // if command has been processed
   if (cmdProcessed)
   {
-    info[F("CMD")] = cmd;
+    info["CMD"] = cmd;
     // successfully
     if (cmdSuccess)
     {
-      info[F("RSP")] = F("OK");
-      jsonDoc[F("SUCCESS")] = true;
+      info["RSP"] = F("OK");
+      jsonDoc["SUCCESS"] = true;
       String strData;
       serializeJson(data, strData);
       statusEventSourceBroadcast(strData);
@@ -1452,37 +1452,36 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       {
         String baseTopic = _ha.mqtt.generic.baseTopic;
         MQTTMan::prepareTopic(baseTopic);
-        String palaCategory = cmd.substring(4);
 
         if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
         {
-          _haSendResult &= publishDataToMqtt(baseTopic, palaCategory, jsonDoc);
+          _haSendResult &= publishDataToMqtt(baseTopic, cmd.substring(4), jsonDoc);
         }
       }
     }
     else
     {
       // if there is no MSG in info then stove communication failed
-      if (info[F("MSG")].isNull())
+      if (info["MSG"].isNull())
       {
-        info[F("RSP")] = F("TIMEOUT");
-        info[F("MSG")] = F("Stove communication failed");
+        info["RSP"] = F("TIMEOUT");
+        info["MSG"] = F("Stove communication failed");
       }
       else
-        info[F("RSP")] = F("ERROR");
+        info["RSP"] = F("ERROR");
 
-      jsonDoc[F("SUCCESS")] = false;
-      data[F("NODATA")] = true;
+      jsonDoc["SUCCESS"] = false;
+      data["NODATA"] = true;
     }
   }
   else
   {
     // command is unknown and not processed
-    info[F("RSP")] = F("ERROR");
-    info[F("CMD")] = F("UNKNOWN");
-    info[F("MSG")] = F("No valid request received");
-    jsonDoc[F("SUCCESS")] = false;
-    data[F("NODATA")] = true;
+    info["RSP"] = F("ERROR");
+    info["CMD"] = F("UNKNOWN");
+    info["MSG"] = F("No valid request received");
+    jsonDoc["SUCCESS"] = false;
+    data["NODATA"] = true;
   }
 
   // serialize result to the provided strJson
