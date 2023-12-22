@@ -1,208 +1,226 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="">
-        <title>Domochip</title>
-        
-        <link rel="stylesheet" href="pure-min.css" crossorigin="anonymous">
-        <link rel="stylesheet" href="side-menu.css">
-        <style>
-            .infotip{background:#1Cb841;padding:0.3em 0.3em;border-radius:3px;color:#fff;font-weight:bold;}
-            .infotipdiv{background:#1Cb841;padding:0.3em 1em;border-radius:3px;color:#fff;margin-bottom: 0.5em;display: inline-block;}
-        </style>
-    </head>
-    <body>
 
-        <div id="layout">
-            <!-- Menu toggle -->
-            <a href="#menu" id="menuLink" class="menu-link">
-                <!-- Hamburger icon -->
-                <span></span>
-            </a>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <title>Domochip</title>
 
-            <div id="menu">
-                <div class="pure-menu">
-                    <div class="pure-menu-heading">Domochip</div>
-                    <div class="pure-menu-heading" id="menuAppName"></div>
+    <link rel="stylesheet" href="pure-min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="side-menu.css">
+    <style>
+        .infotip {
+            background: #1Cb841;
+            padding: 0.3em 0.3em;
+            border-radius: 3px;
+            color: #fff;
+            font-weight: bold;
+        }
 
-                    <ul class="pure-menu-list" id="menuList">
-                        <li class="pure-menu-item pure-menu-selected" id="menuStatus"><a href="" class="pure-menu-link">Status</a></li>
-                        <li class="pure-menu-item" id="menuConfig"><a href="" class="pure-menu-link">Config</a></li>
-                        <li class="pure-menu-item" id="menuFirmware"><a href="" class="pure-menu-link">Firmware</a></li>
-                        <li class="pure-menu-item" id="menuDiscover"><a href="" class="pure-menu-link">Discover</a></li>
-                    </ul>
-                </div>
-            </div>
+        .infotipdiv {
+            background: #1Cb841;
+            padding: 0.3em 1em;
+            border-radius: 3px;
+            color: #fff;
+            margin-bottom: 0.5em;
+            display: inline-block;
+        }
+    </style>
+</head>
 
-            <div id="main">
-                <div class="header">
-                    <h1 id="mainHeader"></h1>
-                </div>
+<body>
 
-                <div class="content" id="mainContent">
-                    <div id="content0"></div>
-                    <div id="contentw"></div>
+    <div id="layout">
+        <!-- Menu toggle -->
+        <a href="#menu" id="menuLink" class="menu-link">
+            <!-- Hamburger icon -->
+            <span></span>
+        </a>
 
-                    <div id="content1"></div>
-                    <div id="content2"></div>
-                    <div id="content3"></div>
-                </div>
+        <div id="menu">
+            <div class="pure-menu">
+                <div class="pure-menu-heading">Domochip</div>
+                <div class="pure-menu-heading" id="menuAppName"></div>
+
+                <ul class="pure-menu-list" id="menuList">
+                    <li class="pure-menu-item pure-menu-selected" id="menuStatus"><a href=""
+                            class="pure-menu-link">Status</a></li>
+                    <li class="pure-menu-item" id="menuConfig"><a href="" class="pure-menu-link">Config</a></li>
+                    <li class="pure-menu-item" id="menuFirmware"><a href="" class="pure-menu-link">Firmware</a></li>
+                    <li class="pure-menu-item" id="menuDiscover"><a href="" class="pure-menu-link">Discover</a></li>
+                </ul>
             </div>
         </div>
 
-        <script>
-            //from https://developer.mozilla.org/en-US/docs/Archive/Add-ons/Code_snippets/QuerySelector
-            function $(selector,el) {
-                if (!el) el=document;
-                return el.querySelector(selector);
-            }
-        </script>
-        <script src="side-menu.js"></script>
-        <script>
-            function runScript(code){
-                var scr = document.createElement('script');
-                scr.text=code;
-                var elemForDebug=document.head.appendChild(scr);
-                elemForDebug.parentNode.removeChild(scr);
-            }
+        <div id="main">
+            <div class="header">
+                <h1 id="mainHeader"></h1>
+            </div>
 
-            function request(method,url,data,success,fail,timeout,uploadProgress){
-                var xhr = new XMLHttpRequest();
-                xhr.addEventListener('readystatechange',function(){
-                    if(xhr.readyState === 4){
-                        if(xhr.status === 200){
-                            if(success) success(xhr.response);
-                        }
-                        else{
-                            if(fail) fail(xhr.response);
-                        }
+            <div class="content" id="mainContent">
+                <div id="content0"></div>
+                <div id="contentw"></div>
+
+                <div id="content1"></div>
+                <div id="content2"></div>
+                <div id="content3"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        //from https://developer.mozilla.org/en-US/docs/Archive/Add-ons/Code_snippets/QuerySelector
+        function $(selector, el) {
+            if (!el) el = document;
+            return el.querySelector(selector);
+        }
+    </script>
+    <script src="side-menu.js"></script>
+    <script>
+        function runScript(code) {
+            var scr = document.createElement('script');
+            scr.text = code;
+            var elemForDebug = document.head.appendChild(scr);
+            elemForDebug.parentNode.removeChild(scr);
+        }
+
+        function request(method, url, data, success, fail, timeout, uploadProgress) {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener('readystatechange', function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        if (success) success(xhr.response);
                     }
-                });
-                if(uploadProgress) xhr.upload.addEventListener('progress',uploadProgress);
-                xhr.open(method, url);
-                if(timeout) xhr.timeout=timeout;
-                if(typeof data == "string") xhr.setRequestHeader('Content-type','application/x-www-form-urlencoded');
-                xhr.send(data);
-            }
-
-            function load(element,url,callback){
-                request("GET",url,null,function(response){
-                    element.innerHTML='';
-                    element.innerHTML=response;
-                    var scriptList = element.getElementsByTagName('script');
-                    for(var i=0;i<scriptList.length;i++) {
-                        //Replace "QuerySelectorPrefix" aka "qsp" : allow script to search into the parent element
-                        scriptList[i].innerHTML=scriptList[i].innerHTML.replace(/qsp/g,'\'#'+element.id+' \'');
-                        runScript(scriptList[i].innerHTML);
+                    else {
+                        if (fail) fail(xhr.response);
                     }
-                    if(callback) callback();
-                });
-            };
-
-            function get(url,success,fail){
-                request("GET",url,null,success,fail);
-            };
-
-            function getJSON(url,success,fail){
-                request("GET",url,null,function(response){
-                    success(JSON.parse(response));
-                },fail);
-            };
-
-            function post(url,data,success,fail,timeout,uploadProgress){
-                request("POST",url,data,success,fail,timeout,uploadProgress);
-            };
-
-            function fadeOut(el) {
-                el.style.opacity = 1;
-                
-                var last = +new Date();
-                var tick = function () {
-                    el.style.opacity = +el.style.opacity - (new Date() - last) / 400;
-                    last = +new Date();
-
-                    if (+el.style.opacity > 0)
-                        (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
-                    else
-                        el.style.display = 'none';
-                };
-
-                tick();
-            }
-
-            function triggerEvent(el,evtName){
-                var evt = document.createEvent('Event');
-                evt.initEvent(evtName,true,true);
-                el.dispatchEvent(evt);
-            }
-
-
-            function emptyContents(){
-                $("#menuStatus").classList.remove("pure-menu-selected");
-                $("#menuConfig").classList.remove("pure-menu-selected");
-                $("#menuFirmware").classList.remove("pure-menu-selected");
-                $("#menuDiscover").classList.remove("pure-menu-selected");
-
-                $("#content0").innerHTML = '';
-                $("#contentw").innerHTML = '';
-                $("#content1").innerHTML = '';
-                $("#content2").innerHTML = '';
-                $("#content3").innerHTML = '';
-            };
-
-            $("#menuStatus").addEventListener("click",function(evt){
-                evt.preventDefault();
-                emptyContents();
-                $("#menuStatus").classList.add("pure-menu-selected");
-                $("#mainHeader").textContent="Status";
-
-                load($("#content0"),"/status0.html");
-                load($("#contentw"),"/statusw.html");
-
-                load($("#content1"),"/status1.html",function(){
-                    if($("#applicationName")!=null && $("#applicationName").innerText.length !=0){
-                        document.title = "Domochip "+$("#applicationName").innerText;
-                        sessionStorage.setItem("ProductName",$("#applicationName").innerText);
-                    }
-                    if($("#shortApplicationName")!=null && $("#shortApplicationName").innerText.length !=0){
-                        $("meta[name='description']").content = $("#shortApplicationName").innerText;
-                        $("#menuAppName").innerText = $("#shortApplicationName").innerText;
-                    }
-                });
-                load($("#content2"),"/status2.html");
-                load($("#content3"),"/status3.html");
+                }
             });
-            triggerEvent($("#menuStatus"),'click');
+            if (uploadProgress) xhr.upload.addEventListener('progress', uploadProgress);
+            xhr.open(method, url);
+            if (timeout) xhr.timeout = timeout;
+            if (typeof data == "string") xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+            xhr.send(data);
+        }
 
-            $("#menuConfig").addEventListener("click",function(evt){
-                evt.preventDefault();
-                emptyContents();
-                $("#menuConfig").classList.add("pure-menu-selected");
-                $("#mainHeader").textContent="Config";
-                load($("#content0"),"/config0.html");
-                load($("#contentw"),"/configw.html");
-                load($("#content1"),"/config1.html");
-                load($("#content2"),"/config2.html");
-                load($("#content3"),"/config3.html");
+        function load(element, url, callback) {
+            request("GET", url, null, function (response) {
+                element.innerHTML = '';
+                element.innerHTML = response;
+                var scriptList = element.getElementsByTagName('script');
+                for (var i = 0; i < scriptList.length; i++) {
+                    //Replace "QuerySelectorPrefix" aka "qsp" : allow script to search into the parent element
+                    scriptList[i].innerHTML = scriptList[i].innerHTML.replace(/qsp/g, '\'#' + element.id + ' \'');
+                    runScript(scriptList[i].innerHTML);
+                }
+                if (callback) callback();
             });
+        };
 
-            $("#menuFirmware").addEventListener("click",function(evt){
-                evt.preventDefault();
-                emptyContents();
-                $("#menuFirmware").classList.add("pure-menu-selected");
-                $("#mainHeader").textContent="Firmware";
-                load($("#content0"),"/fw0.html");
-            });
+        function get(url, success, fail) {
+            request("GET", url, null, success, fail);
+        };
 
-            $("#menuDiscover").addEventListener("click",function(evt){
-                evt.preventDefault();
-                emptyContents();
-                $("#menuDiscover").classList.add("pure-menu-selected");
-                $("#mainHeader").textContent="Discover";
-                load($("#content0"),"/discover0.html");
+        function getJSON(url, success, fail) {
+            request("GET", url, null, function (response) {
+                success(JSON.parse(response));
+            }, fail);
+        };
+
+        function post(url, data, success, fail, timeout, uploadProgress) {
+            request("POST", url, data, success, fail, timeout, uploadProgress);
+        };
+
+        function fadeOut(el) {
+            el.style.opacity = 1;
+
+            var last = +new Date();
+            var tick = function () {
+                el.style.opacity = +el.style.opacity - (new Date() - last) / 400;
+                last = +new Date();
+
+                if (+el.style.opacity > 0)
+                    (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
+                else
+                    el.style.display = 'none';
+            };
+
+            tick();
+        }
+
+        function triggerEvent(el, evtName) {
+            var evt = document.createEvent('Event');
+            evt.initEvent(evtName, true, true);
+            el.dispatchEvent(evt);
+        }
+
+
+        function emptyContents() {
+            $("#menuStatus").classList.remove("pure-menu-selected");
+            $("#menuConfig").classList.remove("pure-menu-selected");
+            $("#menuFirmware").classList.remove("pure-menu-selected");
+            $("#menuDiscover").classList.remove("pure-menu-selected");
+
+            $("#content0").innerHTML = '';
+            $("#contentw").innerHTML = '';
+            $("#content1").innerHTML = '';
+            $("#content2").innerHTML = '';
+            $("#content3").innerHTML = '';
+        };
+
+        $("#menuStatus").addEventListener("click", function (evt) {
+            evt.preventDefault();
+            emptyContents();
+            $("#menuStatus").classList.add("pure-menu-selected");
+            $("#mainHeader").textContent = "Status";
+
+            load($("#content0"), "/status0.html");
+            load($("#contentw"), "/statusw.html");
+
+            load($("#content1"), "/status1.html", function () {
+                if ($("#applicationName") != null && $("#applicationName").innerText.length != 0) {
+                    document.title = "Domochip " + $("#applicationName").innerText;
+                    sessionStorage.setItem("ProductName", $("#applicationName").innerText);
+                }
+                if ($("#shortApplicationName") != null && $("#shortApplicationName").innerText.length != 0) {
+                    $("meta[name='description']").content = $("#shortApplicationName").innerText;
+                    $("#menuAppName").innerText = $("#shortApplicationName").innerText;
+                }
             });
-        </script>
-    </body>
+            load($("#content2"), "/status2.html");
+            load($("#content3"), "/status3.html");
+        });
+        triggerEvent($("#menuStatus"), 'click');
+
+        $("#menuConfig").addEventListener("click", function (evt) {
+            evt.preventDefault();
+            emptyContents();
+            $("#menuConfig").classList.add("pure-menu-selected");
+            $("#mainHeader").textContent = "Config";
+            load($("#content0"), "/config0.html");
+            load($("#contentw"), "/configw.html");
+            load($("#content1"), "/config1.html");
+            load($("#content2"), "/config2.html");
+            load($("#content3"), "/config3.html");
+        });
+
+        $("#menuFirmware").addEventListener("click", function (evt) {
+            evt.preventDefault();
+            emptyContents();
+            $("#menuFirmware").classList.add("pure-menu-selected");
+            $("#mainHeader").textContent = "Firmware";
+            load($("#content0"), "/fw0.html");
+        });
+
+        $("#menuDiscover").addEventListener("click", function (evt) {
+            evt.preventDefault();
+            emptyContents();
+            $("#menuDiscover").classList.add("pure-menu-selected");
+            $("#mainHeader").textContent = "Discover";
+            load($("#content0"), "/discover0.html");
+        });
+    </script>
+</body>
+
 </html>

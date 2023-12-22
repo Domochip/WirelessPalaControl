@@ -1,101 +1,107 @@
-<h2 class="content-subhead">PalaControl<span id="l"><h6 style="display:inline"><b> Loading...</b></h6></span></h2>
+<h2 class="content-subhead">PalaControl<span id="l">
+        <h6 style="display:inline"><b> Loading...</b></h6>
+    </span></h2>
 <form class="pure-form pure-form-aligned" id='f'>
     <fieldset>
 
-    <h3 class="content-subhead">Home Automation  <span id="hai" name="hai" class="infotip">?</span></h3>
-    <div class="infotipdiv"  id="haidiv" name="haidiv" style="display:none;">
-        HTTP GET request can be send to this device.<br>
-        Please refer to <a href="https://github.com/Domochip/WirelessPalaControl">documentation</a> for list of supported command.<br>
-        <a href="https://github.com/Domochip/WirelessPalaControl">link</a>
-    </div>
-
-    <div class="pure-control-group">
-        <label for="haproto">Type</label>
-        <select id='haproto' name='haproto'>
-            <option value="0">Disabled</option>
-            <option value="1">MQTT</option>
-        </select>
-    </div>
-
-    <div id='hae' style='display:none'>
-
-        <div class="pure-control-group">
-            <label for="hahost">Hostname</label>
-            <input type='text' id='hahost' name='hahost' maxlength='64' pattern='[A-Za-z0-9-.]+' size='50' placeholder="IP or DNS Name">
-        </div>
-        <div class="pure-control-group">
-            <label for="haupperiod">Upload Period</label>
-            <input type='number' id='haupperiod' name='haupperiod' min='15' max='65535' placeholder="(in seconds)">
+        <h3 class="content-subhead">Home Automation <span id="hai" name="hai" class="infotip">?</span></h3>
+        <div class="infotipdiv" id="haidiv" name="haidiv" style="display:none;">
+            HTTP GET request can be send to this device.<br>
+            Please refer to <a href="https://github.com/Domochip/WirelessPalaControl">documentation</a> for list of
+            supported command.<br>
+            <a href="https://github.com/Domochip/WirelessPalaControl">link</a>
         </div>
 
-        <div id='hame'>
+        <div class="pure-control-group">
+            <label for="haproto">Type</label>
+            <select id='haproto' name='haproto'>
+                <option value="0">Disabled</option>
+                <option value="1">MQTT</option>
+            </select>
+        </div>
+
+        <div id='hae' style='display:none'>
 
             <div class="pure-control-group">
-                <label for="hamtype">Type</label>
-                <select id='hamtype' name='hamtype'>
-                    <option value="0">Generic</option>
-                    <option value="1">Generic JSON</option>
-                    <option value="2">Generic Categorized</option>
-                </select>
-                <span id="hamtype0i" name="hamtype0i" class="infotip">?</span>
-                <span id="hamtype1i" name="hamtype1i" class="infotip" style="display:none;">?</span>
-                <span id="hamtype2i" name="hamtype2i" class="infotip" style="display:none;">?</span>
+                <label for="hahost">Hostname</label>
+                <input type='text' id='hahost' name='hahost' maxlength='64' pattern='[A-Za-z0-9-.]+' size='50'
+                    placeholder="IP or DNS Name">
             </div>
-            <div class="pure-control-group" id="hamtype0div" name="hamtype0div" style="display:none;">
-                <label></label>
-                <div class="infotipdiv">
-                    Published topics : <br>
-                    <b>/$nameOfValue$</b> : values are sent to the root of Base Topic (e.g. /T1, /STATUS)<br>
-                </div>
-            </div>
-            <div class="pure-control-group" id="hamtype1div" name="hamtype1div" style="display:none;">
-                <label></label>
-                <div class="infotipdiv">
-                    Published topics : <br>
-                    <b>/$Category$</b> : a JSON containing values are sent to the Category Topic (e.g. /TMPS, /STAT)<br>
-                </div>
-            </div>
-            <div class="pure-control-group" id="hamtype2div" name="hamtype2div" style="display:none;">
-                <label></label>
-                <div class="infotipdiv">
-                    Published topics : <br>
-                    <b>/$Category$/$nameOfValue$</b> : values are sent to the Category Topic it belongs (e.g. /TMPS/T1)<br>
-                </div>
+            <div class="pure-control-group">
+                <label for="haupperiod">Upload Period</label>
+                <input type='number' id='haupperiod' name='haupperiod' min='15' max='65535' placeholder="(in seconds)">
             </div>
 
-            <div class="pure-control-group">
-                <label for="hamport">Port</label>
-                <input type='number' id='hamport' name='hamport' min='1' max='65535'>
-            </div>
-            <div class="pure-control-group">
-                <label for="hamu">Username</label>
-                <input type='text' id='hamu' name='hamu' maxlength='64' placeholder="optional">
-            </div>
-            <div class="pure-control-group">
-                <label for="hamp">Password</label>
-                <input type='password' id='hamp' name='hamp' maxlength='64' placeholder="optional">
-            </div>
+            <div id='hame'>
 
-            <div id='hamgbte'>
                 <div class="pure-control-group">
-                    <label for="hamgbt">Base Topic</label>
-                    <input type='text' id='hamgbt' name='hamgbt' maxlength='64'>
-                    <span id="hamgbti" name="hamgbti" class="infotip">?</span>
+                    <label for="hamtype">Type</label>
+                    <select id='hamtype' name='hamtype'>
+                        <option value="0">Generic</option>
+                        <option value="1">Generic JSON</option>
+                        <option value="2">Generic Categorized</option>
+                    </select>
+                    <span id="hamtype0i" name="hamtype0i" class="infotip">?</span>
+                    <span id="hamtype1i" name="hamtype1i" class="infotip" style="display:none;">?</span>
+                    <span id="hamtype2i" name="hamtype2i" class="infotip" style="display:none;">?</span>
                 </div>
-
-                <div class="pure-control-group" id="hamgbtidiv" name="hamgbtidiv" style="display:none;">
+                <div class="pure-control-group" id="hamtype0div" name="hamtype0div" style="display:none;">
                     <label></label>
                     <div class="infotipdiv">
-                        Base Topic placeholders : <br>
-                        <b>$sn$</b> : Serial Number of this device<br>
-                        <b>$mac$</b> : WiFi MAC address of this device<br>
-                        <b>$model$</b> : Model of this device<br>
-                        Ex : DomoChip/<b>$sn$</b> or <b>$model$</b>/<b>$mac$</b>
+                        Published topics : <br>
+                        <b>/$nameOfValue$</b> : values are sent to the root of Base Topic (e.g. /T1, /STATUS)<br>
+                    </div>
+                </div>
+                <div class="pure-control-group" id="hamtype1div" name="hamtype1div" style="display:none;">
+                    <label></label>
+                    <div class="infotipdiv">
+                        Published topics : <br>
+                        <b>/$Category$</b> : a JSON containing values are sent to the Category Topic (e.g. /TMPS,
+                        /STAT)<br>
+                    </div>
+                </div>
+                <div class="pure-control-group" id="hamtype2div" name="hamtype2div" style="display:none;">
+                    <label></label>
+                    <div class="infotipdiv">
+                        Published topics : <br>
+                        <b>/$Category$/$nameOfValue$</b> : values are sent to the Category Topic it belongs (e.g.
+                        /TMPS/T1)<br>
+                    </div>
+                </div>
+
+                <div class="pure-control-group">
+                    <label for="hamport">Port</label>
+                    <input type='number' id='hamport' name='hamport' min='1' max='65535'>
+                </div>
+                <div class="pure-control-group">
+                    <label for="hamu">Username</label>
+                    <input type='text' id='hamu' name='hamu' maxlength='64' placeholder="optional">
+                </div>
+                <div class="pure-control-group">
+                    <label for="hamp">Password</label>
+                    <input type='password' id='hamp' name='hamp' maxlength='64' placeholder="optional">
+                </div>
+
+                <div id='hamgbte'>
+                    <div class="pure-control-group">
+                        <label for="hamgbt">Base Topic</label>
+                        <input type='text' id='hamgbt' name='hamgbt' maxlength='64'>
+                        <span id="hamgbti" name="hamgbti" class="infotip">?</span>
+                    </div>
+
+                    <div class="pure-control-group" id="hamgbtidiv" name="hamgbtidiv" style="display:none;">
+                        <label></label>
+                        <div class="infotipdiv">
+                            Base Topic placeholders : <br>
+                            <b>$sn$</b> : Serial Number of this device<br>
+                            <b>$mac$</b> : WiFi MAC address of this device<br>
+                            <b>$model$</b> : Model of this device<br>
+                            Ex : DomoChip/<b>$sn$</b> or <b>$model$</b>/<b>$mac$</b>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
         <div class="pure-controls">
             <input type='submit' value='Save' class="pure-button pure-button-primary" disabled>
@@ -108,96 +114,96 @@
     //QuerySelector Prefix is added by load function to know into what element queySelector need to look for
     //var qsp = '#contentX ';
 
-    $(qsp+"#hai").addEventListener('click',function(){
-        $(qsp+"#haidiv").style.display=($(qsp+"#haidiv").style.display==''?'none':'');
+    $(qsp + "#hai").addEventListener('click', function () {
+        $(qsp + "#haidiv").style.display = ($(qsp + "#haidiv").style.display == '' ? 'none' : '');
     });
 
-    $(qsp+"#haproto").addEventListener('change',function(){
-        switch($(qsp+"#haproto").value){
+    $(qsp + "#haproto").addEventListener('change', function () {
+        switch ($(qsp + "#haproto").value) {
             case "0":
-                $(qsp+"#hae").style.display='none';
+                $(qsp + "#hae").style.display = 'none';
                 break;
             case "1":
-                $(qsp+"#hae").style.display='';
-                $(qsp+"#hame").style.display='';
+                $(qsp + "#hae").style.display = '';
+                $(qsp + "#hame").style.display = '';
                 break;
         }
     });
 
-    $(qsp+"#hamtype").addEventListener('change',function(){
-        switch($(qsp+"#hamtype").value){
+    $(qsp + "#hamtype").addEventListener('change', function () {
+        switch ($(qsp + "#hamtype").value) {
             case "0":
-                $(qsp+"#hamgbte").style.display='';
-                $(qsp+"#hamtype0i").style.display='';
-                $(qsp+"#hamtype1i").style.display='none';
-                $(qsp+"#hamtype1div").style.display='none';
-                $(qsp+"#hamtype2i").style.display='none';
-                $(qsp+"#hamtype2div").style.display='none';
+                $(qsp + "#hamgbte").style.display = '';
+                $(qsp + "#hamtype0i").style.display = '';
+                $(qsp + "#hamtype1i").style.display = 'none';
+                $(qsp + "#hamtype1div").style.display = 'none';
+                $(qsp + "#hamtype2i").style.display = 'none';
+                $(qsp + "#hamtype2div").style.display = 'none';
                 break;
             case "1":
-                $(qsp+"#hamgbte").style.display='';
-                $(qsp+"#hamtype0i").style.display='none';
-                $(qsp+"#hamtype0div").style.display='none';
-                $(qsp+"#hamtype1i").style.display='';
-                $(qsp+"#hamtype2i").style.display='none';
-                $(qsp+"#hamtype2div").style.display='none';
+                $(qsp + "#hamgbte").style.display = '';
+                $(qsp + "#hamtype0i").style.display = 'none';
+                $(qsp + "#hamtype0div").style.display = 'none';
+                $(qsp + "#hamtype1i").style.display = '';
+                $(qsp + "#hamtype2i").style.display = 'none';
+                $(qsp + "#hamtype2div").style.display = 'none';
                 break;
             case "2":
-                $(qsp+"#hamgbte").style.display='';
-                $(qsp+"#hamtype0i").style.display='none';
-                $(qsp+"#hamtype0div").style.display='none';
-                $(qsp+"#hamtype1i").style.display='none';
-                $(qsp+"#hamtype1div").style.display='none';
-                $(qsp+"#hamtype2i").style.display='';
+                $(qsp + "#hamgbte").style.display = '';
+                $(qsp + "#hamtype0i").style.display = 'none';
+                $(qsp + "#hamtype0div").style.display = 'none';
+                $(qsp + "#hamtype1i").style.display = 'none';
+                $(qsp + "#hamtype1div").style.display = 'none';
+                $(qsp + "#hamtype2i").style.display = '';
                 break;
         }
     });
-    $(qsp+"#hamtype0i").addEventListener('click',function(){
-        $(qsp+"#hamtype0div").style.display=($(qsp+"#hamtype0div").style.display==''?'none':'');
+    $(qsp + "#hamtype0i").addEventListener('click', function () {
+        $(qsp + "#hamtype0div").style.display = ($(qsp + "#hamtype0div").style.display == '' ? 'none' : '');
     });
-    $(qsp+"#hamtype1i").addEventListener('click',function(){
-        $(qsp+"#hamtype1div").style.display=($(qsp+"#hamtype1div").style.display==''?'none':'');
+    $(qsp + "#hamtype1i").addEventListener('click', function () {
+        $(qsp + "#hamtype1div").style.display = ($(qsp + "#hamtype1div").style.display == '' ? 'none' : '');
     });
-    $(qsp+"#hamtype2i").addEventListener('click',function(){
-        $(qsp+"#hamtype2div").style.display=($(qsp+"#hamtype2div").style.display==''?'none':'');
+    $(qsp + "#hamtype2i").addEventListener('click', function () {
+        $(qsp + "#hamtype2div").style.display = ($(qsp + "#hamtype2div").style.display == '' ? 'none' : '');
     });
-    $(qsp+"#hamgbti").addEventListener('click',function(){
-        $(qsp+"#hamgbtidiv").style.display=($(qsp+"#hamgbtidiv").style.display==''?'none':'');
+    $(qsp + "#hamgbti").addEventListener('click', function () {
+        $(qsp + "#hamgbtidiv").style.display = ($(qsp + "#hamgbtidiv").style.display == '' ? 'none' : '');
     });
 
-    $(qsp+"#f").addEventListener('submit',function(event){
-        $(qsp+"#r").innerHTML="Saving Configuration...";
-        post("/sc"+qsp[8],
-            new FormData($(qsp+"#f")),
-            function(){ 
-                $(qsp+"#f").style.display='none';
+    $(qsp + "#f").addEventListener('submit', function (event) {
+        $(qsp + "#r").innerHTML = "Saving Configuration...";
+        post("/sc" + qsp[8],
+            new FormData($(qsp + "#f")),
+            function () {
+                $(qsp + "#f").style.display = 'none';
 
-                $(qsp+'#r').innerHTML='<h3><b>Configuration saved <span style="color: green;">successfully</span>.</b></h3>This page will be reloaded in <span id="cd">5</span>sec.';
+                $(qsp + '#r').innerHTML = '<h3><b>Configuration saved <span style="color: green;">successfully</span>.</b></h3>This page will be reloaded in <span id="cd">5</span>sec.';
                 runScript('var count=4;var cdi=setInterval(function(){$("#cd").innerText=count;if(!count){clearInterval(cdi);location.reload();}count--;},1000);');
             },
-            function(){
-                $(qsp+'#r').innerHTML='<h3><b>Configuration <span style="color: red;">error</span>.</b></h3>';
+            function () {
+                $(qsp + '#r').innerHTML = '<h3><b>Configuration <span style="color: red;">error</span>.</b></h3>';
             }
         );
         event.preventDefault();
     });
 
-    getJSON("/gc"+qsp[8],
-        function(GC){
-            for(k in GC){
-                if($(qsp+'#'+k)){
-                    if($(qsp+'#'+k).type!='checkbox') $(qsp+'#'+k).value=GC[k];
-                    else $(qsp+'#'+k).checked=GC[k];
+    getJSON("/gc" + qsp[8],
+        function (GC) {
+            for (k in GC) {
+                if ($(qsp + '#' + k)) {
+                    if ($(qsp + '#' + k).type != 'checkbox') $(qsp + '#' + k).value = GC[k];
+                    else $(qsp + '#' + k).checked = GC[k];
 
-                    triggerEvent($(qsp+'#'+k),'change');
+                    triggerEvent($(qsp + '#' + k), 'change');
                 }
             }
- 
-            $(qsp+"#f input[type=submit]").disabled=false;
-            fadeOut($(qsp+"#l"));
+
+            $(qsp + "#f input[type=submit]").disabled = false;
+            fadeOut($(qsp + "#l"));
         },
-        function(){
-            $(qsp+"#l").innerHTML='<h6 style="display:inline;color:red;"><b> Failed</b></h6>';
+        function () {
+            $(qsp + "#l").innerHTML = '<h6 style="display:inline;color:red;"><b> Failed</b></h6>';
         }
     );
 </script>

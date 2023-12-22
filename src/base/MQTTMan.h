@@ -43,6 +43,8 @@ public:
     using PubSubClient::publish_P;
     using PubSubClient::state;
     using PubSubClient::subscribe;
+    using PubSubClient::getBufferSize;
+    using PubSubClient::setBufferSize;
     bool loop();
 };
 

@@ -13,8 +13,7 @@ const char appDataPredefPassword[] PROGMEM = "ewcXoCt4HHjZUvY1";
 
 #include <PolledTimeout.h>
 #include <Palazzetti.h>
-#include <ESPAsyncUDP.h>
-#include <AsyncJson.h>
+#include <WiFiUDP.h>
 
 class WebPalaControl : public Application
 {
@@ -50,7 +49,7 @@ private:
   int _haSendResult = 0;
   WiFiClient _wifiClient;
   MQTTMan _mqttMan;
-  AsyncUDP _udpServer;
+  WiFiUDP _udpServer;
 
   Palazzetti _Pala;
   unsigned long _lastAllStatusRefreshMillis = 0;
@@ -70,18 +69,20 @@ private:
   void mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnection);
   void mqttCallback(char *topic, uint8_t *payload, unsigned int length);
   bool publishDataToMqtt(const String &baseTopic, const String &palaCategory, const DynamicJsonDocument &jsonDoc);
+  bool executePalaCmd(const String &cmd, String &strJson, bool publish = false);
+
   void publishTick();
-  bool executePalaCmd(const String &cmd, DynamicJsonDocument &jsonDoc);
+  void udpRequestHandler(WiFiUDP &udpServer);
 
   void setConfigDefaultValues();
   void parseConfigJSON(DynamicJsonDocument &doc);
-  bool parseConfigWebRequest(AsyncWebServerRequest *request);
+  bool parseConfigWebRequest(ESP8266WebServer &server);
   String generateConfigJSON(bool forSaveFile);
   String generateStatusJSON();
   bool appInit(bool reInit);
-  const uint8_t *getHTMLContent(WebPageForPlaceHolder wp);
+  const PROGMEM char *getHTMLContent(WebPageForPlaceHolder wp);
   size_t getHTMLContentSize(WebPageForPlaceHolder wp);
-  void appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication);
+  void appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication);
   void appRun();
 
 public:

@@ -11,7 +11,7 @@
 
 void Core::setConfigDefaultValues(){};
 void Core::parseConfigJSON(DynamicJsonDocument &doc){};
-bool Core::parseConfigWebRequest(AsyncWebServerRequest *request) { return true; };
+bool Core::parseConfigWebRequest(ESP8266WebServer &server) { return true; };
 String Core::generateConfigJSON(bool clearPassword = false) { return String(); };
 String Core::generateStatusJSON()
 {
@@ -36,28 +36,27 @@ String Core::generateStatusJSON()
   gs = gs + '}';
 
   return gs;
-};
+}
 bool Core::appInit(bool reInit = false) { return true; };
-const uint8_t *Core::getHTMLContent(WebPageForPlaceHolder wp)
+const PROGMEM char *Core::getHTMLContent(WebPageForPlaceHolder wp)
 {
   switch (wp)
   {
   case status:
-    return (const uint8_t *)status0htmlgz;
+    return status0htmlgz;
     break;
   case config:
-    return (const uint8_t *)config0htmlgz;
+    return config0htmlgz;
     break;
   case fw:
-    return (const uint8_t *)fw0htmlgz;
+    return fw0htmlgz;
     break;
   case discover:
-    return (const uint8_t *)discover0htmlgz;
+    return discover0htmlgz;
     break;
   };
   return nullptr;
-};
-//and his Size
+}
 size_t Core::getHTMLContentSize(WebPageForPlaceHolder wp)
 {
   switch (wp)
@@ -76,38 +75,39 @@ size_t Core::getHTMLContentSize(WebPageForPlaceHolder wp)
     break;
   };
   return 0;
-};
-void Core::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pauseApplication)
+}
+void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
-  //root is index
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse_P(200, F("text/html"), (const uint8_t *)indexhtmlgz, sizeof(indexhtmlgz));
-    response->addHeader("Content-Encoding", "gzip");
-    request->send(response);
-  });
+  // root is index
+  server.on("/", HTTP_GET, [&server]()
+            {
+    server.keepAlive(false);
+    server.sendHeader(F("Content-Encoding"), F("gzip"));
+    server.send_P(200, PSTR("text/html"), indexhtmlgz, sizeof(indexhtmlgz)); });
 
-  //sn url is a way to find module on network
+  // sn url is a way to find module on network
   char discoURL[10];
 #ifdef ESP8266
   sprintf_P(discoURL, PSTR("/%08x"), ESP.getChipId());
 #else
   sprintf_P(discoURL, PSTR("/%08x"), (uint32_t)(ESP.getEfuseMac() << 40 >> 40));
 #endif
-  server.on(discoURL, HTTP_GET, [](AsyncWebServerRequest *request) {
+  server.on(discoURL, HTTP_GET, [&server]()
+            {
     char chipID[9];
 #ifdef ESP8266
     sprintf_P(chipID, PSTR("%08x"), ESP.getChipId());
 #else
     sprintf_P(chipID, PSTR("%08x"), (uint32_t)(ESP.getEfuseMac() << 40 >> 40));
 #endif
-    AsyncWebServerResponse *response = request->beginResponse(200, "text/html", chipID);
-    response->addHeader("Access-Control-Allow-Origin", "*"); //allow this URL to be requested from everywhere
-    response->addHeader("Cache-Control", "no-cache");
-    request->send(response);
-  });
+    server.keepAlive(false);
+    server.enableCORS(true); //allow this URL to be requested from everywhere
+    server.sendHeader(F("Cache-Control"), F("no-cache"));
+    server.send(200, "text/html", chipID); });
 
-  //ffffffff url is a way to find all modules on the network
-  server.on("/ffffffff", HTTP_GET, [](AsyncWebServerRequest *request) {
+  // ffffffff url is a way to find all modules on the network
+  server.on("/ffffffff", HTTP_GET, [&server]()
+            {
     //answer with a JSON string containing sn, model and version numbers
     char discoJSON[128];
 #ifdef ESP8266
@@ -115,19 +115,19 @@ void Core::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pa
 #else
     sprintf_P(discoJSON, PSTR("{\"sn\":\"%08x\",\"m\":\"%s\",\"v\":\"%s\"}"), (uint32_t)(ESP.getEfuseMac() << 40 >> 40), APPLICATION1_NAME, BASE_VERSION "/" VERSION);
 #endif
-    AsyncWebServerResponse *response = request->beginResponse(200, "text/json", discoJSON);
-    response->addHeader("Access-Control-Allow-Origin", "*"); //allow this URL to be requested from everywhere
-    response->addHeader("Cache-Control", "no-cache");
-    request->send(response);
-  });
+    server.keepAlive(false);
+    server.enableCORS(true); //allow this URL to be requested from everywhere
+    server.sendHeader(F("Cache-Control"), F("no-cache"));
+    server.send(200, "text/json", discoJSON); });
 
-  //FirmWare POST URL allows to push new firmware
-  server.on("/fw", HTTP_POST, [&shouldReboot, &pauseApplication](AsyncWebServerRequest *request) {
+  // FirmWare POST URL allows to push new firmware
+  server.on(
+      "/fw", HTTP_POST, [&shouldReboot, &pauseApplication, &server]()
+      {
     shouldReboot = !Update.hasError();
     if (shouldReboot) {
-      AsyncWebServerResponse *response = request->beginResponse(200, F("text/html"), F("Firmware Successfully Uploaded<script>setTimeout(function(){if('referrer' in document)window.location=document.referrer;},10000);</script>"));
-      response->addHeader("Connection", "close");
-      request->send(response);
+      server.keepAlive(false);
+      server.send(200, F("text/html"), F("Firmware Successfully Uploaded<script>setTimeout(function(){if('referrer' in document)window.location=document.referrer;},10000);</script>"));
     }
     else {
       //Upload failed so restart to Run Application in loop
@@ -177,92 +177,110 @@ void Core::appInitWebServer(AsyncWebServer &server, bool &shouldReboot, bool &pa
 #else
       errorMsg=Update.errorString();
 #endif
-      AsyncWebServerResponse *response = request->beginResponse(500, F("text/html"), errorMsg);
-      response->addHeader("Connection", "close");
-      request->send(response);
-    } }, [&pauseApplication](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
-    if (!index) {
-      //stop to Run Application in loop
-      pauseApplication = true;
-#ifdef LOG_SERIAL
-      LOG_SERIAL.printf("Update Start: %s\n", filename.c_str());
-#endif
-#ifdef ESP8266
-      Update.runAsync(true);
-      if (!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000)) {
-#else
-      if (!Update.begin()) {
-#endif
-#ifdef LOG_SERIAL
-        Update.printError(LOG_SERIAL);
-#endif
-      }
-    }
-    if (!Update.hasError()) {
-#ifdef ESP8266
-      //Feed the dog otherwise big firmware won't pass
-      ESP.wdtFeed();
-#endif
-      if (Update.write(data, len) != len) {
-#ifdef LOG_SERIAL
-        Update.printError(LOG_SERIAL);
-#endif
-      }
-    }
-    if (final) {
-      if (Update.end(true)) {
-#ifdef LOG_SERIAL
-        LOG_SERIAL.printf("Update Success: %uB\n", index + len);
-      } else {
-        Update.printError(LOG_SERIAL);
-#endif
-      }
-    } });
+      server.keepAlive(false);
+      server.send(500, F("text/html"), errorMsg);
+    } },
+      [&pauseApplication, &server]()
+      {
+        HTTPUpload &upload = server.upload();
+        if (upload.status == UPLOAD_FILE_START)
+        {
+          // stop to Run Application in loop
+          pauseApplication = true;
 
-  //reboot POST
-  server.on("/rbt", HTTP_POST, [&shouldReboot](AsyncWebServerRequest *request) {
-    request->send_P(200,F("text/html"),PSTR("Reboot command received<script>setTimeout(function(){if('referrer' in document)window.location=document.referrer;},30000);</script>"));
+#ifdef LOG_SERIAL
+          LOG_SERIAL.printf("Update Start: %s\n", upload.filename.c_str());
+#endif
+
+#ifdef ESP8266
+          if (!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000))
+          {
+#else
+          if (!Update.begin())
+          {
+#endif
+#ifdef LOG_SERIAL
+            Update.printError(LOG_SERIAL);
+#endif
+          }
+        }
+        else if (upload.status == UPLOAD_FILE_WRITE)
+        {
+
+          if (!Update.hasError())
+          {
+#ifdef ESP8266
+            // Feed the dog otherwise big firmware won't pass
+            ESP.wdtFeed();
+#endif
+            if (Update.write(upload.buf, upload.currentSize) != upload.currentSize)
+            {
+#ifdef LOG_SERIAL
+              Update.printError(LOG_SERIAL);
+#endif
+            }
+          }
+        }
+        else if (upload.status == UPLOAD_FILE_END)
+        {
+
+          if (Update.end(true))
+          {
+#ifdef LOG_SERIAL
+            LOG_SERIAL.printf("Update Success: %uB\n", upload.totalSize);
+          }
+          else
+          {
+            Update.printError(LOG_SERIAL);
+#endif
+          }
+        }
+        yield();
+      });
+
+  // reboot POST
+  server.on("/rbt", HTTP_POST, [&shouldReboot, &server]()
+            {
+    server.keepAlive(false);
+    server.send_P(200,PSTR("text/html"),PSTR("Reboot command received<script>setTimeout(function(){if('referrer' in document)window.location=document.referrer;},30000);</script>"));
     shouldReboot = true; });
 
-  //reboot Rescue POST
-  server.on("/rbtrsc", HTTP_POST, [&shouldReboot](AsyncWebServerRequest *request) {
-    request->send_P(200,F("text/html"),PSTR("Reboot in rescue command received<script>setTimeout(function(){if('referrer' in document)window.location=document.referrer;},30000);</script>"));
+  // reboot Rescue POST
+  server.on("/rbtrsc", HTTP_POST, [&shouldReboot, &server]()
+            {
+    server.keepAlive(false);
+    server.send_P(200,PSTR("text/html"),PSTR("Reboot in rescue command received<script>setTimeout(function(){if('referrer' in document)window.location=document.referrer;},30000);</script>"));
     //Set EEPROM for Rescue mode flag
     EEPROM.begin(4);
     EEPROM.write(0, 1);
     EEPROM.end();
     shouldReboot = true; });
 
-  //Ressources URLs
-  server.on("/pure-min.css", HTTP_GET, [](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse_P(200, F("text/css"), (const uint8_t *)puremincssgz, sizeof(puremincssgz));
-    response->addHeader("Content-Encoding", "gzip");
-    response->addHeader("Cache-Control", "max-age=604800, public");
-    request->send(response);
-  });
+  // Ressources URLs
+  server.on("/pure-min.css", HTTP_GET, [&server]()
+            {
+    server.keepAlive(false);
+    server.sendHeader(F("Content-Encoding"), F("gzip"));
+    server.sendHeader(F("Cache-Control"), F("max-age=604800, public"));
+    server.send_P(200, PSTR("text/css"), puremincssgz, sizeof(puremincssgz)); });
 
-  server.on("/side-menu.css", HTTP_GET, [](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse_P(200, F("text/css"), (const uint8_t *)sidemenucssgz, sizeof(sidemenucssgz));
-    response->addHeader("Content-Encoding", "gzip");
-    response->addHeader("Cache-Control", "max-age=604800, public");
-    request->send(response);
-  });
+  server.on("/side-menu.css", HTTP_GET, [&server]()
+            {
+    server.keepAlive(false);
+    server.sendHeader(F("Content-Encoding"), F("gzip"));
+    server.sendHeader(F("Cache-Control"), F("max-age=604800, public"));
+    server.send_P(200, PSTR("text/css"), sidemenucssgz, sizeof(sidemenucssgz)); });
 
-  server.on("/side-menu.js", HTTP_GET, [](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse_P(200, F("text/javascript"), (const uint8_t *)sidemenujsgz, sizeof(sidemenujsgz));
-    response->addHeader("Content-Encoding", "gzip");
-    response->addHeader("Cache-Control", "max-age=604800, public");
-    request->send(response);
-  });
+  server.on("/side-menu.js", HTTP_GET, [&server]()
+            {
+    server.keepAlive(false);
+    server.sendHeader(F("Content-Encoding"), F("gzip"));
+    server.sendHeader(F("Cache-Control"), F("max-age=604800, public"));
+    server.send_P(200, PSTR("text/javascript"), sidemenujsgz, sizeof(sidemenujsgz)); });
 
-  //Special Developper pages
-  // wait for LittleFSEditor
-// #if DEVELOPPER_MODE
-//   server.addHandler(new SPIFFSEditor("TODO", "TODO"));
-// #endif
-
-  //404 on not found
-  server.onNotFound([](AsyncWebServerRequest *request) {
-    request->send(404);
-  });
+  // 404 on not found
+  server.onNotFound([&server]()
+                    {
+    server.keepAlive(false);
+    server.send(404); });
 }
