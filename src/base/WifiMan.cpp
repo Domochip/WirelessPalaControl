@@ -348,6 +348,9 @@ bool WifiMan::appInit(bool reInit = false)
   // right config so no need to touch again flash
   WiFi.persistent(false);
 
+  // start MDNS
+  MDNS.begin(APPLICATION1_NAME);
+
   return (ssid[0] ? WiFi.isConnected() : true);
 }
 
@@ -429,4 +432,6 @@ void WifiMan::appRun()
     _needRefreshWifi = false;
     refreshWiFi();
   }
+
+  MDNS.update();
 }

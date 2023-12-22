@@ -5,6 +5,7 @@
 #include "Application.h"
 
 #include <Ticker.h>
+#include <ESP8266mDNS.h>
 
 #include "data\statusw.html.gz.h"
 #include "data\configw.html.gz.h"
