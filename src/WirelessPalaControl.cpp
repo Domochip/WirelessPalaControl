@@ -37,6 +37,8 @@ int WebPalaControl::myDrainSerial()
 int WebPalaControl::myFlushSerial()
 {
   Serial.flush();
+  while (Serial.read() != -1)
+    ; // flush RX buffer
   return 0;
 }
 void WebPalaControl::myUSleep(unsigned long usecond) { delayMicroseconds(usecond); }
