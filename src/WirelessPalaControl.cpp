@@ -16,16 +16,15 @@ void WebPalaControl::myCloseSerial()
 }
 int WebPalaControl::mySelectSerial(unsigned long timeout)
 {
+  size_t avail;
   esp8266::polledTimeout::oneShotMs timeOut(timeout);
-  while (!Serial.available() && !timeOut)
+  while ((avail = Serial.available()) == 0 && !timeOut)
   {
     delay(10);
     ESP.wdtFeed(); // feed the WDT to prevent bite
   }
 
-  if (Serial.available())
-    return 1;
-  return 0;
+  return avail;
 }
 size_t WebPalaControl::myReadSerial(void *buf, size_t count) { return Serial.read((char *)buf, count); }
 size_t WebPalaControl::myWriteSerial(const void *buf, size_t count) { return Serial.write((const uint8_t *)buf, count); }
