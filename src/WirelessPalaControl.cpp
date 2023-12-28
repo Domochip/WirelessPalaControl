@@ -858,15 +858,10 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    String strRoomFanLevel(cmd.substring(9));
-
-    byte roomFanLevel = strRoomFanLevel.toInt();
-
-    if (roomFanLevel == 0 && strRoomFanLevel[0] != '0')
-    {
-      info["CMD"] = F("SET RFAN");
-      info["MSG"] = String(F("Incorrect Room Fan value : ")) + strRoomFanLevel;
-    }
+    if (cmdParamNumber != 1)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
@@ -874,7 +869,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       byte PWRReturn;
       uint16_t F2LReturn;
       uint16_t F2LFReturn;
-      cmdSuccess = _Pala.setRoomFan(roomFanLevel, &isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
+      cmdSuccess = _Pala.setRoomFan(cmdParams[0], &isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
 
       if (cmdSuccess)
       {
