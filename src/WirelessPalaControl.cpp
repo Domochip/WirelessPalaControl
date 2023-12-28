@@ -1245,31 +1245,20 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    String strParamNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
-    String strParamValue(cmd.substring(cmd.indexOf(' ', 9) + 1));
-
-    byte paramNumber = strParamNumber.toInt();
-    byte paramValue = strParamValue.toInt();
-
-    if (paramNumber == 0 && strParamNumber[0] != '0')
-    {
-      info["CMD"] = F("SET PARM");
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + strParamNumber;
-    }
-
-    if (info["MSG"].isNull() && paramValue == 0 && strParamValue[0] != '0')
-    {
-      info["CMD"] = F("SET PARM");
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strParamValue;
-    }
+    if (cmdParamNumber != 2)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
+    else if (!validCmdParams[1])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
 
     if (info["MSG"].isNull())
     {
-      cmdSuccess = _Pala.setParameter(paramNumber, paramValue);
+      cmdSuccess = _Pala.setParameter(cmdParams[0], cmdParams[1]);
 
       if (cmdSuccess)
       {
-        data[String(F("PAR")) + paramNumber] = paramValue;
+        data[String(F("PAR")) + cmdParams[0]] = cmdParams[1];
       }
     }
   }
