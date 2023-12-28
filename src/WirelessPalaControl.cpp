@@ -1267,31 +1267,20 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    String strHiddenParamNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
-    String strHiddenParamValue(cmd.substring(cmd.indexOf(' ', 9) + 1));
-
-    byte hiddenParamNumber = strHiddenParamNumber.toInt();
-    uint16_t hiddenParamValue = strHiddenParamValue.toInt();
-
-    if (hiddenParamNumber == 0 && strHiddenParamNumber[0] != '0')
-    {
-      info["CMD"] = F("SET HPAR");
-      info["MSG"] = String(F("Incorrect Hidden Parameter Number : ")) + strHiddenParamNumber;
-    }
-
-    if (info["MSG"].isNull() && hiddenParamValue == 0 && strHiddenParamValue[0] != '0')
-    {
-      info["CMD"] = F("SET HPAR");
-      info["MSG"] = String(F("Incorrect Hidden Parameter Value : ")) + strHiddenParamValue;
-    }
+    if (cmdParamNumber != 2)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
+    else if (!validCmdParams[1])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
 
     if (info["MSG"].isNull())
     {
-      cmdSuccess = _Pala.setHiddenParameter(hiddenParamNumber, hiddenParamValue);
+      cmdSuccess = _Pala.setHiddenParameter(cmdParams[0], cmdParams[1]);
 
       if (cmdSuccess)
       {
-        data[String(F("HPAR")) + hiddenParamNumber] = hiddenParamValue;
+        data[String(F("HPAR")) + cmdParams[0]] = cmdParams[1];
       }
     }
   }
