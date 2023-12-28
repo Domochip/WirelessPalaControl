@@ -665,25 +665,18 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     }
   }
 
-  if (!cmdProcessed && cmd.startsWith(F("CMD ")))
+  if (!cmdProcessed && cmd == F("CMD ON"))
   {
     cmdProcessed = true;
 
-    String strOrder(cmd.substring(4));
+    cmdSuccess = _Pala.switchOn();
+  }
 
-    if (strOrder != F("ON") && strOrder != F("OFF"))
-    {
-      info["CMD"] = F("CMD");
-      info["MSG"] = String(F("Incorrect ON/OFF value : ")) + cmd.substring(4);
-    }
+  if (!cmdProcessed && cmd == F("CMD OFF"))
+  {
+    cmdProcessed = true;
 
-    if (info["MSG"].isNull())
-    {
-      if (strOrder == F("ON"))
-        cmdSuccess = _Pala.switchOn();
-      else if (strOrder == F("OFF"))
-        cmdSuccess = _Pala.switchOff();
-    }
+    cmdSuccess = _Pala.switchOff();
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET POWR ")))
