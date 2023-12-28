@@ -64,12 +64,11 @@ Download latest release in Release section
 
 ### Connect
 
-/!\ **You need to use an RJ11 standard phone cable.** /!\  
-Those are **crossed** like this  
+⚠️ **You need to use a crossed RJ11 phone cable like this:** ⚠️  
 ![WirelessPalaControl rj11](https://raw.github.com/Domochip/WirelessPalaControl/master/img/rj11-pinout.png)
 
 Most of stove have an RJ11/RJ12 connector for PalaControl connection.  
-If you don't have it, you need to cable it using a splitter to connect screen and palaControl at the same time :  
+If you don't have it, you need to cable it using a splitter to connect screen and PalaControl at the same time :  
 ![WirelessPalaControl cabling](https://raw.github.com/Domochip/WirelessPalaControl/master/img/cabling.png)
 
 Splitter and additional cable can be found on Aliexpress (search for "6p6c splitter" and "rj12 cable").  
@@ -84,20 +83,24 @@ During First Boot, the ESP boot in Access Point Mode
 
 - Network SSID : `WirelessPalaControlXXXX`
 - Password : `PasswordPalaControl`
-- ESP IP : `192.168.4.1`
+- ESP URL : 👉 http://wpalacontrol.local 👈
 
 Connect to this network and then configure it.
 
 ### Configuration
 
-WirelessPalaControl offers you some webpages in order to configure it :
+WirelessPalaControl offers you some webpages in order to configure it:
 
-- `Status` return you the current status of the module (and the Serial Number of your stove):  
+#### Status
+
+It returns you useful informations about the module but also regarding the stove:  
 ![status screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status.png)  
 **Then 1 minute later, other stove information appears (default upload period)**
 ![status2 screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status2.png)
 
-- `Config` allows you to change configuration :  
+#### Config
+
+It allows you to change configuration:  
 ![config screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/config.png)  
   **ssid & password** : IDs of your Wifi Network  
   **hostname** : name of ESP on the network  
@@ -105,110 +108,104 @@ WirelessPalaControl offers you some webpages in order to configure it :
 ![configMQTT screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/configMQTT.png)  
   Fill-in MQTT broker information
 
-- `Firmware` allows you to flash a new firmware version :  
+#### Firmware
+
+It allows you to flash a new firmware version:  
 ![firmware screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/firmware.png)
 
-- `Discover` allows you to find all DomoChip devices on your network :  
+#### Discover
+
+It allows you to find all DomoChip devices on your network:  
 ![discover screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/discover.png)
 
 ## Use it
 
-### MQTT
-
-MQTT requests can be send to /cmd topic once MQTT is configured
-
-MQTT Command list : 
-- `CMD+ON` will turn stove ON
-- `CMD+OFF` will turn stove OFF
-- `SET+POWR+3` will set power (1-5)
-- `SET+SETP+20` will set Set Point (desired temperature)
-- `SET+RFAN+2` will set Room Fan value (0-5;6=Max;7=Auto)
-
-MQTT infos published every "Upload Period":
-- `STATUS` status of the stove
-- `LSTATUS` status of the stove
-- `T1` temperature of the stove
-- `T2` temperature of the stove
-- `T3` temperature of the stove
-- `T4` temperature of the stove
-- `T5` temperature of the stove
-- `F1V` fan value
-- `F2V` fan value
-- `F2L` fan value
-- `F2LF` fan value
-- `F3L` fan value
-- `F4L` fan value
-- `IGN` ignition counter
-- `IGNERRORS` ignition error counter
-- `POWERTIME` total heating time (hour)
-- `HEATTIME` ??? (hour)
-- `SERVICETIME` heating time since last maintenance (hour)
-- `ONTIME` time from last power ON (hour)
-- `OVERTMPERRORS` overtemperature error counter
-- `STOVE_DATETIME` date of the stove
-- `STOVE_WDAY` week day of the stove
-- `SETP` current Set Point (desired temperature)
-- `PQT` wood pellet consumption
-- `PWR` current power (1-5)
-- `FDR` feeder
-- `DP_TARGET` delta pressure target
-- `DP_PRESS` actual delta pressure
-
 ### HTTP
 
-HTTP GET requests can be send directly and should follow this syntax : **http://*{IP}*/cgi-bin/sendmsg.lua?cmd=*{command}***
+Natively, HTTP GET request can be sent directly to the module.  
+Syntax:  **http://wpalacontrol.local/cgi-bin/sendmsg.lua?cmd={command}**
 
-HTTP GET Command list : 
+### MQTT
 
-- `GET+STDT` will return static data
-- `GET+ALLS` will return all status data
-- `GET+STAT` will return status of the stove
-- `GET+TMPS` will return temperatures of the stove
-- `GET+FAND` will return Fan values
-- `GET+SETP` will return current Set Point (desired temperature)
-- `GET+POWR` will return current power (1-5)
-- `GET+CUNT` will return some counters
-- `GET+CNTR` will return some counters (same as GET+CUNT)
-- `GET+DPRS` will return delta pressure data
-- `GET+TIME` will return stove clock data
-- `GET+IOPT` will return IO ports status
-- `GET+SERN` will return stove Serial Number
-- `GET+MDVE` will return stove model and fw version
-- `GET+CHRD` will return chrono data
-- `GET+PARM+92` will return parameter (ex : 92=pellet type (1-3))
-- `GET+HPAR+57` will return hidden parameter (ex : 57=% of pellet to feed for pellet type 3)
----
-**WirelessPalaControl specific commands**
-- `BKP+PARM+CSV` will return all parameters in CSV format
-- `BKP+PARM+JSON` will return all parameters in JSON format
-- `BKP+HPAR+CSV` will return all hidden parameters in CSV format
-- `BKP+HPAR+JSON` will return all hidden parameters in JSON format
----
-- `CMD+ON` will turn stove ON
-- `CMD+OFF` will turn stove OFF
-- `SET+POWR+3` will set power (1-5)
-- `SET+PWRU` will increase power by 1 unit
-- `SET+PWRD` will decrease power by 1 unit
-- `SET+SETP+20` will set Set Point (desired temperature)
-- `SET+STPU` will increase Set Point by 1 unit
-- `SET+STPD` will decrease Set Point by 1 unit
-- `SET+RFAN+7` will set Room Fan value (0-5;6=Max;7=Auto)
-- `SET+FN2U` will increase Room Fan by 1 unit
-- `SET+FN2D` will decrease Room Fan by 1 unit
-- `SET+FN3L+0` will set Room Fan 3 value (0-5)
-- `SET+FN4L+0` will set Room Fan 4 value (0-5)
-- `SET+SLNT+0` will set Silent mode value (0-1)
-- `SET+TIME+2023-12-28+19:42:00` will set stove Date and Time (2000-2099) (1-12) (1-31) (0-23) (0-59) (0-59)
-- `SET+CSST+0` will set Chrono Status value (0-1)
-- `SET+CSTH+2+18` will set Chrono Program Start Hour (1-6) (0-23)
-- `SET+CSTM+2+30` will set Chrono Program Start Minute (1-6) (0-59)
-- `SET+CSPH+2+22` will set Chrono Program Stop Hour (1-6) (0-23)
-- `SET+CSPM+2+45` will set Chrono Program Stop Minute (1-6) (0-59)
-- `SET+CSET+2+19` will set Chrono Program Set Point (1-6) (desired temperature)
-- `SET+CDAY+7+3+6` will set Chrono Program for week day (Day-Mem-Prog) (1-7) (1-3) (1-6)
-- `SET+CPRD+1+19+18+30+22+45` will set Chrono Program data (Prog-Temp-StartH-StartM-StopH-StopM) (1-6) (temperature) (0-23) (0-59) (0-23) (0-59)
-- `SET+PARM+92+2` will set parameter 92 to value 2 (ex : 92=pellet type (1-3))
-- `SET+HPAR+57+95` will set hidden parameter 57 to value 95 (ex : 57=% of pellet to feed for pellet type 3)
----
-**WirelessPalaControl specific commands**
-- `SET+STPF+19.8` will set Set Point with a 0.2° precision (depend of your stove model)
+Command can be sent via MQTT to %BaseTopic%**/cmd** topic once MQTT is configured.  
+Execution result is:  
+ - received back on %BaseTopic%**/result** in JSON format 
+ - published following the configured MQTT Type
+
+### Command List
+
+- `GET+STDT`: get static data
+- `GET+ALLS`: get all status data
+- `GET+STAT`: get status of the stove⏲️
+- `GET+TMPS`: get temperatures of the stove⏲️
+- `GET+FAND`: get Fan values⏲️
+- `GET+SETP`: get current Set Point (desired temperature)⏲️
+- `GET+POWR`: get current power (1-5)⏲️
+- `GET+CUNT`: get some counters
+- `GET+CNTR`: get some counters (same as GET+CUNT)⏲️
+- `GET+DPRS`: get delta pressure data⏲️
+- `GET+TIME`: get stove clock data⏲️
+- `GET+IOPT`: get IO ports status
+- `GET+SERN`: get stove Serial Number
+- `GET+MDVE`: get stove model and fw version
+- `GET+CHRD`: get chrono data
+- `GET+PARM+92`: get parameter (ex : 92=pellet type (1-3))
+- `GET+HPAR+57`: get hidden parameter (ex : 57=% of pellet to feed for pellet type 3)
+- `BKP+PARM+CSV`: get all parameters in a CSV file (HTTP only) 🔷
+- `BKP+PARM+JSON`: get all parameters in a JSON file (HTTP only) 🔷
+- `BKP+HPAR+CSV`: get all hidden parameters in a CSV file (HTTP only) 🔷
+- `BKP+HPAR+JSON`: get all hidden parameters in a JSON file (HTTP only) 🔷
+- `CMD+ON`: turn stove ON
+- `CMD+OFF`: turn stove OFF
+- `SET+POWR+3`: set power (1-5)
+- `SET+PWRU`: increase power by 1 unit
+- `SET+PWRD`: decrease power by 1 unit
+- `SET+SETP+20`: set Set Point (desired temperature)
+- `SET+STPU`: increase Set Point by 1 unit
+- `SET+STPD`: decrease Set Point by 1 unit
+- `SET+RFAN+7`: set Room Fan value (0-5;6=Max;7=Auto)
+- `SET+FN2U`: increase Room Fan by 1 unit
+- `SET+FN2D`: decrease Room Fan by 1 unit
+- `SET+FN3L+0`: set Room Fan 3 value (0-5)
+- `SET+FN4L+0`: set Room Fan 4 value (0-5)
+- `SET+SLNT+0`: set Silent mode value (0-1)
+- `SET+TIME+2023-12-28+19:42:00`: set stove Date and Time (2000-2099) (1-12) (1-31) (0-23) (0-59) (0-59)
+- `SET+CSST+0`: set Chrono Status value (0-1)
+- `SET+CSTH+2+18`: set Chrono Program Start Hour (1-6) (0-23)
+- `SET+CSTM+2+30`: set Chrono Program Start Minute (1-6) (0-59)
+- `SET+CSPH+2+22`: set Chrono Program Stop Hour (1-6) (0-23)
+- `SET+CSPM+2+45`: set Chrono Program Stop Minute (1-6) (0-59)
+- `SET+CSET+2+19`: set Chrono Program Set Point (1-6) (desired temperature)
+- `SET+CDAY+7+3+6`: set Chrono Program for week day (Day-Mem-Prog) (1-7) (1-3) (1-6)
+- `SET+CPRD+1+19+18+30+22+45`: set Chrono Program data (Prog-Temp-StartH-StartM-StopH-StopM) (1-6) (temperature) (0-23) (0-59) (0-23) (0-59)
+- `SET+PARM+92+2`: set parameter 92 to value 2 (ex : 92=pellet type (1-3))
+- `SET+HPAR+57+95`: set hidden parameter 57 to value 95 (ex : 57=% of pellet to feed for pellet type 3)
+
+- `SET+STPF+19.8`: set Set Point with a 0.2° precision (depend of your stove model)🔷
+
+⏲️: Published automatically if "Upload Period" is configured
+🔷: WPalaControl specific commands
+
+
+### Description
+
+MQTT infos published every "Upload Period":
+- `STATUS`: status of the stove
+- `LSTATUS`: status of the stove
+- `T1`, `T2`, `T3`, `T4`, `T5`: temperature of the stove
+- `F1V`, `F2V`, `F2L`, `F2LF`, `F3L`, `F4L`: fan values (meaning depend of your stove model)
+- `IGN`: ignition counter
+- `IGNERRORS`: ignition error counter
+- `POWERTIME`: total heating time (hour:minute)
+- `HEATTIME`: ??? (hour:minute)
+- `SERVICETIME`: heating time since last maintenance (hour:minute)
+- `ONTIME`: time from last power ON (hour:minute)
+- `OVERTMPERRORS`: overtemperature error counter
+- `STOVE_DATETIME`: date of the stove
+- `STOVE_WDAY`: week day of the stove
+- `SETP`: current Set Point (desired temperature)
+- `PQT`: wood pellet consumption
+- `PWR`: current power (1-5)
+- `FDR`: feeder
+- `DP_TARGET`: delta pressure target
+- `DP_PRESS`: actual delta pressure
