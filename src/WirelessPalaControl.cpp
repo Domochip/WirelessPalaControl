@@ -1021,141 +1021,75 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
-    String strStartHour(cmd.substring(cmd.indexOf(' ', 9) + 1));
-
-    byte programNumber = strProgramNumber.toInt();
-    byte startHour = strStartHour.toInt();
-
-    if (programNumber == 0 && strProgramNumber[0] != '0')
-    {
-      info["CMD"] = F("SET CSTH");
-      info["MSG"] = String(F("Incorrect Program Number : ")) + strProgramNumber;
-    }
-
-    if (info["MSG"].isNull() && startHour == 0 && strStartHour[0] != '0')
-    {
-      info["CMD"] = F("SET CSTH");
-      info["MSG"] = String(F("Incorrect Start Hour : ")) + strStartHour;
-    }
+    if (cmdParamNumber != 2)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
+    else if (!validCmdParams[1])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
 
     if (info["MSG"].isNull())
-    {
-      cmdSuccess = _Pala.setChronoStartHH(programNumber, startHour);
-    }
+      cmdSuccess = _Pala.setChronoStartHH(cmdParams[0], cmdParams[1]);
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSTM ")))
   {
     cmdProcessed = true;
 
-    String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
-    String strStartMinute(cmd.substring(cmd.indexOf(' ', 9) + 1));
-
-    byte programNumber = strProgramNumber.toInt();
-    byte startMinute = strStartMinute.toInt();
-
-    if (programNumber == 0 && strProgramNumber[0] != '0')
-    {
-      info["CMD"] = F("SET CSTM");
-      info["MSG"] = String(F("Incorrect Program Number : ")) + strProgramNumber;
-    }
-
-    if (info["MSG"].isNull() && startMinute == 0 && strStartMinute[0] != '0')
-    {
-      info["CMD"] = F("SET CSTM");
-      info["MSG"] = String(F("Incorrect Start Minute : ")) + startMinute;
-    }
+    if (cmdParamNumber != 2)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
+    else if (!validCmdParams[1])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
 
     if (info["MSG"].isNull())
-    {
-      cmdSuccess = _Pala.setChronoStartMM(programNumber, startMinute);
-    }
+      cmdSuccess = _Pala.setChronoStartMM(cmdParams[0], cmdParams[1]);
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSPH ")))
   {
     cmdProcessed = true;
 
-    String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
-    String strStopHour(cmd.substring(cmd.indexOf(' ', 9) + 1));
-
-    byte programNumber = strProgramNumber.toInt();
-    byte stopHour = strStopHour.toInt();
-
-    if (programNumber == 0 && strProgramNumber[0] != '0')
-    {
-
-      info["CMD"] = F("SET CSPH");
-      info["MSG"] = String(F("Incorrect Program Number : ")) + strProgramNumber;
-    }
-
-    if (info["MSG"].isNull() && stopHour == 0 && strStopHour[0] != '0')
-    {
-      info["CMD"] = F("SET CSPH");
-      info["MSG"] = String(F("Incorrect Stop Hour : ")) + strStopHour;
-    }
+    if (cmdParamNumber != 2)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
+    else if (!validCmdParams[1])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
 
     if (info["MSG"].isNull())
-    {
-      cmdSuccess = _Pala.setChronoStopHH(programNumber, stopHour);
-    }
+      cmdSuccess = _Pala.setChronoStopHH(cmdParams[0], cmdParams[1]);
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSPM ")))
   {
     cmdProcessed = true;
 
-    String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
-    String strStopMinute(cmd.substring(cmd.indexOf(' ', 9) + 1));
-
-    byte programNumber = strProgramNumber.toInt();
-    byte stopMinute = strStopMinute.toInt();
-
-    if (programNumber == 0 && strProgramNumber[0] != '0')
-    {
-      info["CMD"] = F("SET CSPM");
-      info["MSG"] = String(F("Incorrect Program Number : ")) + strProgramNumber;
-    }
-
-    if (info["MSG"].isNull() && stopMinute == 0 && strStopMinute[0] != '0')
-    {
-      info["CMD"] = F("SET CSPM");
-      info["MSG"] = String(F("Incorrect Stop Minute : ")) + strStopMinute;
-    }
+    if (cmdParamNumber != 2)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
+    else if (!validCmdParams[1])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
 
     if (info["MSG"].isNull())
-    {
-      cmdSuccess = _Pala.setChronoStopMM(programNumber, stopMinute);
-    }
+      cmdSuccess = _Pala.setChronoStopMM(cmdParams[0], cmdParams[1]);
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CSET ")))
   {
     cmdProcessed = true;
 
-    String strProgramNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
-    String strSetPoint(cmd.substring(cmd.indexOf(' ', 9) + 1));
-
-    byte programNumber = strProgramNumber.toInt();
-    byte setPoint = strSetPoint.toInt();
-
-    if (programNumber == 0 && strProgramNumber[0] != '0')
-    {
-      info["CMD"] = F("SET CSET");
-      info["MSG"] = String(F("Incorrect Program Number : ")) + strProgramNumber;
-    }
-
-    if (info["MSG"].isNull() && setPoint == 0 && strSetPoint[0] != '0')
-    {
-      info["CMD"] = F("SET CSET");
-      info["MSG"] = String(F("Incorrect SetPoint : ")) + strSetPoint;
-    }
+    if (cmdParamNumber != 2)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
+    else if (!validCmdParams[1])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
 
     if (info["MSG"].isNull())
-    {
-      cmdSuccess = _Pala.setChronoSetpoint(programNumber, setPoint);
-    }
+      cmdSuccess = _Pala.setChronoSetpoint(cmdParams[0], cmdParams[1]);
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CDAY ")))
