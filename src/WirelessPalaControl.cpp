@@ -1000,20 +1000,15 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    String strChronoStatus = cmd.substring(9);
-
-    bool chronoStatus = (strChronoStatus.toInt() != 0);
-
-    if (!chronoStatus && strChronoStatus[0] != '0')
-    {
-      info["CMD"] = F("SET CSST");
-      info["MSG"] = String(F("Incorrect Chrono Status value : ")) + strChronoStatus;
-    }
+    if (cmdParamNumber != 1)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
       byte CHRSTATUSReturn;
-      cmdSuccess = _Pala.setChronoStatus(chronoStatus, &CHRSTATUSReturn);
+      cmdSuccess = _Pala.setChronoStatus(cmdParams[0], &CHRSTATUSReturn);
 
       if (cmdSuccess)
       {
