@@ -133,7 +133,7 @@ Execution result is:
  - published following the configured MQTT Type
 
 ### Command List
-
+  
 - `GET+STDT`: get static data
 - `GET+ALLS`: get all status data
 - `GET+STAT`: get status of the stove⏲️
@@ -180,10 +180,9 @@ Execution result is:
 - `SET+CPRD+1+19+18+30+22+45`: set Chrono Program data (Prog-Temp-StartH-StartM-StopH-StopM) (1-6) (temperature) (0-23) (0-59) (0-23) (0-59)
 - `SET+PARM+92+2`: set parameter 92 to value 2 (ex : 92=pellet type (1-3))
 - `SET+HPAR+57+95`: set hidden parameter 57 to value 95 (ex : 57=% of pellet to feed for pellet type 3)
-
 - `SET+STPF+19.8`: set Set Point with a 0.2° precision (depend of your stove model)🔷
 
-⏲️: Published automatically if "Upload Period" is configured
+⏲️: Published automatically if "Upload Period" is configured  
 🔷: WPalaControl specific commands
 
 
