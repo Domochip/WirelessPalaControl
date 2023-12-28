@@ -153,7 +153,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   byte cmdParamNumber = 0;
   String strCmdParams[6];
   uint16_t cmdParams[6];
-  bool validCmdParams[6];
 
   if (cmd.length() > 9 && cmd[8] == ' ')
   {
@@ -190,13 +189,17 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       // ( copy strCmdParams and remove all 0 from the string, if convertion result is 0, then resulting string should be empty)
       String validation = strCmdParams[cmdParamNumber];
       validation.replace("0", "");
-      validCmdParams[cmdParamNumber] = (cmdParams[cmdParamNumber] != 0 || validation.length() == 0);
+      if (cmdParams[cmdParamNumber] == 0 && validation.length())
+      {
+        cmdProcessed = true;
+        info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[cmdParamNumber];
+      }
 
       cmdParamNumber++;
     }
 
     // too much parameters has been sent
-    if (cmdWorkingCopy.length())
+    if (cmdParamNumber == 6 && cmdWorkingCopy.length())
     {
       cmdProcessed = true;
       info["MSG"] = F("Incorrect Parameter Number");
@@ -669,8 +672,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
@@ -692,8 +693,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
@@ -729,8 +728,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
@@ -810,17 +807,8 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    const __FlashStringHelper *errorMessage[6] = {F("Year"), F("Month"), F("Day"), F("Hour"), F("Minute"), F("Second")};
-
     if (cmdParamNumber != 6)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    // check cmd parameters validation
-    for (byte i = 0; i < 6 && info["MSG"].isNull(); i++)
-    {
-      if (!validCmdParams[i])
-        info["MSG"] = String(F("Incorrect ")) + errorMessage[i] + F(" Value : ") + strCmdParams[i];
-    }
 
     // Check if date is valid
     // basic control
@@ -860,8 +848,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
@@ -925,8 +911,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
@@ -946,8 +930,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
@@ -967,8 +949,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
@@ -1002,8 +982,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
@@ -1023,10 +1001,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 2)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
-    else if (!validCmdParams[1])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
 
     if (info["MSG"].isNull())
       cmdSuccess = _Pala.setChronoStartHH(cmdParams[0], cmdParams[1]);
@@ -1038,10 +1012,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 2)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
-    else if (!validCmdParams[1])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
 
     if (info["MSG"].isNull())
       cmdSuccess = _Pala.setChronoStartMM(cmdParams[0], cmdParams[1]);
@@ -1053,10 +1023,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 2)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
-    else if (!validCmdParams[1])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
 
     if (info["MSG"].isNull())
       cmdSuccess = _Pala.setChronoStopHH(cmdParams[0], cmdParams[1]);
@@ -1068,10 +1034,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 2)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
-    else if (!validCmdParams[1])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
 
     if (info["MSG"].isNull())
       cmdSuccess = _Pala.setChronoStopMM(cmdParams[0], cmdParams[1]);
@@ -1083,10 +1045,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 2)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
-    else if (!validCmdParams[1])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
 
     if (info["MSG"].isNull())
       cmdSuccess = _Pala.setChronoSetpoint(cmdParams[0], cmdParams[1]);
@@ -1098,12 +1056,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 3)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
-    else if (!validCmdParams[1])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
-    else if (!validCmdParams[2])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[2];
 
     if (info["MSG"].isNull())
     {
@@ -1131,14 +1083,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("SET CPRD ")))
   {
     cmdProcessed = true;
-
-    const __FlashStringHelper *errorMessage[6] = {F("Program Number"), F("SetPoint"), F("Start Hour"), F("Start Minute"), F("Stop Hour"), F("Stop Minute")};
-
-    for (byte i = 0; i < 6 && info["MSG"].isNull(); i++)
-    {
-      if (!validCmdParams[i])
-        info["MSG"] = String(F("Incorrect ")) + errorMessage[i] + F(" Value : ") + strCmdParams[i];
-    }
 
     if (info["MSG"].isNull())
     {
@@ -1172,8 +1116,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
@@ -1219,8 +1161,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 2)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0] || !validCmdParams[1])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0] + '.' + strCmdParams[1];
     else if (cmdParams[1] > 80 || cmdParams[1] % 20 != 0)
       info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0] + '.' + strCmdParams[1];
 
@@ -1247,10 +1187,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 2)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
-    else if (!validCmdParams[1])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
 
     if (info["MSG"].isNull())
     {
@@ -1269,10 +1205,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     if (cmdParamNumber != 2)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-    else if (!validCmdParams[0])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
-    else if (!validCmdParams[1])
-      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
 
     if (info["MSG"].isNull())
     {
