@@ -727,13 +727,10 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    byte powerLevel = cmd.substring(9).toInt();
-
-    if (powerLevel == 0)
-    {
-      info["CMD"] = F("SET POWR");
-      info["MSG"] = String(F("Incorrect Power value : ")) + cmd.substring(9);
-    }
+    if (cmdParamNumber != 1)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
@@ -741,7 +738,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       bool isF2LReturnValid;
       uint16_t _F2LReturn;
       uint16_t FANLMINMAXReturn[6];
-      cmdSuccess = _Pala.setPower(powerLevel, &PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
+      cmdSuccess = _Pala.setPower(cmdParams[0], &PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
 
       if (cmdSuccess)
       {
