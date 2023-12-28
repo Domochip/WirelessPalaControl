@@ -206,24 +206,15 @@ void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &
         }
         else if (upload.status == UPLOAD_FILE_WRITE)
         {
-
-          if (!Update.hasError())
+          if (Update.write(upload.buf, upload.currentSize) != upload.currentSize)
           {
-#ifdef ESP8266
-            // Feed the dog otherwise big firmware won't pass
-            ESP.wdtFeed();
-#endif
-            if (Update.write(upload.buf, upload.currentSize) != upload.currentSize)
-            {
 #ifdef LOG_SERIAL
-              Update.printError(LOG_SERIAL);
+            Update.printError(LOG_SERIAL);
 #endif
-            }
           }
         }
         else if (upload.status == UPLOAD_FILE_END)
         {
-
           if (Update.end(true))
           {
 #ifdef LOG_SERIAL
@@ -235,6 +226,10 @@ void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &
 #endif
           }
         }
+#ifdef ESP8266
+        // Feed the dog otherwise big firmware won't pass
+        ESP.wdtFeed();
+#endif
         yield();
       });
 
