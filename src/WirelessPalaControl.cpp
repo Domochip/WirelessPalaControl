@@ -1220,10 +1220,11 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   // if command has been processed
   if (cmdProcessed)
   {
-    info["CMD"] = cmd;
     // successfully
     if (cmdSuccess)
     {
+      info["CMD"] = cmd.substring(0,8);
+      
       info["RSP"] = F("OK");
       jsonDoc["SUCCESS"] = true;
 
@@ -1244,6 +1245,8 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     }
     else
     {
+      info["CMD"] = cmd;
+
       // if there is no MSG in info then stove communication failed
       if (info["MSG"].isNull())
       {
