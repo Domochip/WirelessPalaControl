@@ -810,56 +810,41 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    String workingCmd(cmd);
-    byte posInWorkingCmd = 9;
-    String strParams[6];
-    uint16_t params[6];
     const __FlashStringHelper *errorMessage[6] = {F("Year"), F("Month"), F("Day"), F("Hour"), F("Minute"), F("Second")};
 
-    // Check format
-    if (cmd.length() != 28 || cmd[13] != '-' || cmd[16] != '-' || cmd[19] != ' ' || cmd[22] != ':' || cmd[25] != ':')
-    {
-      info["MSG"] = F("Incorrect DateTime format");
-    }
+    if (cmdParamNumber != 6)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
 
-    // replace '-' and ':' by ' '
-    workingCmd.replace('-', ' ');
-    workingCmd.replace(':', ' ');
-
-    // parse parameters
+    // check cmd parameters validation
     for (byte i = 0; i < 6 && info["MSG"].isNull(); i++)
     {
-      strParams[i] = workingCmd.substring(posInWorkingCmd, workingCmd.indexOf(' ', posInWorkingCmd));
-      params[i] = strParams[i].toInt();
-      if (params[i] == 0 && strParams[i][0] != '0')
-        info["MSG"] = String(F("Incorrect ")) + errorMessage[i] + F(" : ") + strParams[i];
-
-      posInWorkingCmd += strParams[i].length() + 1;
+      if (!validCmdParams[i])
+        info["MSG"] = String(F("Incorrect ")) + errorMessage[i] + F(" Value : ") + strCmdParams[i];
     }
 
     // Check if date is valid
     // basic control
-    if (params[0] < 2000 || params[0] > 2099)
+    if (cmdParams[0] < 2000 || cmdParams[0] > 2099)
       info["MSG"] = F("Incorrect Year");
-    else if (params[1] < 1 || params[1] > 12)
+    else if (cmdParams[1] < 1 || cmdParams[1] > 12)
       info["MSG"] = F("Incorrect Month");
-    else if ((params[2] < 1 || params[2] > 31) ||
-             ((params[2] == 4 || params[2] == 6 || params[2] == 9 || params[2] == 11) && params[3] > 30) ||                        // 30 days month control
-             (params[2] == 2 && params[3] > 29) ||                                                                                 // February leap year control
-             (params[2] == 2 && params[3] == 29 && !(((params[0] % 4 == 0) && (params[0] % 100 != 0)) || (params[0] % 400 == 0)))) // February not leap year control
+    else if ((cmdParams[2] < 1 || cmdParams[2] > 31) ||
+             ((cmdParams[2] == 4 || cmdParams[2] == 6 || cmdParams[2] == 9 || cmdParams[2] == 11) && cmdParams[3] > 30) ||                        // 30 days month control
+             (cmdParams[2] == 2 && cmdParams[3] > 29) ||                                                                                          // February leap year control
+             (cmdParams[2] == 2 && cmdParams[3] == 29 && !(((cmdParams[0] % 4 == 0) && (cmdParams[0] % 100 != 0)) || (cmdParams[0] % 400 == 0)))) // February not leap year control
       info["MSG"] = F("Incorrect Day");
-    else if (params[3] > 23)
+    else if (cmdParams[3] > 23)
       info["MSG"] = F("Incorrect Hour");
-    else if (params[4] > 59)
+    else if (cmdParams[4] > 59)
       info["MSG"] = F("Incorrect Minute");
-    else if (params[5] > 59)
+    else if (cmdParams[5] > 59)
       info["MSG"] = F("Incorrect Second");
 
     if (info["MSG"].isNull())
     {
       char STOVE_DATETIMEReturn[20];
       byte STOVE_WDAYReturn;
-      cmdSuccess = _Pala.setDateTime(params[0], params[1], params[2], params[3], params[4], params[5], &STOVE_DATETIMEReturn, &STOVE_WDAYReturn);
+      cmdSuccess = _Pala.setDateTime(cmdParams[0], cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4], cmdParams[5], &STOVE_DATETIMEReturn, &STOVE_WDAYReturn);
 
       if (cmdSuccess)
       {
@@ -867,8 +852,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
         data["STOVE_WDAY"] = STOVE_WDAYReturn;
       }
     }
-    else
-      info["CMD"] = F("SET TIME");
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET RFAN ")))
