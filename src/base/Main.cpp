@@ -9,7 +9,7 @@
 #include <ESP8266WebServer.h>
 
 #include "Version.h"
-#include "..\Main.h"
+#include "../Main.h"
 #include "Application.h"
 #include "Core.h"
 #include "WifiMan.h"

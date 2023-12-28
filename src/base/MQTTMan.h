@@ -1,7 +1,7 @@
 #ifndef MQTTMan_h
 #define MQTTMan_h
 
-#include "..\Main.h"
+#include "../Main.h"
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #else

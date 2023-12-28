@@ -1,16 +1,16 @@
 #ifndef Core_h
 #define Core_h
 
-#include "..\Main.h"
+#include "../Main.h"
 #include "Application.h"
 #ifdef ESP32
 #include <Update.h>
 #endif
 
-#include "data\status0.html.gz.h"
-#include "data\config0.html.gz.h"
-#include "data\fw0.html.gz.h"
-#include "data\discover0.html.gz.h"
+#include "data/status0.html.gz.h"
+#include "data/config0.html.gz.h"
+#include "data/fw0.html.gz.h"
+#include "data/discover0.html.gz.h"
 
 class Core : public Application
 {

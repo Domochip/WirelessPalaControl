@@ -1,7 +1,7 @@
 #ifndef Main_h
 #define Main_h
 
-#include <arduino.h>
+#include <Arduino.h>
 
 // DomoChip Informations
 // Configuration Web Pages :

@@ -72,7 +72,7 @@ def convert_all_webfiles(dir):
 
 print('--- Converting web files ---')
 
-convert_all_webfiles(r'.\src\base\data')
-convert_all_webfiles(r'.\src\data')
+convert_all_webfiles(r'./src/base/data')
+convert_all_webfiles(r'./src/data')
 
 print('----------------------------')
