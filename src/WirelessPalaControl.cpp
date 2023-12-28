@@ -149,6 +149,60 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   JsonObject info = jsonDoc.createNestedObject("INFO");
   JsonObject data = jsonDoc.createNestedObject("DATA");
 
+  // Parse parameters
+  byte cmdParamNumber = 0;
+  String strCmdParams[6];
+  uint16_t cmdParams[6];
+  bool validCmdParams[6];
+
+  if (cmd.length() > 9 && cmd[8] == ' ')
+  {
+    String cmdWorkingCopy = cmd.substring(9);
+    cmdWorkingCopy.trim();
+
+    // SET TIME special case
+    if (cmd.startsWith(F("SET TIME ")))
+    {
+      cmdWorkingCopy.replace('-', ' ');
+      cmdWorkingCopy.replace(':', ' ');
+    }
+
+    // SET STPF special case
+    if (cmd.startsWith(F("SET STPF ")))
+      cmdWorkingCopy.replace('.', ' ');
+
+    while (cmdWorkingCopy.length() && cmdParamNumber < 6)
+    {
+      int pos = cmdWorkingCopy.indexOf(' ');
+      if (pos == -1)
+      {
+        strCmdParams[cmdParamNumber] = cmdWorkingCopy;
+        cmdWorkingCopy = "";
+      }
+      else
+      {
+        strCmdParams[cmdParamNumber] = cmdWorkingCopy.substring(0, pos);
+        cmdWorkingCopy = cmdWorkingCopy.substring(pos + 1);
+      }
+      cmdParams[cmdParamNumber] = strCmdParams[cmdParamNumber].toInt();
+
+      // verify convertion is successfull
+      // ( copy strCmdParams and remove all 0 from the string, if convertion result is 0, then resulting string should be empty)
+      String validation = strCmdParams[cmdParamNumber];
+      validation.replace("0", "");
+      validCmdParams[cmdParamNumber] = (cmdParams[cmdParamNumber] != 0 || validation.length() == 0);
+
+      cmdParamNumber++;
+    }
+
+    // too much parameters has been sent
+    if (cmdWorkingCopy.length())
+    {
+      cmdProcessed = true;
+      info["MSG"] = F("Incorrect Parameter Number");
+    }
+  }
+
   if (!cmdProcessed && cmd == F("GET STDT"))
   {
     cmdProcessed = true;
