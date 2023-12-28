@@ -19,10 +19,7 @@ int WebPalaControl::mySelectSerial(unsigned long timeout)
   size_t avail;
   esp8266::polledTimeout::oneShotMs timeOut(timeout);
   while ((avail = Serial.available()) == 0 && !timeOut)
-  {
-    delay(10);
-    ESP.wdtFeed(); // feed the WDT to prevent bite
-  }
+    ;
 
   return avail;
 }
