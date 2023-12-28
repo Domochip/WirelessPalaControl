@@ -1217,13 +1217,17 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    float setPointFloat = cmd.substring(9).toFloat();
+    if (cmdParamNumber != 2)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0] || !validCmdParams[1])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0] + '.' + strCmdParams[1];
+    else if (cmdParams[1] > 80 || cmdParams[1] % 20 != 0)
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0] + '.' + strCmdParams[1];
 
-    if (setPointFloat == 0.0f)
-    {
-      info["CMD"] = F("SET STPF");
-      info["MSG"] = String(F("Incorrect SetPoint Float value : ")) + cmd.substring(9);
-    }
+    // convert splitted float string back to float
+    float setPointFloat = cmdParams[1]; // load decimal part
+    setPointFloat /= 100.0f;
+    setPointFloat += cmdParams[0]; // load integer part
 
     if (info["MSG"].isNull())
     {
