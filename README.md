@@ -198,6 +198,7 @@ HTTP GET Command list :
 - `SET+FN3L+0` will set Room Fan 3 value (0-5)
 - `SET+FN4L+0` will set Room Fan 4 value (0-5)
 - `SET+SLNT+0` will set Silent mode value (0-1)
+- `SET+TIME+2023-12-28+19:42:00` will set stove Date and Time (2000-2099) (1-12) (1-31) (0-23) (0-59) (0-59)
 - `SET+CSST+0` will set Chrono Status value (0-1)
 - `SET+CSTH+2+18` will set Chrono Program Start Hour (1-6) (0-23)
 - `SET+CSTM+2+30` will set Chrono Program Start Minute (1-6) (0-59)
