@@ -667,25 +667,20 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    String strParamNumber(cmd.substring(9));
-
-    byte paramNumber = strParamNumber.toInt();
-
-    if (paramNumber == 0 && strParamNumber[0] != '0')
-    {
-      info["CMD"] = F("GET PARM");
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + strParamNumber;
-    }
+    if (cmdParamNumber != 1)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
       byte paramValue;
-      cmdSuccess = _Pala.getParameter(paramNumber, &paramValue);
+      cmdSuccess = _Pala.getParameter(cmdParams[0], &paramValue);
 
       if (cmdSuccess)
       {
         String paramName("PAR");
-        paramName += paramNumber;
+        paramName += cmdParams[0];
         data[paramName] = paramValue;
       }
     }
@@ -695,25 +690,20 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    String strHiddenParamNumber(cmd.substring(9));
-
-    byte hiddenParamNumber = strHiddenParamNumber.toInt();
-
-    if (hiddenParamNumber == 0 && strHiddenParamNumber[0] != '0')
-    {
-      info["CMD"] = F("GET HPAR");
-      info["MSG"] = String(F("Incorrect Hidden Parameter Number : ")) + strHiddenParamNumber;
-    }
+    if (cmdParamNumber != 1)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
       uint16_t hiddenParamValue;
-      cmdSuccess = _Pala.getHiddenParameter(hiddenParamNumber, &hiddenParamValue);
+      cmdSuccess = _Pala.getHiddenParameter(cmdParams[0], &hiddenParamValue);
 
       if (cmdSuccess)
       {
         String hiddenParamName("HPAR");
-        hiddenParamName += hiddenParamNumber;
+        hiddenParamName += cmdParams[0];
         data[hiddenParamName] = hiddenParamValue;
       }
     }
