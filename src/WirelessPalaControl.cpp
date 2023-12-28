@@ -1132,44 +1132,35 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    byte posInCmd = 9;
-    String strParams[6];
-    byte params[6];
     const __FlashStringHelper *errorMessage[6] = {F("Program Number"), F("SetPoint"), F("Start Hour"), F("Start Minute"), F("Stop Hour"), F("Stop Minute")};
 
     for (byte i = 0; i < 6 && info["MSG"].isNull(); i++)
     {
-      strParams[i] = cmd.substring(posInCmd, cmd.indexOf(' ', posInCmd));
-      params[i] = strParams[i].toInt();
-      if (params[i] == 0 && strParams[i][0] != '0')
-      {
-        info["CMD"] = F("SET CPRD");
-        info["MSG"] = String(F("Incorrect ")) + errorMessage[i] + F(" : ") + strParams[i];
-      }
-      posInCmd += strParams[i].length() + 1;
+      if (!validCmdParams[i])
+        info["MSG"] = String(F("Incorrect ")) + errorMessage[i] + F(" Value : ") + strCmdParams[i];
     }
 
     if (info["MSG"].isNull())
     {
-      cmdSuccess = _Pala.setChronoPrg(params[0], params[1], params[2], params[3], params[4], params[5]);
+      cmdSuccess = _Pala.setChronoPrg(cmdParams[0], cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4], cmdParams[5]);
 
       if (cmdSuccess)
       {
         char programName[3] = {'P', 'X', 0};
         char time[6] = {'0', '0', ':', '0', '0', 0};
 
-        programName[1] = params[0] + '0';
+        programName[1] = cmdParams[0] + '0';
         JsonObject px = data.createNestedObject(programName);
-        px["CHRSETP"] = (float)params[1];
-        time[0] = params[2] / 10 + '0';
-        time[1] = params[2] % 10 + '0';
-        time[3] = params[3] / 10 + '0';
-        time[4] = params[3] % 10 + '0';
+        px["CHRSETP"] = (float)cmdParams[1];
+        time[0] = cmdParams[2] / 10 + '0';
+        time[1] = cmdParams[2] % 10 + '0';
+        time[3] = cmdParams[3] / 10 + '0';
+        time[4] = cmdParams[3] % 10 + '0';
         px["START"] = time;
-        time[0] = params[4] / 10 + '0';
-        time[1] = params[4] % 10 + '0';
-        time[3] = params[5] / 10 + '0';
-        time[4] = params[5] % 10 + '0';
+        time[0] = cmdParams[4] / 10 + '0';
+        time[1] = cmdParams[4] % 10 + '0';
+        time[3] = cmdParams[5] / 10 + '0';
+        time[4] = cmdParams[5] % 10 + '0';
         px["STOP"] = time;
       }
     }
