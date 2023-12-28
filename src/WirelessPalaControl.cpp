@@ -1170,18 +1170,15 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    byte setPoint = cmd.substring(9).toInt();
-
-    if (setPoint == 0)
-    {
-      info["CMD"] = F("SET SETP");
-      info["MSG"] = String(F("Incorrect SetPoint value : ")) + cmd.substring(9);
-    }
+    if (cmdParamNumber != 1)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
       float SETPReturn;
-      cmdSuccess = _Pala.setSetpoint(setPoint, &SETPReturn);
+      cmdSuccess = _Pala.setSetpoint((byte)cmdParams[0], &SETPReturn);
 
       if (cmdSuccess)
       {
