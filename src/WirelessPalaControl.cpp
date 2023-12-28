@@ -965,15 +965,10 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    String strSilentMode = cmd.substring(9);
-
-    byte silentMode = strSilentMode.toInt();
-
-    if (silentMode == 0 && strSilentMode[0] != '0')
-    {
-      info["CMD"] = F("SET SLNT");
-      info["MSG"] = String(F("Incorrect Silent Mode value : ")) + strSilentMode;
-    }
+    if (cmdParamNumber != 1)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
 
     if (info["MSG"].isNull())
     {
@@ -984,7 +979,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       bool isF3LF4LReturnValid;
       uint16_t F3LReturn;
       uint16_t F4LReturn;
-      cmdSuccess = _Pala.setSilentMode(silentMode, &SLNTReturn, &PWRReturn, &F2LReturn, &F2LFReturn, &isF3LF4LReturnValid, &F3LReturn, &F4LReturn);
+      cmdSuccess = _Pala.setSilentMode(cmdParams[0], &SLNTReturn, &PWRReturn, &F2LReturn, &F2LFReturn, &isF3LF4LReturnValid, &F3LReturn, &F4LReturn);
 
       if (cmdSuccess)
       {
