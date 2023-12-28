@@ -1096,38 +1096,18 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    // Starting 9 to first space starting 9
-    String strDayNumber(cmd.substring(9, cmd.indexOf(' ', 9)));
-    // Starting (9 + previous string length + 1) to first space starting (9 + previous string length + 1)
-    String strMemoryNumber(cmd.substring(9 + strDayNumber.length() + 1, cmd.indexOf(' ', 9 + strDayNumber.length() + 1)));
-    // Starting (9 + previous strings lengths + number of previous strings) to the end
-    String strProgramNumber(cmd.substring(9 + strDayNumber.length() + strMemoryNumber.length() + 2));
-
-    byte dayNumber = strDayNumber.toInt();
-    byte memoryNumber = strMemoryNumber.toInt();
-    byte programNumber = strProgramNumber.toInt();
-
-    if (dayNumber == 0 && strDayNumber[0] != '0')
-    {
-      info["CMD"] = F("SET CDAY");
-      info["MSG"] = String(F("Incorrect Day Number : ")) + strDayNumber;
-    }
-
-    if (info["MSG"].isNull() && memoryNumber == 0 && strMemoryNumber[0] != '0')
-    {
-      info["CMD"] = F("SET CDAY");
-      info["MSG"] = String(F("Incorrect Memory Number : ")) + strMemoryNumber;
-    }
-
-    if (info["MSG"].isNull() && programNumber == 0 && strProgramNumber[0] != '0')
-    {
-      info["CMD"] = F("SET CDAY");
-      info["MSG"] = String(F("Incorrect Program Number : ")) + strProgramNumber;
-    }
+    if (cmdParamNumber != 3)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+    else if (!validCmdParams[0])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[0];
+    else if (!validCmdParams[1])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[1];
+    else if (!validCmdParams[2])
+      info["MSG"] = String(F("Incorrect Parameter Value : ")) + strCmdParams[2];
 
     if (info["MSG"].isNull())
     {
-      cmdSuccess = _Pala.setChronoDay(dayNumber, memoryNumber, programNumber);
+      cmdSuccess = _Pala.setChronoDay(cmdParams[0], cmdParams[1], cmdParams[2]);
 
       if (cmdSuccess)
       {
@@ -1135,12 +1115,12 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
         char memoryName[3] = {'M', 'X', 0};
         char programName[3] = {'P', 'X', 0};
 
-        dayName[1] = dayNumber + '0';
-        memoryName[1] = memoryNumber + '0';
-        programName[1] = programNumber + '0';
+        dayName[1] = cmdParams[0] + '0';
+        memoryName[1] = cmdParams[1] + '0';
+        programName[1] = cmdParams[2] + '0';
 
         JsonObject dx = data.createNestedObject(dayName);
-        if (programNumber)
+        if (cmdParams[2])
           dx[memoryName] = programName;
         else
           dx[memoryName] = F("OFF");
