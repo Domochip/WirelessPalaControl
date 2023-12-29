@@ -1,7 +1,7 @@
 #ifndef Utils_h
 #define Utils_h
 
-#include <arduino.h>
+#include <Arduino.h>
 
 class Utils
 {

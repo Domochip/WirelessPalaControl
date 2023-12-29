@@ -1,14 +1,14 @@
 #ifndef WifiMan_h
 #define WifiMan_h
 
-#include "..\Main.h"
+#include "../Main.h"
 #include "Application.h"
 
 #include <Ticker.h>
 #include <ESP8266mDNS.h>
 
-#include "data\statusw.html.gz.h"
-#include "data\configw.html.gz.h"
+#include "data/statusw.html.gz.h"
+#include "data/configw.html.gz.h"
 
 const char predefPassword[] PROGMEM = "ewcXoCt4HHjZUvY0";
 

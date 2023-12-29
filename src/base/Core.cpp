@@ -1,13 +1,13 @@
 #include "Core.h"
 #include <EEPROM.h>
 // #include <SPIFFSEditor.h>
-#include "..\Main.h" //for VERSION define
+#include "../Main.h" //for VERSION define
 #include "Version.h" //for BASE_VERSION define
 
-#include "data\index.html.gz.h"
-#include "data\pure-min.css.gz.h"
-#include "data\side-menu.css.gz.h"
-#include "data\side-menu.js.gz.h"
+#include "data/index.html.gz.h"
+#include "data/pure-min.css.gz.h"
+#include "data/side-menu.css.gz.h"
+#include "data/side-menu.js.gz.h"
 
 void Core::setConfigDefaultValues(){};
 void Core::parseConfigJSON(DynamicJsonDocument &doc){};

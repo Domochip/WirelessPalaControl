@@ -1,7 +1,7 @@
 #ifndef Application_h
 #define Application_h
 
-#include "..\Main.h"
+#include "../Main.h"
 #include <LittleFS.h>
 #include <ESP8266WebServer.h>
 #include <ArduinoJson.h>
