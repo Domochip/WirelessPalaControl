@@ -712,14 +712,28 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    cmdSuccess = _Pala.switchOn();
+    uint16_t STATUS, LSTATUS;
+    cmdSuccess = _Pala.switchOn(&STATUS, &LSTATUS);
+
+    if (cmdSuccess)
+    {
+      data["STATUS"] = STATUS;
+      data["LSTATUS"] = LSTATUS;
+    }
   }
 
   if (!cmdProcessed && cmd == F("CMD OFF"))
   {
     cmdProcessed = true;
 
-    cmdSuccess = _Pala.switchOff();
+    uint16_t STATUS, LSTATUS;
+    cmdSuccess = _Pala.switchOff(&STATUS, &LSTATUS);
+
+    if (cmdSuccess)
+    {
+      data["STATUS"] = STATUS;
+      data["LSTATUS"] = LSTATUS;
+    }
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET POWR ")))
