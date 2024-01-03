@@ -23,16 +23,29 @@
         <div id='hae' style='display:none'>
 
             <div class="pure-control-group">
+                <label for="haupperiod">Upload Period</label>
+                <input type='number' id='haupperiod' name='haupperiod' min='15' max='65535' placeholder="(in seconds)">
+            </div>
+            <div class="pure-control-group">
                 <label for="hahost">Hostname</label>
                 <input type='text' id='hahost' name='hahost' maxlength='64' pattern='[A-Za-z0-9-.]+' size='50'
                     placeholder="IP or DNS Name">
             </div>
-            <div class="pure-control-group">
-                <label for="haupperiod">Upload Period</label>
-                <input type='number' id='haupperiod' name='haupperiod' min='15' max='65535' placeholder="(in seconds)">
-            </div>
 
             <div id='hame'>
+
+                <div class="pure-control-group">
+                    <label for="hamport">Port</label>
+                    <input type='number' id='hamport' name='hamport' min='1' max='65535'>
+                </div>
+                <div class="pure-control-group">
+                    <label for="hamu">Username</label>
+                    <input type='text' id='hamu' name='hamu' maxlength='64' placeholder="optional">
+                </div>
+                <div class="pure-control-group">
+                    <label for="hamp">Password</label>
+                    <input type='password' id='hamp' name='hamp' maxlength='64' placeholder="optional">
+                </div>
 
                 <div class="pure-control-group">
                     <label for="hamtype">Type</label>
@@ -49,7 +62,7 @@
                     <label></label>
                     <div class="infotipdiv">
                         Published topics : <br>
-                        <b>/$nameOfValue$</b> : values are sent to the root of Base Topic (e.g. /T1, /STATUS)<br>
+                        <b>/$nameOfValue$</b> : raw values are sent to the root of Base Topic (e.g. /T1, /STATUS)<br>
                     </div>
                 </div>
                 <div class="pure-control-group" id="hamtype1div" name="hamtype1div" style="display:none;">
@@ -64,22 +77,9 @@
                     <label></label>
                     <div class="infotipdiv">
                         Published topics : <br>
-                        <b>/$Category$/$nameOfValue$</b> : values are sent to the Category Topic it belongs (e.g.
+                        <b>/$Category$/$nameOfValue$</b> : raw values are sent to Category SubTopic it belongs (e.g.
                         /TMPS/T1)<br>
                     </div>
-                </div>
-
-                <div class="pure-control-group">
-                    <label for="hamport">Port</label>
-                    <input type='number' id='hamport' name='hamport' min='1' max='65535'>
-                </div>
-                <div class="pure-control-group">
-                    <label for="hamu">Username</label>
-                    <input type='text' id='hamu' name='hamu' maxlength='64' placeholder="optional">
-                </div>
-                <div class="pure-control-group">
-                    <label for="hamp">Password</label>
-                    <input type='password' id='hamp' name='hamp' maxlength='64' placeholder="optional">
                 </div>
 
                 <div id='hamgbte'>
