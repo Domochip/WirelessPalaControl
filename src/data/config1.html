@@ -48,7 +48,23 @@
                 </div>
 
                 <div class="pure-control-group">
-                    <label for="hamtype">Type</label>
+                    <label for="hamgbt">Base Topic</label>
+                    <input type='text' id='hamgbt' name='hamgbt' maxlength='64'>
+                    <span id="hamgbti" name="hamgbti" class="infotip">?</span>
+                </div>
+                <div class="pure-control-group" id="hamgbtidiv" name="hamgbtidiv" style="display:none;">
+                    <label></label>
+                    <div class="infotipdiv">
+                        Base Topic placeholders : <br>
+                        <b>$sn$</b> : Serial Number of this device<br>
+                        <b>$mac$</b> : WiFi MAC address of this device<br>
+                        <b>$model$</b> : Model of this device<br>
+                        Ex : DomoChip/<b>$sn$</b> or <b>$model$</b>/<b>$mac$</b>
+                    </div>
+                </div>
+
+                <div class="pure-control-group">
+                    <label for="hamtype">MQTT Type</label>
                     <select id='hamtype' name='hamtype'>
                         <option value="0">Generic</option>
                         <option value="1">Generic JSON</option>
@@ -79,25 +95,6 @@
                         Published topics : <br>
                         <b>/$Category$/$nameOfValue$</b> : raw values are sent to Category SubTopic it belongs (e.g.
                         /TMPS/T1)<br>
-                    </div>
-                </div>
-
-                <div id='hamgbte'>
-                    <div class="pure-control-group">
-                        <label for="hamgbt">Base Topic</label>
-                        <input type='text' id='hamgbt' name='hamgbt' maxlength='64'>
-                        <span id="hamgbti" name="hamgbti" class="infotip">?</span>
-                    </div>
-
-                    <div class="pure-control-group" id="hamgbtidiv" name="hamgbtidiv" style="display:none;">
-                        <label></label>
-                        <div class="infotipdiv">
-                            Base Topic placeholders : <br>
-                            <b>$sn$</b> : Serial Number of this device<br>
-                            <b>$mac$</b> : WiFi MAC address of this device<br>
-                            <b>$model$</b> : Model of this device<br>
-                            Ex : DomoChip/<b>$sn$</b> or <b>$model$</b>/<b>$mac$</b>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -133,7 +130,6 @@
     $(qsp + "#hamtype").addEventListener('change', function () {
         switch ($(qsp + "#hamtype").value) {
             case "0":
-                $(qsp + "#hamgbte").style.display = '';
                 $(qsp + "#hamtype0i").style.display = '';
                 $(qsp + "#hamtype1i").style.display = 'none';
                 $(qsp + "#hamtype1div").style.display = 'none';
@@ -141,7 +137,6 @@
                 $(qsp + "#hamtype2div").style.display = 'none';
                 break;
             case "1":
-                $(qsp + "#hamgbte").style.display = '';
                 $(qsp + "#hamtype0i").style.display = 'none';
                 $(qsp + "#hamtype0div").style.display = 'none';
                 $(qsp + "#hamtype1i").style.display = '';
@@ -149,7 +144,6 @@
                 $(qsp + "#hamtype2div").style.display = 'none';
                 break;
             case "2":
-                $(qsp + "#hamgbte").style.display = '';
                 $(qsp + "#hamtype0i").style.display = 'none';
                 $(qsp + "#hamtype0div").style.display = 'none';
                 $(qsp + "#hamtype1i").style.display = 'none';
