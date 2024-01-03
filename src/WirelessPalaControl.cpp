@@ -1292,6 +1292,8 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
 void WebPalaControl::publishTick()
 {
+  LOG_SERIAL.println(F("PublishTick"));
+
   // array of commands to execute
   const char *cmdList[] = {
       "GET STAT",
@@ -1593,6 +1595,7 @@ bool WebPalaControl::appInit(bool reInit)
 
   if (res)
     publishTick(); // if configuration changed, publish immediately
+
   _publishTicker.attach(_ha.uploadPeriod, [this]()
                         { this->_needPublish = true; });
 
@@ -1825,7 +1828,6 @@ void WebPalaControl::appRun()
   if (_needPublish)
   {
     _needPublish = false;
-    LOG_SERIAL.println(F("PublishTick"));
     publishTick();
   }
 
