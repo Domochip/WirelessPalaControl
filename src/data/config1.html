@@ -173,7 +173,7 @@
                 $(qsp + "#f1").style.display = 'none';
 
                 $(qsp + '#r').innerHTML = '<h3><b>Configuration saved <span style="color: green;">successfully</span>.</b></h3>This page will be reloaded in <span id="cd">5</span>sec.';
-                runScript('var count=4;var cdi=setInterval(function(){$("#cd").innerText=count;if(!count){clearInterval(cdi);location.reload();}count--;},1000);');
+                runScript('var count=4;var cdi=setInterval(function(){if($("#cd")){$("#cd").innerText=count;if(!count){clearInterval(cdi);location.reload();}count--;}else{clearInterval(cdi);}},1000);');
             },
             function () {
                 $(qsp + '#r').innerHTML = '<h3><b>Configuration <span style="color: red;">error</span>.</b></h3>';
