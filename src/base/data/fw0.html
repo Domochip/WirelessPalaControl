@@ -44,7 +44,7 @@
             function () {
                 var reload15sec = document.createElement('script');
                 $(qsp + '#r').innerHTML = '<h3><span style="color: green;"><b>Done</b></span> System is rebooting. This page will be reloaded in <span id="cd">20</span>sec.</h3>';
-                runScript('var count=19;var cdi=setInterval(function(){$("#cd").innerText=count;if(!count){clearInterval(cdi);location.reload();}count--;},1000);');
+                runScript('var count=19;var cdi=setInterval(function(){if($("#cd")){$("#cd").innerText=count;if(!count){clearInterval(cdi);location.reload();}count--;}else{clearInterval(cdi);}},1000);');
                 $(qsp + '#f').reset();
             },
             function (responseText) {

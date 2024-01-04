@@ -37,7 +37,7 @@
 
         post('/rbt', null, function () {
             $(qsp + '#r').innerHTML = '<h3><span style="color: green;"><b>Done</b></span> System will reboot shortly. Go back to Status page and look for UpTime reset. This page will be reloaded in <span id="cd">20</span>sec.</h3>';
-            runScript('var count=19;var cdi=setInterval(function(){$("#cd").innerText=count;if(!count){clearInterval(cdi);location.reload();}count--;},1000);');
+            runScript('var count=19;var cdi=setInterval(function(){if($("#cd")){$("#cd").innerText=count;if(!count){clearInterval(cdi);location.reload();}count--;}else{clearInterval(cdi);}},1000);');
         }, postFailed);
     });
 
@@ -48,7 +48,7 @@
 
         post('/rbtrsc', null, function () {
             $(qsp + '#r').innerHTML = '<h3><span style="color: green;"><b>Done</b></span> System will reboot shortly in RESCUE MODE. This page will be reloaded in <span id="cd">20</span>sec.</h3>';
-            runScript('var count=19;var cdi=setInterval(function(){$("#cd").innerText=count;if(!count){clearInterval(cdi);location.reload();}count--;},1000);');
+            runScript('var count=19;var cdi=setInterval(function(){if($("#cd")){$("#cd").innerText=count;if(!count){clearInterval(cdi);location.reload();}count--;}else{clearInterval(cdi);}},1000);');
         }, postFailed);
     });
 </script>
