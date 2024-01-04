@@ -32,6 +32,8 @@ private:
     {
       char baseTopic[64 + 1] = {0};
     } generic;
+    bool hassEnabled = true;
+    char hassDiscoveryPrefix[64 + 1] = {0};
   } MQTT;
 
 #define HA_PROTO_DISABLED 0
