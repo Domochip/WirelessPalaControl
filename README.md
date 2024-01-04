@@ -8,7 +8,7 @@ Native HTTP requests are available which make is fully compatible with all exist
 Additionally, this project add MQTT protocol to monitor/control your stove in a much more efficient way.
 
 
-## Compatibility
+## Stove Compatibility
 
 Fumis Controller is used by many manufacturer for their stoves.
 Here is a non-exhaustive list: 
@@ -48,13 +48,13 @@ All files are inside `schematic` subfolder and has been designed with KiCad (fre
 *We produced a small batch of this adapter for test/debugging and our personal use.*  
 *If you are interested, please PM.*
 
-### Print your box
+### Box
 
 Box project (Fusion 360 & STL) can be found into `box` folder
 
 ![WirelessPalaControl box](img/box.png)
 
-### Code/Compile/Flash
+### Firmware
 
 Source code can be compiled using VisualStudioCode/Platformio and flashed onto a D1 Mini  
 Or  
@@ -73,9 +73,7 @@ Splitter and additional cable can be found on Aliexpress (search for "6p6c split
 The splitter should correspond to this small schematic :  
 ![WirelessPalaControl schematic-splitter](img/schematic-splitter.png)
 
-## Run
-
-### First Boot
+## First Boot
 
 During First Boot, the ESP boot in Access Point Mode
 
@@ -85,43 +83,39 @@ During First Boot, the ESP boot in Access Point Mode
 
 Connect to this network and then configure it.
 
-### Configuration
+## Configuration pages
+### Status
 
-WirelessPalaControl offers you some webpages in order to configure it:
+It returns you useful informations about the module and the stove.  
+**The stove SN appears then 1 minute later, refreshed stove information appears (default upload period)**  
+<img src="img/status.png" alt="status screenshot" width="400" style="vertical-align: top;"><img src="img/status2.png" alt="status2 screenshot"  width="400">
 
-#### Status
+### Config
 
-It returns you useful informations about the module but also regarding the stove:  
-![status screenshot](img/status.png)  
-**Then 1 minute later, refreshed stove information appears (default upload period)**
-![status2 screenshot](img/status2.png)
-
-#### Config
-
-It allows you to change configuration:  
 ![config screenshot](img/config.png)  
-  **ssid & password**: IDs of your Wifi Network  
-  **hostname**: name of ESP on the network  
-  **IP,GW,NetMask,DNS1&2**: Fixed IP configuration  
+#### WiFi:  
+- **ssid & password**: IDs of your Wifi Network  
+- **hostname**: name of ESP on the network  
+- **IP,GW,NetMask,DNS1&2**: Fixed IP configuration  
 
 ![configMQTT screenshot](img/configMQTT.png)  
-**Type**: enable/disable MQTT communication  
-**Upload Period**: delay between refresh of stove information (in seconds)  
-**Hostname,Port,Username,Password**: MQTT server infos (username and password are optional)  
-**Base Topic**: prefix used for WPalaControl topic structure  
-**MQTT Type**: defines MQTT topics and data structure: 
+#### PalaControl - Home Automation:  
+- **Type**: enable/disable MQTT communication  
+- **Upload Period**: delay between refresh of stove information (in seconds)  
+- **Hostname,Port,Username,Password**: MQTT server infos (username and password are - optional)  
+- **Base Topic**: prefix used for WPalaControl topic structure  
+- **MQTT Type**: defines MQTT topics and data structure: 
   - **Generic**: publish raw values under the base topic (e.g. "{baseTopic}/T1" = "*20.00*")
   - **Generic JSON**: publish values JSON to "category" topic under base topic (e.g. "{baseTopic}/TMPS" = "*{"INFO":{"CMD":"GET TMPS","RSP":"OK......*")
   - **Generic Categorized**: publish raw values to "category" topic under base topic (e.g. "{baseTopic}/TMPS/T1" = "*20.00*")
 
-#### Firmware
+### Firmware
 
 It allows you to flash a new firmware version using `WirelessPalaControl.*.bin` file:  
 ![firmware screenshot](img/firmware.png)
 
-#### Discover
+### Discover
 
-It allows you to find all DomoChip devices on your network:  
 ![discover screenshot](img/discover.png)
 
 ## Use it
