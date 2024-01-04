@@ -24,7 +24,7 @@ Here is a non-exhaustive list:
 * ...
 
 If you have this controller in your stove, it's compatible.  
-![Fumis Controller](https://raw.github.com/Domochip/WirelessPalaControl/master/img/fumis.png)
+![Fumis Controller](img/fumis.png)
 
 ## Build your adapter
 
@@ -37,13 +37,13 @@ This design uses exact same schematic and components.
 
 All files are inside `schematic` subfolder and has been designed with KiCad (free and open source)  
 
-![WirelessPalaControl schematic](https://raw.github.com/Domochip/WirelessPalaControl/master/img/schematic.png)
+![WirelessPalaControl schematic](img/schematic.png)
 
 ### PCB
 
-<img src="https://raw.github.com/Domochip/WirelessPalaControl/master/img/pcb-top.png" alt="WirelessPalaControl PCB Top" width="239" height="315"><img src="https://raw.github.com/Domochip/WirelessPalaControl/master/img/pcb-bottom.png" alt="WirelessPalaControl PCB Bottom" width="239" height="315">  
+<img src="img/pcb-top.png" alt="WirelessPalaControl PCB Top" width="239" height="315"><img src="img/pcb-bottom.png" alt="WirelessPalaControl PCB Bottom" width="239" height="315">  
 
-<img src="https://raw.github.com/Domochip/WirelessPalaControl/master/img/3boards.png" alt="WirelessPalaControl 3boards"  width="334">  
+<img src="img/3boards.png" alt="WirelessPalaControl 3boards"  width="334">  
 
 *We produced a small batch of this adapter for test/debugging and our personal use.*  
 *If you are interested, please PM.*
@@ -52,7 +52,7 @@ All files are inside `schematic` subfolder and has been designed with KiCad (fre
 
 Box project (Fusion 360 & STL) can be found into `box` folder
 
-![WirelessPalaControl box](https://raw.github.com/Domochip/WirelessPalaControl/master/img/box.png)
+![WirelessPalaControl box](img/box.png)
 
 ### Code/Compile/Flash
 
@@ -63,15 +63,15 @@ Download latest release in Release section
 ### Connect
 
 ⚠️ **You need to use a crossed RJ11 phone cable like this:** ⚠️  
-![WirelessPalaControl rj11](https://raw.github.com/Domochip/WirelessPalaControl/master/img/rj11-pinout.png)
+![WirelessPalaControl rj11](img/rj11-pinout.png)
 
 Most of stove have an RJ11/RJ12 connector for PalaControl connection.  
 If you don't have it, you need to cable it using a splitter to connect screen and PalaControl at the same time :  
-![WirelessPalaControl cabling](https://raw.github.com/Domochip/WirelessPalaControl/master/img/cabling.png)
+![WirelessPalaControl cabling](img/cabling.png)
 
 Splitter and additional cable can be found on Aliexpress (search for "6p6c splitter" and "rj12 cable").  
 The splitter should correspond to this small schematic :  
-![WirelessPalaControl schematic-splitter](https://raw.github.com/Domochip/WirelessPalaControl/master/img/schematic-splitter.png)
+![WirelessPalaControl schematic-splitter](img/schematic-splitter.png)
 
 ## Run
 
@@ -92,19 +92,19 @@ WirelessPalaControl offers you some webpages in order to configure it:
 #### Status
 
 It returns you useful informations about the module but also regarding the stove:  
-![status screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status.png)  
+![status screenshot](img/status.png)  
 **Then 1 minute later, refreshed stove information appears (default upload period)**
-![status2 screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status2.png)
+![status2 screenshot](img/status2.png)
 
 #### Config
 
 It allows you to change configuration:  
-![config screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/config.png)  
+![config screenshot](img/config.png)  
   **ssid & password**: IDs of your Wifi Network  
   **hostname**: name of ESP on the network  
   **IP,GW,NetMask,DNS1&2**: Fixed IP configuration  
 
-![configMQTT screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/configMQTT.png)  
+![configMQTT screenshot](img/configMQTT.png)  
 **Type**: enable/disable MQTT communication  
 **Upload Period**: delay between refresh of stove information (in seconds)  
 **Hostname,Port,Username,Password**: MQTT server infos (username and password are optional)  
@@ -117,12 +117,12 @@ It allows you to change configuration:
 #### Firmware
 
 It allows you to flash a new firmware version using `WirelessPalaControl.*.bin` file:  
-![firmware screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/firmware.png)
+![firmware screenshot](img/firmware.png)
 
 #### Discover
 
 It allows you to find all DomoChip devices on your network:  
-![discover screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/discover.png)
+![discover screenshot](img/discover.png)
 
 ## Use it
 
