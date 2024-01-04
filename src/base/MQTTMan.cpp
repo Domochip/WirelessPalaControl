@@ -76,6 +76,12 @@ MQTTMan &MQTTMan::setConnectedCallback(CONNECTED_CALLBACK_SIGNATURE connectedCal
     return *this;
 }
 
+MQTTMan &MQTTMan::setDisconnectedCallback(DISCONNECTED_CALLBACK_SIGNATURE disconnectedCallback)
+{
+    _disconnectedCallBack = disconnectedCallback;
+    return *this;
+}
+
 bool MQTTMan::connect(const char *username, const char *password)
 {
     // check logins
@@ -101,42 +107,63 @@ void MQTTMan::disconnect()
 {
     // publish disconnected just before disconnect...
     if (_connectedAndWillTopic[0])
-        publish(_connectedAndWillTopic, "0");
+        publish(_connectedAndWillTopic, "0", true);
 
     // Stop MQTT Reconnect
     _mqttReconnectTicker.detach();
     // Disconnect
     if (connected()) // Issue #598 : disconnect() crash if client not yet set
+    {
         PubSubClient::disconnect();
+        // call disconnected callback if set
+        if (_disconnectedCallBack)
+            _disconnectedCallBack();
+    }
+}
+
+bool MQTTMan::publishToConnectedTopic(const char *payload)
+{
+    if (_connectedAndWillTopic[0])
+        return publish(_connectedAndWillTopic, payload, true);
+    return false;
 }
 
 bool MQTTMan::loop()
 {
-    if (_needMqttReconnect)
+    if (state() != MQTT_DISCONNECTED)
     {
-        _needMqttReconnect = false;
-#ifdef LOG_SERIAL
-        LOG_SERIAL.print(F("MQTT Reconnection : "));
-#endif
-        bool res = connect(false);
-#ifdef LOG_SERIAL
-        if (res)
-            LOG_SERIAL.println(F("OK"));
-        else
-            LOG_SERIAL.println(F("Failed"));
-#endif
-    }
+        // evaluate connection status and call disconnected callback if needed
+        // if we are not connected, reconnect ticker not started nor _needMqttReconnect flag raised and disconnected callback set
+        if (!connected() && !(_mqttReconnectTicker.active() || _needMqttReconnect) && _disconnectedCallBack)
+            _disconnectedCallBack();
 
-    // if not connected and reconnect ticker not started
-    if (!connected() && !_mqttReconnectTicker.active())
-    {
+        if (_needMqttReconnect)
+        {
+            _needMqttReconnect = false;
 #ifdef LOG_SERIAL
-        LOG_SERIAL.println(F("MQTT Disconnected"));
+            LOG_SERIAL.print(F("MQTT Reconnection : "));
 #endif
-        // set Ticker to reconnect after 20 or 60 sec (Wifi connected or not)
-        _mqttReconnectTicker.once_scheduled((WiFi.isConnected() ? 20 : 60), [this]()
-                                            { _needMqttReconnect = true; _mqttReconnectTicker.detach(); });
-    }
+            bool res = connect(false);
+#ifdef LOG_SERIAL
+            if (res)
+                LOG_SERIAL.println(F("OK"));
+            else
+                LOG_SERIAL.println(F("Failed"));
+#endif
+        }
 
-    return PubSubClient::loop();
+        // if not connected and reconnect ticker not started
+        if (!connected() && !_mqttReconnectTicker.active())
+        {
+#ifdef LOG_SERIAL
+            LOG_SERIAL.println(F("MQTT Disconnected"));
+#endif
+            // set Ticker to reconnect after 20 or 60 sec (Wifi connected or not)
+            _mqttReconnectTicker.once((WiFi.isConnected() ? 20 : 60), [this]()
+                                      { _needMqttReconnect = true; });
+        }
+
+        return PubSubClient::loop();
+    }
+    return true;
 }

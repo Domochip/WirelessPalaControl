@@ -12,6 +12,7 @@
 #include <PubSubClient.h>
 
 #define CONNECTED_CALLBACK_SIGNATURE std::function<void(MQTTMan * mqttMan, bool firstConnection)>
+#define DISCONNECTED_CALLBACK_SIGNATURE std::function<void()>
 
 class MQTTMan : private PubSubClient
 {
@@ -23,6 +24,7 @@ private:
     Ticker _mqttReconnectTicker;
 
     CONNECTED_CALLBACK_SIGNATURE _connectedCallBack = nullptr;
+    DISCONNECTED_CALLBACK_SIGNATURE _disconnectedCallBack = nullptr;
 
     bool connect(bool firstConnection);
 
@@ -33,6 +35,7 @@ public:
     using PubSubClient::setServer;
     MQTTMan &setConnectedAndWillTopic(const char *topic);
     MQTTMan &setConnectedCallback(CONNECTED_CALLBACK_SIGNATURE connectedCallback);
+    MQTTMan &setDisconnectedCallback(DISCONNECTED_CALLBACK_SIGNATURE disconnectedCallback);
     using PubSubClient::setCallback;
     bool connect(const char *username = nullptr, const char *password = nullptr);
     using PubSubClient::connected;
@@ -40,6 +43,7 @@ public:
     using PubSubClient::beginPublish;
     using PubSubClient::endPublish;
     using PubSubClient::publish;
+    bool publishToConnectedTopic(const char *payload);
     using PubSubClient::publish_P;
     using PubSubClient::state;
     using PubSubClient::subscribe;
