@@ -1,6 +1,7 @@
 # WirelessPalaControl
 
 This project uses "Palazzetti library" and a D1 Mini to control Fumis based stove.  
+It allows to power On/Off, change the setPoint, change fans speed, get status/alarms/temperatures of the stove.
 
 Native HTTP requests are available which make is fully compatible with all existing home automation plugins/apps.
 
@@ -40,12 +41,12 @@ All files are inside `schematic` subfolder and has been designed with KiCad (fre
 
 ### PCB
 
-![WirelessPalaControl PCB](https://raw.github.com/Domochip/WirelessPalaControl/master/img/pcb-top.png)![WirelessPalaControl PCB2](https://raw.github.com/Domochip/WirelessPalaControl/master/img/pcb-bottom.png)
+<img src="https://raw.github.com/Domochip/WirelessPalaControl/master/img/pcb-top.png" alt="WirelessPalaControl PCB Top" width="239" height="315"><img src="https://raw.github.com/Domochip/WirelessPalaControl/master/img/pcb-bottom.png" alt="WirelessPalaControl PCB Bottom" width="239" height="315">  
 
-![WirelessPalaControl 3boards](https://raw.github.com/Domochip/WirelessPalaControl/master/img/3boards.png)
+<img src="https://raw.github.com/Domochip/WirelessPalaControl/master/img/3boards.png" alt="WirelessPalaControl 3boards"  width="334">  
 
-*We produced a small batch of this adapter for test/debugging and our personal use.
-If you are interested, please PM.*
+*We produced a small batch of this adapter for test/debugging and our personal use.*  
+*If you are interested, please PM.*
 
 ### Print your box
 
@@ -109,9 +110,9 @@ It allows you to change configuration:
 **Hostname,Port,Username,Password**: MQTT server infos (username and password are optional)  
 **Base Topic**: prefix used for WPalaControl topic structure  
 **MQTT Type**: defines MQTT topics and data structure: 
-  - Generic: publish raw values under the base topic (e.g. "{baseTopic}/T1" = "*20.00*")
-  - Generic JSON: publish values JSON to "category" topic under base topic (e.g. "{baseTopic}/TMPS" = "*{"INFO":{"CMD":"GET TMPS","RSP":"OK......*")
-  - Generic Categorized: publish raw values to "category" topic under base topic (e.g. "{baseTopic}/TMPS/T1" = "*20.00*")
+  - **Generic**: publish raw values under the base topic (e.g. "{baseTopic}/T1" = "*20.00*")
+  - **Generic JSON**: publish values JSON to "category" topic under base topic (e.g. "{baseTopic}/TMPS" = "*{"INFO":{"CMD":"GET TMPS","RSP":"OK......*")
+  - **Generic Categorized**: publish raw values to "category" topic under base topic (e.g. "{baseTopic}/TMPS/T1" = "*20.00*")
 
 #### Firmware
 
@@ -139,7 +140,8 @@ Execution result is:
 
 Module connection status is published to %BaseTopic%**/connected**: 
  - 0: not connected
- - 1: connected
+ - 1: Module connected but no communication with the stove
+ - 2: Module and stove connected
 
 ### Command List
   
