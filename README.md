@@ -93,6 +93,10 @@ It returns you useful informations about the module and the stove.
 ### Config
 
 ![config screenshot](img/config.png)  
+#### System:  
+- **Reboot**: restart the module
+- **Reboot in Rescue Mode**: restart the module with default configuration
+
 #### WiFi:  
 - **ssid & password**: IDs of your Wifi Network  
 - **hostname**: name of ESP on the network  
