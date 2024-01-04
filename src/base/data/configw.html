@@ -1,7 +1,7 @@
 <h2 class="content-subhead">WiFi<span id="l">
         <h6 style="display:inline"><b> Loading...</b></h6>
     </span></h2>
-<form class="pure-form pure-form-aligned" id='f'>
+<form class="pure-form pure-form-aligned" id='fw'>
     <fieldset>
         <div class="pure-control-group">
             <label for="s">SSID</label>
@@ -78,7 +78,7 @@
         }
     });
 
-    $(qsp + "#f").addEventListener('submit', function (event) {
+    $(qsp + "#fw").addEventListener('submit', function (event) {
         if (!$(qsp + "#staticip").checked) {
             $(qsp + "#ip").value = '';
             $(qsp + "#gw").value = '';
@@ -88,9 +88,9 @@
         }
         $(qsp + "#r").innerHTML = "Saving Configuration...";
         post("/scw",
-            new FormData($(qsp + "#f")),
+            new FormData($(qsp + "#fw")),
             function () {
-                $(qsp + "#f").style.display = 'none';
+                $(qsp + "#fw").style.display = 'none';
 
                 var reloadCode = 'var count=19;var cdi=setInterval(function(){$("#cd").innerText=count;if(!count){clearInterval(cdi);'
                 if (!$(qsp + "#s").value) reloadCode += 'location.assign("http://192.168.4.1");';
@@ -141,7 +141,7 @@
                 }
             }
 
-            $(qsp + "#f input[type=submit]").disabled = false;
+            $(qsp + "#fw input[type=submit]").disabled = false;
             fadeOut($(qsp + "#l"));
 
             getNetworkList();

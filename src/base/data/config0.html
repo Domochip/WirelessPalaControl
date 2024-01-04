@@ -1,6 +1,6 @@
 <h2 class="content-subhead">System</h2>
 
-<form class="pure-form pure-form-aligned" id='f' method='POST' action='/rbt'>
+<form class="pure-form pure-form-aligned" id='f0' method='POST' action='/rbt'>
     <fieldset>
         <div class="pure-controls">
             <input type='submit' name='subRbt' id='subRbt' value='Reboot' class="pure-button pure-button-primary"
@@ -8,7 +8,7 @@
         </div>
     </fieldset>
 </form>
-<form class="pure-form pure-form-aligned" id='fb' method='POST' action='/rbtrsc'>
+<form class="pure-form pure-form-aligned" id='f0b' method='POST' action='/rbtrsc'>
     <fieldset>
         <div class="pure-controls">
             <input type='submit' name='subRbtRsc' id='subRbtRsc' value='Reboot in Rescue Mode'
@@ -24,13 +24,13 @@
 
     function postFailed() {
         $(qsp + '#r').innerHTML = '<span style="color: red;"><b>Failed</b></span>';
-        $(qsp + '#f').reset();
-        $(qsp + '#fb').reset();
+        $(qsp + '#f0').reset();
+        $(qsp + '#f0b').reset();
         $(qsp + '#subRbt').disabled = false;
         $(qsp + '#subRbtRsc').disabled = false;
     };
 
-    $(qsp + "#f").addEventListener('submit', function (evt) {
+    $(qsp + "#f0").addEventListener('submit', function (evt) {
         evt.preventDefault();
         $(qsp + '#subRbt').disabled = true;
         $(qsp + '#subRbtRsc').disabled = true;
@@ -41,7 +41,7 @@
         }, postFailed);
     });
 
-    $(qsp + "#fb").addEventListener('submit', function (evt) {
+    $(qsp + "#f0b").addEventListener('submit', function (evt) {
         evt.preventDefault();
         $(qsp + '#subRbt').disabled = true;
         $(qsp + '#subRbtRsc').disabled = true;
