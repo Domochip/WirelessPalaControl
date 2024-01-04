@@ -32,7 +32,7 @@ private:
     {
       char baseTopic[64 + 1] = {0};
     } generic;
-    bool hassEnabled = true;
+    bool hassDiscoveryEnabled = true;
     char hassDiscoveryPrefix[64 + 1] = {0};
   } MQTT;
 

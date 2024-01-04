@@ -1383,7 +1383,7 @@ void WebPalaControl::setConfigDefaultValues()
   _ha.mqtt.username[0] = 0;
   _ha.mqtt.password[0] = 0;
   strcpy_P(_ha.mqtt.generic.baseTopic, PSTR("$model$"));
-  _ha.mqtt.hassEnabled = true;
+  _ha.mqtt.hassDiscoveryEnabled = true;
   strcpy_P(_ha.mqtt.hassDiscoveryPrefix, PSTR("homeassistant"));
 }
 
@@ -1410,8 +1410,8 @@ void WebPalaControl::parseConfigJSON(DynamicJsonDocument &doc)
   if (!doc[F("hamgbt")].isNull())
     strlcpy(_ha.mqtt.generic.baseTopic, doc[F("hamgbt")], sizeof(_ha.mqtt.generic.baseTopic));
 
-  if (!doc[F("hamhasse")].isNull())
-    _ha.mqtt.hassEnabled = doc[F("hamhasse")];
+  if (!doc[F("hamhassde")].isNull())
+    _ha.mqtt.hassDiscoveryEnabled = doc[F("hamhassde")];
 
   if (!doc[F("hamhassdp")].isNull())
     strlcpy(_ha.mqtt.hassDiscoveryPrefix, doc[F("hamhassdp")], sizeof(_ha.mqtt.hassDiscoveryPrefix));
@@ -1468,10 +1468,10 @@ bool WebPalaControl::parseConfigWebRequest(ESP8266WebServer &server)
       break;
     }
 
-    if (server.hasArg(F("hamhasse")))
-      _ha.mqtt.hassEnabled = (server.arg(F("hamhasse")) == F("on"));
+    if (server.hasArg(F("hamhassde")))
+      _ha.mqtt.hassDiscoveryEnabled = (server.arg(F("hamhassde")) == F("on"));
     else
-      _ha.mqtt.hassEnabled = false;
+      _ha.mqtt.hassDiscoveryEnabled = false;
 
     if (server.hasArg(F("hamhassdp")) && server.arg(F("hamhassdp")).length() < sizeof(_ha.mqtt.hassDiscoveryPrefix))
       strcpy(_ha.mqtt.hassDiscoveryPrefix, server.arg(F("hamhassdp")).c_str());
@@ -1504,7 +1504,7 @@ String WebPalaControl::generateConfigJSON(bool forSaveFile = false)
 
     gc = gc + F(",\"hamgbt\":\"") + _ha.mqtt.generic.baseTopic + '"';
 
-    gc = gc + F(",\"hamhasse\":") + _ha.mqtt.hassEnabled;
+    gc = gc + F(",\"hamhassde\":") + _ha.mqtt.hassDiscoveryEnabled;
 
     gc = gc + F(",\"hamhassdp\":\"") + _ha.mqtt.hassDiscoveryPrefix + '"';
   }
