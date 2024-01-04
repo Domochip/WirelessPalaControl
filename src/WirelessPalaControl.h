@@ -59,6 +59,7 @@ private:
   bool _needPublish = false;
   Ticker _publishTicker;
   bool _publishedStoveConnected = false;
+  bool _needPublishHassDiscovery = false; // set to true when MQTT connection is established
 
   int myOpenSerial(uint32_t baudrate);
   void myCloseSerial();
@@ -74,6 +75,7 @@ private:
   void mqttCallback(char *topic, uint8_t *payload, unsigned int length);
   void publishStoveConnectedToMqtt(bool stoveConnected);
   bool publishDataToMqtt(const String &baseTopic, const String &palaCategory, const DynamicJsonDocument &jsonDoc);
+  bool publishHassDiscoveryToMqtt();
   bool executePalaCmd(const String &cmd, String &strJson, bool publish = false);
 
   void publishTick();

@@ -61,6 +61,9 @@ void WebPalaControl::mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnectio
   if (firstConnection)
     mqttMan->publish(subscribeTopic.c_str(), ""); // make empty publish only for firstConnection
   mqttMan->subscribe(subscribeTopic.c_str());
+
+  // raise flag to publish Home Assistant discovery data
+  _needPublishHassDiscovery = true;
 }
 
 void WebPalaControl::mqttDisconnectedCallback()
@@ -153,6 +156,16 @@ bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &pa
     }
   }
   return res;
+}
+
+bool WebPalaControl::publishHassDiscoveryToMqtt()
+{
+  if (!_Pala.isInitialized() || !_mqttMan.connected())
+    return false;
+
+  //TODO
+
+  return true;
 }
 
 bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool publish /* = false*/)
@@ -1873,6 +1886,10 @@ void WebPalaControl::appRun()
     _needPublish = false;
     publishTick();
   }
+
+  // if MQTT and Home Assistant discovery enabled and publish is needed
+  if (_ha.protocol == HA_PROTO_MQTT && _ha.mqtt.hassDiscoveryEnabled && _needPublishHassDiscovery)
+    _needPublishHassDiscovery = !publishHassDiscoveryToMqtt(); // don't need to publish anymore if publish was successful
 
   // Handle UDP requests
   udpRequestHandler(_udpServer);
