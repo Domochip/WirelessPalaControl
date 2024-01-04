@@ -63,6 +63,12 @@ void WebPalaControl::mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnectio
   mqttMan->subscribe(subscribeTopic.c_str());
 }
 
+void WebPalaControl::mqttDisconnectedCallback()
+{
+  // if MQTT is disconnected, MQTT Reconnection will publish "1" to connectedTopic
+  _publishedStoveConnected = false;
+}
+
 void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int length)
 {
   // if topic is basetopic/cmd
@@ -1561,6 +1567,7 @@ bool WebPalaControl::appInit(bool reInit)
     _mqttMan.setClient(_wifiClient).setServer(_ha.hostname, _ha.mqtt.port);
     _mqttMan.setConnectedAndWillTopic(willTopic.c_str());
     _mqttMan.setConnectedCallback(std::bind(&WebPalaControl::mqttConnectedCallback, this, std::placeholders::_1, std::placeholders::_2));
+    _mqttMan.setDisconnectedCallback(std::bind(&WebPalaControl::mqttDisconnectedCallback, this));
     _mqttMan.setCallback(std::bind(&WebPalaControl::mqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
     // Connect
