@@ -70,6 +70,7 @@ private:
   void mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnection);
   void mqttDisconnectedCallback();
   void mqttCallback(char *topic, uint8_t *payload, unsigned int length);
+  void publishStoveConnectedToMqtt(bool stoveConnected);
   bool publishDataToMqtt(const String &baseTopic, const String &palaCategory, const DynamicJsonDocument &jsonDoc);
   bool executePalaCmd(const String &cmd, String &strJson, bool publish = false);
 

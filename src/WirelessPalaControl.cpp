@@ -94,6 +94,16 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
   _mqttMan.publish(resTopic.c_str(), strJson.c_str());
 }
 
+void WebPalaControl::publishStoveConnectedToMqtt(bool stoveConnected)
+{
+  if (_mqttMan.connected() && _publishedStoveConnected != stoveConnected)
+  {
+    // if Stove is connected, publish 2 to connected topic otherwise fallback to 1
+    _mqttMan.publishToConnectedTopic((stoveConnected ? "2" : "1"));
+    _publishedStoveConnected = stoveConnected;
+  }
+}
+
 bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &palaCategory, const DynamicJsonDocument &jsonDoc)
 {
   bool res = false;
@@ -1240,11 +1250,16 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   // if command has been processed
   if (cmdProcessed)
   {
-    // successfully
+
+    // if MQTT protocol is enabled then update connected topic to reflect stove connectivity
+    if (_ha.protocol == HA_PROTO_MQTT)
+      publishStoveConnectedToMqtt(cmdSuccess);
+
+    // if communication with stove was successful
     if (cmdSuccess)
     {
-      info["CMD"] = cmd.substring(0,8);
-      
+      info["CMD"] = cmd.substring(0, 8);
+
       info["RSP"] = F("OK");
       jsonDoc["SUCCESS"] = true;
 
