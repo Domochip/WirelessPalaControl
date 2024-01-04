@@ -104,10 +104,10 @@ It allows you to change configuration:
   **IP,GW,NetMask,DNS1&2**: Fixed IP configuration  
 
 ![configMQTT screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/configMQTT.png)  
-**Type**: enable/disable MQTT communication
-**Upload Period**: delay between refresh of stove information (in seconds)
-**Hostname,Port,Username,Password**: MQTT server infos (username and password are optional)
-**Base Topic**: prefix used for WPalaControl topic structure
+**Type**: enable/disable MQTT communication  
+**Upload Period**: delay between refresh of stove information (in seconds)  
+**Hostname,Port,Username,Password**: MQTT server infos (username and password are optional)  
+**Base Topic**: prefix used for WPalaControl topic structure  
 **MQTT Type**: defines MQTT topics and data structure: 
   - Generic: publish raw values under the base topic (e.g. "{baseTopic}/T1" = "*20.00*")
   - Generic JSON: publish values JSON to "category" topic under base topic (e.g. "{baseTopic}/TMPS" = "*{"INFO":{"CMD":"GET TMPS","RSP":"OK......*")
@@ -115,7 +115,7 @@ It allows you to change configuration:
 
 #### Firmware
 
-It allows you to flash a new firmware version:  
+It allows you to flash a new firmware version using `WirelessPalaControl.*.bin` file:  
 ![firmware screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/firmware.png)
 
 #### Discover
