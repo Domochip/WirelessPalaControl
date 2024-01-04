@@ -1,18 +1,18 @@
 # WirelessPalaControl
 
-This project uses "palazzetti library" and a D1 Mini to control Fumis based stove using :
- - HTTP GET requests
- - MQTT
+This project uses "Palazzetti library" and a D1 Mini to control Fumis based stove.  
 
-D1 mini is cabled to the stove using an adapter board.  
-It communicates using Serial protocol on ESP8266 alternative pins : D7(GPIO13) as RX / D8(GPIO15) as TX
+Native HTTP requests are available which make is fully compatible with all existing home automation plugins/apps.
+
+Additionally, this project add MQTT protocol to monitor/control your stove in a much more efficient way.
+
 
 ## Compatibility
 
-It appears that Fumis Controller is used by those brands for their stoves : 
-
-* Palazzetti (All)
-* Jotul (tested successfully on PF 620 & 720)
+Fumis Controller is used by many manufacturer for their stoves.
+Here is a non-exhaustive list: 
+* Palazzetti
+* Jotul
 * TurboFonte
 * Godin
 * Fonte Flamme
@@ -20,24 +20,21 @@ It appears that Fumis Controller is used by those brands for their stoves :
 * Alpis
 * Faizen
 * HETA
+* ...
 
-If you have this controller in your stove, it's likely to be compatible.  
+If you have this controller in your stove, it's compatible.  
 ![Fumis Controller](https://raw.github.com/Domochip/WirelessPalaControl/master/img/fumis.png)
 
 ## Build your adapter
 
-You can use this adapter with:
- - a D1 Mini to build a WirelessPalaControl
- - another controller with serial interface
- - an USB-Serial adapter and a computer to monitor or upgrade your stove
+This adapter is designed to works with a D1 Mini (ESP8266) but it provides convenient header pins to use it with any other uController.
 
 It is designed by Palazzetti using a Si8621 (Silicon Labs Isolator) to provide electrical isolation between uController and Stove electronic.  
 This design uses exact same schematic and components.
 
-
-All files are inside `schematic` subfolder and has been designed with KiCad (free and open source)
-
 ### Schematic
+
+All files are inside `schematic` subfolder and has been designed with KiCad (free and open source)  
 
 ![WirelessPalaControl schematic](https://raw.github.com/Domochip/WirelessPalaControl/master/img/schematic.png)
 
@@ -95,18 +92,26 @@ WirelessPalaControl offers you some webpages in order to configure it:
 
 It returns you useful informations about the module but also regarding the stove:  
 ![status screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status.png)  
-**Then 1 minute later, other stove information appears (default upload period)**
+**Then 1 minute later, refreshed stove information appears (default upload period)**
 ![status2 screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/status2.png)
 
 #### Config
 
 It allows you to change configuration:  
 ![config screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/config.png)  
-  **ssid & password** : IDs of your Wifi Network  
-  **hostname** : name of ESP on the network  
-  **IP,GW,NetMask,DNS1&2** : Fixed IP configuration  
+  **ssid & password**: IDs of your Wifi Network  
+  **hostname**: name of ESP on the network  
+  **IP,GW,NetMask,DNS1&2**: Fixed IP configuration  
+
 ![configMQTT screenshot](https://raw.github.com/Domochip/WirelessPalaControl/master/img/configMQTT.png)  
-  Fill-in MQTT broker information
+**Type**: enable/disable MQTT communication
+**Upload Period**: delay between refresh of stove information (in seconds)
+**Hostname,Port,Username,Password**: MQTT server infos (username and password are optional)
+**Base Topic**: prefix used for WPalaControl topic structure
+**MQTT Type**: defines MQTT topics and data structure: 
+  - Generic: publish raw values under the base topic (e.g. "{baseTopic}/T1" = "*20.00*")
+  - Generic JSON: publish values JSON to "category" topic under base topic (e.g. "{baseTopic}/TMPS" = "*{"INFO":{"CMD":"GET TMPS","RSP":"OK......*")
+  - Generic Categorized: publish raw values to "category" topic under base topic (e.g. "{baseTopic}/TMPS/T1" = "*20.00*")
 
 #### Firmware
 
@@ -127,10 +132,14 @@ Syntax:  **http://wpalacontrol.local/cgi-bin/sendmsg.lua?cmd={command}**
 
 ### MQTT
 
-Command can be sent via MQTT to %BaseTopic%**/cmd** topic once MQTT is configured.  
+Commands can be sent via MQTT to %BaseTopic%**/cmd** topic once MQTT is configured.  
 Execution result is:  
- - received back on %BaseTopic%**/result** in JSON format 
  - published following the configured MQTT Type
+ - published on %BaseTopic%**/result** in JSON format 
+
+Module connection status is published to %BaseTopic%**/connected**: 
+ - 0: not connected
+ - 1: connected
 
 ### Command List
   
@@ -161,6 +170,7 @@ Execution result is:
 - `SET+PWRU`: increase power by 1 unit
 - `SET+PWRD`: decrease power by 1 unit
 - `SET+SETP+20`: set Set Point (desired temperature)
+- `SET+STPF+19.8`: set Set Point with a 0.2° precision (depend of your stove model)🔷
 - `SET+STPU`: increase Set Point by 1 unit
 - `SET+STPD`: decrease Set Point by 1 unit
 - `SET+RFAN+7`: set Room Fan value (0-5;6=Max;7=Auto)
@@ -180,9 +190,8 @@ Execution result is:
 - `SET+CPRD+1+19+18+30+22+45`: set Chrono Program data (Prog-Temp-StartH-StartM-StopH-StopM) (1-6) (temperature) (0-23) (0-59) (0-23) (0-59)
 - `SET+PARM+92+2`: set parameter 92 to value 2 (ex : 92=pellet type (1-3))
 - `SET+HPAR+57+95`: set hidden parameter 57 to value 95 (ex : 57=% of pellet to feed for pellet type 3)
-- `SET+STPF+19.8`: set Set Point with a 0.2° precision (depend of your stove model)🔷
 
-⏲️: Published automatically if "Upload Period" is configured  
+⏲️: Published automatically  
 🔷: WPalaControl specific commands
 
 
