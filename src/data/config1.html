@@ -1,7 +1,7 @@
 <h2 class="content-subhead">PalaControl<span id="l">
         <h6 style="display:inline"><b> Loading...</b></h6>
     </span></h2>
-<form class="pure-form pure-form-aligned" id='f'>
+<form class="pure-form pure-form-aligned" id='f1'>
     <fieldset>
 
         <h3 class="content-subhead">Home Automation <span id="hai" name="hai" class="infotip">?</span></h3>
@@ -165,12 +165,12 @@
         $(qsp + "#hamgbtidiv").style.display = ($(qsp + "#hamgbtidiv").style.display == '' ? 'none' : '');
     });
 
-    $(qsp + "#f").addEventListener('submit', function (event) {
+    $(qsp + "#f1").addEventListener('submit', function (event) {
         $(qsp + "#r").innerHTML = "Saving Configuration...";
         post("/sc" + qsp[8],
-            new FormData($(qsp + "#f")),
+            new FormData($(qsp + "#f1")),
             function () {
-                $(qsp + "#f").style.display = 'none';
+                $(qsp + "#f1").style.display = 'none';
 
                 $(qsp + '#r').innerHTML = '<h3><b>Configuration saved <span style="color: green;">successfully</span>.</b></h3>This page will be reloaded in <span id="cd">5</span>sec.';
                 runScript('var count=4;var cdi=setInterval(function(){$("#cd").innerText=count;if(!count){clearInterval(cdi);location.reload();}count--;},1000);');
@@ -193,7 +193,7 @@
                 }
             }
 
-            $(qsp + "#f input[type=submit]").disabled = false;
+            $(qsp + "#f1 input[type=submit]").disabled = false;
             fadeOut($(qsp + "#l"));
         },
         function () {
