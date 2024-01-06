@@ -12,6 +12,10 @@
         return ret;
     }
 </script>
+<h3>Download Firmware online : </h3>
+    <div class="pure-control-group">
+        <a id="zip">Download latest release (.ZIP)</a>
+    </div>
 
 <h3>Upload a new Firmware : </h3>
 <form class="pure-form pure-form-aligned" id="f" method='POST' action='/fw' enctype='multipart/form-data'
@@ -33,6 +37,16 @@
 <script>
     //QuerySelector Prefix is added by load function to know into what element queySelector need to look for
     //var qsp = '#content0 ';
+
+    getJSON('https://api.github.com/repos/DomoChip/WirelessPalaControl/releases/latest', function (response) {
+        getJSON("/gs" + qsp[8], function (GS) {
+            if (compareVersions(GS['b'], response.tag_name)) {
+                document.getElementById("zip").setAttribute('href', response.zipball_url);
+            } else {
+                document.getElementById("zip").innerHTML = 'Already up to date! (' + response.tag_name + ')'
+            }
+        });
+    });
 
     $(qsp + "#f").addEventListener('submit', function (evt) {
         evt.preventDefault();
