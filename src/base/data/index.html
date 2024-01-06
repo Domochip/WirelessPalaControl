@@ -169,6 +169,20 @@
             $("#content3").innerHTML = '';
         };
 
+        function compareVersions(gsVersion, zipVersion) {
+            var gsParts = gsVersion.match(/\d+/g).map(Number);
+            var zipParts = zipVersion.match(/\d+/g).map(Number);
+
+            for (var i = 0; i < Math.max(gsParts.length, zipParts.length); i++) {
+                var gsPart = gsParts[i] || 0;
+                var zipPart = zipParts[i] || 0;
+                if (gsPart < zipPart) {
+                    return true;
+                }
+                return false;
+            }
+        }
+
         $("#menuStatus").addEventListener("click", function (evt) {
             evt.preventDefault();
             emptyContents();
