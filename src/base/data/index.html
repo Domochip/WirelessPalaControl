@@ -183,6 +183,10 @@
             }
         }
 
+        function extractVersionsParts(version) {
+            return version.match(/v?(\d+\.\d+\.\d+)[-\/](\d+\.\d+\.\d+)/);
+        }
+
         $("#menuStatus").addEventListener("click", function (evt) {
             evt.preventDefault();
             emptyContents();
