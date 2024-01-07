@@ -12,9 +12,21 @@
         return ret;
     }
 </script>
+<!-- Affichage des versions -->
+<div>
+    <h3>
+        Current Wireless Base: <span id="currentBaseVersion"></span> 
+        Current Firmware: <span id="currentVersionFirmware"></span>
+    </h3>
+    <h3>
+        Latest Wireless Base: <span id="latestBaseVersion"></span> 
+        Latest Firmware: <span id="latestVersionFirmware"></span>
+    </h3>
+</div>
 <h3>Download Firmware online : </h3>
     <div class="pure-control-group">
         <a id="zip">Download latest release (.ZIP)</a>
+        <span id="body"></span>
     </div>
 
 <h3>Upload a new Firmware : </h3>
@@ -39,11 +51,17 @@
     //var qsp = '#content0 ';
 
     getJSON('https://api.github.com/repos/DomoChip/WirelessPalaControl/releases/latest', function (response) {
+        document.getElementById("latestBaseVersion").textContent = extractVersionsParts(response.tag_name)[1];
+        document.getElementById("latestVersionFirmware").textContent = extractVersionsParts(response.tag_name)[2];
         getJSON("/gs" + qsp[8], function (GS) {
+            document.getElementById("currentBaseVersion").textContent = extractVersionsParts(GS['b'])[1];
+            document.getElementById("currentVersionFirmware").textContent = extractVersionsParts(GS['b'])[2];
+
             if (compareVersions(GS['b'], response.tag_name)) {
                 document.getElementById("zip").setAttribute('href', response.zipball_url);
+                document.getElementById("body").innerHTML = response.body;
             } else {
-                document.getElementById("zip").innerHTML = 'Already up to date! (' + response.tag_name + ')'
+                document.getElementById("zip").innerHTML = 'Already up to date!'
             }
         });
     });
