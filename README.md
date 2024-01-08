@@ -18,13 +18,14 @@ Here is a non-exhaustive list:
 * Godin
 * Fonte Flamme
 * Invicta
+* Casatelli
 * Alpis
 * Faizen
 * HETA
 * ...
 
-If you have this controller in your stove, it's compatible.  
-![Fumis Controller](img/fumis.png)
+If you have this control panel and/or controller in your stove, it's compatible.  
+ ![Fumis Controller](img/fumis2.png)![Fumis Controller](img/fumis.png)
 
 ## Build your adapter
 
