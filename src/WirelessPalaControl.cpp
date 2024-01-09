@@ -163,6 +163,8 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   if (!_Pala.isInitialized() || !_mqttMan.connected())
     return false;
 
+  LOG_SERIAL.println(F("Publish Home Assistant Discovery data"));
+
   DynamicJsonDocument jsonDoc(2048);
   String device, payload;
 
@@ -299,7 +301,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
 
   // next entity
 
-  //TODO
+  // TODO
 
   return true;
 }
