@@ -163,6 +163,142 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   if (!_Pala.isInitialized() || !_mqttMan.connected())
     return false;
 
+  DynamicJsonDocument jsonDoc(2048);
+  String device, payload;
+
+  // read static data from stove
+  char SN[28];
+  byte SNCHK;
+  int MBTYPE;
+  uint16_t MOD, VER, CORE;
+  char FWDATE[11];
+  uint16_t FLUID;
+  uint16_t SPLMIN, SPLMAX;
+  byte UICONFIG;
+  byte HWTYPE;
+  uint16_t DSPFWVER;
+  byte CONFIG;
+  byte PELLETTYPE;
+  uint16_t PSENSTYPE;
+  byte PSENSLMAX, PSENSLTSH, PSENSLMIN;
+  byte MAINTPROBE;
+  byte STOVETYPE;
+  byte FAN2TYPE;
+  byte FAN2MODE;
+  byte BLEMBMODE;
+  byte BLEDSPMODE;
+  byte CHRONOTYPE;
+  byte AUTONOMYTYPE;
+  byte NOMINALPWR;
+  if (!_Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR))
+    return false;
+
+  // variabales
+  String baseTopic;
+  String uniqueIdPrefixWPalaControl, uniqueIdPrefixStove;
+  String uniqueId;
+  String topic;
+
+  // prepare base topic
+  baseTopic = _ha.mqtt.generic.baseTopic;
+  MQTTMan::prepareTopic(baseTopic);
+
+  // prepare unique id prefix for WPalaControl
+  uniqueIdPrefixWPalaControl = F("WPalaControl_");
+  uniqueIdPrefixWPalaControl += WiFi.macAddress();
+  uniqueIdPrefixWPalaControl.replace(":", "");
+
+  // prepare unique id prefix for Stove
+  uniqueIdPrefixStove = F("WPalaControl_");
+  uniqueIdPrefixStove += SN;
+
+  // ---------- WPalaControl Device ----------
+
+  // prepare WPalaControl device JSON
+  jsonDoc["configuration_url"] = F("http://wpalacontrol.local");
+  jsonDoc["identifiers"][0] = uniqueIdPrefixWPalaControl;
+  jsonDoc["manufacturer"] = F("Domochip");
+  jsonDoc["model"] = F("WPalaControl");
+  jsonDoc["name"] = WiFi.getHostname();
+  jsonDoc["sw_version"] = String(F("v")) + String(BASE_VERSION) + '-' + String(VERSION);
+  serializeJson(jsonDoc, device); // serialize to device String
+  jsonDoc.clear();                // clean jsonDoc
+
+  // ----- WPalaControl Entities -----
+
+  // Connectivity entity
+
+  // prepare uniqueId, topic and payload for WPalaControl connectivity sensor
+  uniqueId = uniqueIdPrefixWPalaControl;
+  uniqueId += F("_Connectivity");
+
+  topic = _ha.mqtt.hassDiscoveryPrefix;
+  topic += F("/binary_sensor/");
+  topic += uniqueId;
+  topic += F("/config");
+
+  // prepare payload for WPalaControl connectivity sensor
+  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+  jsonDoc["device_class"] = F("connectivity");
+  jsonDoc["device"] = serialized(device);
+  jsonDoc["entity_category"] = F("diagnostic");
+  jsonDoc["object_id"] = F("wpalacontrol_connectivity");
+  jsonDoc["state_topic"] = F("~/connected");
+  jsonDoc["unique_id"] = uniqueId;
+  jsonDoc["value_template"] = F("{{ iif(int(value) > 0, 'ON', 'OFF') }}");
+  serializeJson(jsonDoc, payload);
+
+  // publish
+  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+  // clean
+  jsonDoc.clear();
+  payload = "";
+  device = "";
+
+  // ---------- Stove Device ----------
+
+  // prepare Stove device JSON
+  jsonDoc["configuration_url"] = F("http://wpalacontrol.local");
+  jsonDoc["identifiers"][0] = uniqueIdPrefixStove;
+  jsonDoc["name"] = F("Stove");
+  jsonDoc["sw_version"] = String(F("v")) + String(BASE_VERSION) + '-' + String(VERSION);
+  jsonDoc["via_device"] = uniqueIdPrefixWPalaControl;
+  serializeJson(jsonDoc, device); // serialize to device String
+  jsonDoc.clear();                // clean jsonDoc
+
+  // ----- Stove Entities -----
+
+  // Connectivity entity
+
+  uniqueId = uniqueIdPrefixStove;
+  uniqueId += F("_Connectivity");
+
+  topic = _ha.mqtt.hassDiscoveryPrefix;
+  topic += F("/binary_sensor/");
+  topic += uniqueId;
+  topic += F("/config");
+
+  // prepare payload for Stove connectivity sensor
+  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+  jsonDoc["device_class"] = F("connectivity");
+  jsonDoc["device"] = serialized(device);
+  jsonDoc["entity_category"] = F("diagnostic");
+  jsonDoc["object_id"] = F("stove_connectivity");
+  jsonDoc["state_topic"] = F("~/connected");
+  jsonDoc["unique_id"] = uniqueId;
+  jsonDoc["value_template"] = F("{{ iif(int(value) > 1, 'ON', 'OFF') }}");
+  serializeJson(jsonDoc, payload);
+
+  // publish
+  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+  // clean
+  jsonDoc.clear();
+  payload = "";
+
+  // next entity
+
   //TODO
 
   return true;
