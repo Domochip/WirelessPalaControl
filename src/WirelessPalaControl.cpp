@@ -303,9 +303,35 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   jsonDoc.clear();
   payload = "";
 
-  // next entity
+  //
+  // Status entity
+  //
 
-  // TODO
+  uniqueId = uniqueIdPrefixStove;
+  uniqueId += F("_STATUS");
+
+  topic = _ha.mqtt.hassDiscoveryPrefix;
+  topic += F("/sensor/");
+  topic += uniqueId;
+  topic += F("/config");
+
+  // prepare payload for Stove status sensor
+  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+  jsonDoc["availability"] = serialized(availability);
+  jsonDoc["device"] = serialized(device);
+  jsonDoc["entity_category"] = F("diagnostic");
+  jsonDoc["name"] = F("Status");
+  jsonDoc["object_id"] = F("stove_status");
+  jsonDoc["state_topic"] = F("~/STATUS");
+  jsonDoc["unique_id"] = uniqueId;
+  serializeJson(jsonDoc, payload);
+
+  // publish
+  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+  // clean
+  jsonDoc.clear();
+  payload = "";
 
   return true;
 }
