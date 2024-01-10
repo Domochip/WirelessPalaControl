@@ -200,6 +200,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   // calculate flags
   bool hasSetPoint = (SETP != 0);
   bool hasPower = (STOVETYPE != 8);
+  bool hasOnOff = (STOVETYPE != 7 && STOVETYPE != 8);
 
   // variables
   DynamicJsonDocument jsonDoc(2048);
@@ -415,6 +416,45 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     jsonDoc["object_id"] = F("stove_pwr");
     jsonDoc["state_topic"] = F("~/PWR");
     jsonDoc["unique_id"] = uniqueId;
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  //
+  // OnOff entity
+  //
+
+  if (hasOnOff)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_ON_OFF");
+
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += F("/switch/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove onoff switch
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+    jsonDoc["availability"] = serialized(availability);
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["icon"] = F("mdi:power");
+    jsonDoc["name"] = F("On/Off");
+    jsonDoc["object_id"] = F("stove_on_off");
+    jsonDoc["payload_off"] = F("CMD+OFF");
+    jsonDoc["payload_on"] = F("CMD+ON");
+    jsonDoc["state_off"] = F("OFF");
+    jsonDoc["state_on"] = F("ON");
+    jsonDoc["state_topic"] = F("~/STATUS");
+    jsonDoc["unique_id"] = uniqueId;
+    jsonDoc["value_template"] = F("{{ iif(int(value) > 1, 'ON', 'OFF') }}");
     serializeJson(jsonDoc, payload);
 
     // publish
