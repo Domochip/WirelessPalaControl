@@ -264,8 +264,9 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   // prepare Stove device JSON
   jsonDoc["configuration_url"] = F("http://wpalacontrol.local");
   jsonDoc["identifiers"][0] = uniqueIdPrefixStove;
+  jsonDoc["model"] = String(MOD);
   jsonDoc["name"] = F("Stove");
-  jsonDoc["sw_version"] = String(F("v")) + String(BASE_VERSION) + '-' + String(VERSION);
+  jsonDoc["sw_version"] = String(VER) + F(" (") + FWDATE + ')';
   jsonDoc["via_device"] = uniqueIdPrefixWPalaControl;
   serializeJson(jsonDoc, device); // serialize to device String
   jsonDoc.clear();                // clean jsonDoc
