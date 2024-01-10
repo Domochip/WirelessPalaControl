@@ -261,6 +261,12 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
 
   // ---------- Stove Device ----------
 
+  // prepare availability JSON for Stove entities 
+  jsonDoc["topic"] = F("~/connected");
+  jsonDoc["value_template"] = F("{{ iif(int(value) > 0, 'online', 'offline') }}");
+  serializeJson(jsonDoc, availability); // serialize to availability String
+  jsonDoc.clear();                      // clean jsonDoc
+
   // prepare Stove device JSON
   jsonDoc["configuration_url"] = F("http://wpalacontrol.local");
   jsonDoc["identifiers"][0] = uniqueIdPrefixStove;
