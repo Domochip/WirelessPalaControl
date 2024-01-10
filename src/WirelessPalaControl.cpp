@@ -227,7 +227,9 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
 
   // ----- WPalaControl Entities -----
 
+  //
   // Connectivity entity
+  //
 
   // prepare uniqueId, topic and payload for WPalaControl connectivity sensor
   uniqueId = uniqueIdPrefixWPalaControl;
@@ -270,7 +272,9 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
 
   // ----- Stove Entities -----
 
+  //
   // Connectivity entity
+  //
 
   uniqueId = uniqueIdPrefixStove;
   uniqueId += F("_Connectivity");
