@@ -199,6 +199,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
 
   // calculate flags
   bool hasSetPoint = (SETP != 0);
+  bool hasPower = (STOVETYPE != 8);
 
   // variables
   DynamicJsonDocument jsonDoc(2048);
@@ -376,6 +377,44 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     jsonDoc["state_topic"] = F("~/SETP");
     jsonDoc["unique_id"] = uniqueId;
     jsonDoc["unit_of_measurement"] = F("°C");
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  //
+  // Power entity
+  //
+
+  if (hasPower)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_PWR");
+
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += F("/number/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove power number
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+    jsonDoc["availability"] = serialized(availability);
+    jsonDoc["command_template"] = F("SET+PWR+{{ value }}");
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["icon"] = F("mdi:signal");
+    jsonDoc["min"] = 1;
+    jsonDoc["max"] = 5;
+    jsonDoc["mode"] = F("slider");
+    jsonDoc["name"] = F("Power");
+    jsonDoc["object_id"] = F("stove_pwr");
+    jsonDoc["state_topic"] = F("~/PWR");
+    jsonDoc["unique_id"] = uniqueId;
     serializeJson(jsonDoc, payload);
 
     // publish
