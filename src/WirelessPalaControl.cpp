@@ -192,6 +192,14 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   if (!_Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR))
     return false;
 
+  // read setpoint from stove
+  float SETP;
+  if (!_Pala.getSetPoint(&SETP))
+    return false;
+
+  // calculate flags
+  bool hasSetPoint = (SETP != 0);
+
   // variables
   DynamicJsonDocument jsonDoc(2048);
   String device, availability, payload;
@@ -338,6 +346,45 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   // clean
   jsonDoc.clear();
   payload = "";
+
+  //
+  // SetPoint entity
+  //
+
+  if (hasSetPoint)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_SETP");
+
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += F("/number/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove setpoint number
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+    jsonDoc["availability"] = serialized(availability);
+    jsonDoc["command_template"] = F("SET+SETP+{{ value }}");
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["device_class"] = F("temperature");
+    jsonDoc["min"] = 17;
+    jsonDoc["max"] = 23;
+    jsonDoc["mode"] = F("slider");
+    jsonDoc["name"] = F("SetPoint");
+    jsonDoc["object_id"] = F("stove_setp");
+    jsonDoc["state_topic"] = F("~/SETP");
+    jsonDoc["unique_id"] = uniqueId;
+    jsonDoc["unit_of_measurement"] = F("°C");
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
 
   return true;
 }
