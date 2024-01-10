@@ -165,9 +165,6 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
 
   LOG_SERIAL.println(F("Publish Home Assistant Discovery data"));
 
-  DynamicJsonDocument jsonDoc(2048);
-  String device, payload;
-
   // read static data from stove
   char SN[28];
   byte SNCHK;
@@ -195,7 +192,9 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   if (!_Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR))
     return false;
 
-  // variabales
+  // variables
+  DynamicJsonDocument jsonDoc(2048);
+  String device, availability, payload;
   String baseTopic;
   String uniqueIdPrefixWPalaControl, uniqueIdPrefixStove;
   String uniqueId;
