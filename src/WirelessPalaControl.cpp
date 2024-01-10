@@ -2027,7 +2027,13 @@ void WebPalaControl::appRun()
 
   // if MQTT and Home Assistant discovery enabled and publish is needed
   if (_ha.protocol == HA_PROTO_MQTT && _ha.mqtt.hassDiscoveryEnabled && _needPublishHassDiscovery)
-    _needPublishHassDiscovery = !publishHassDiscoveryToMqtt(); // don't need to publish anymore if publish was successful
+  {
+    if (publishHassDiscoveryToMqtt()) // publish discovery
+    {
+      _needPublishHassDiscovery = false;
+      publishTick(); // publish immediately after HAss discovery
+    }
+  }
 
   // Handle UDP requests
   udpRequestHandler(_udpServer);
