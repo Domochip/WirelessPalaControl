@@ -1912,7 +1912,7 @@ bool WebPalaControl::appInit(bool reInit)
     willTopic += F("connected");
 
     // setup MQTT
-    _mqttMan.setBufferSize(1100); // max JSON size (STDT is the longest one)
+    _mqttMan.setBufferSize(1600); // max JSON size (STDT ~1100 but STATUS_text HAss discovery ~1600)
     _mqttMan.setClient(_wifiClient).setServer(_ha.hostname, _ha.mqtt.port);
     _mqttMan.setConnectedAndWillTopic(willTopic.c_str());
     _mqttMan.setConnectedCallback(std::bind(&WebPalaControl::mqttConnectedCallback, this, std::placeholders::_1, std::placeholders::_2));
