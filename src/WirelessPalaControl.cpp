@@ -271,7 +271,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
 
   // ---------- Stove Device ----------
 
-  // prepare availability JSON for Stove entities 
+  // prepare availability JSON for Stove entities
   jsonDoc["topic"] = F("~/connected");
   jsonDoc["value_template"] = F("{{ iif(int(value) > 0, 'online', 'offline') }}");
   serializeJson(jsonDoc, availability); // serialize to availability String
@@ -340,6 +340,37 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   jsonDoc["object_id"] = F("stove_status");
   jsonDoc["state_topic"] = F("~/STATUS");
   jsonDoc["unique_id"] = uniqueId;
+  serializeJson(jsonDoc, payload);
+
+  // publish
+  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+  // clean
+  jsonDoc.clear();
+  payload = "";
+
+  //
+  // Status Text entity
+  //
+
+  uniqueId = uniqueIdPrefixStove;
+  uniqueId += F("_STATUS_Text");
+
+  topic = _ha.mqtt.hassDiscoveryPrefix;
+  topic += F("/sensor/");
+  topic += uniqueId;
+  topic += F("/config");
+
+  // prepare payload for Stove status text sensor
+  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+  jsonDoc["availability"] = serialized(availability);
+  jsonDoc["device"] = serialized(device);
+  jsonDoc["device_class"] = F("enum");
+  jsonDoc["name"] = F("Status");
+  jsonDoc["object_id"] = F("stove_status_text");
+  jsonDoc["state_topic"] = F("~/STATUS");
+  jsonDoc["unique_id"] = uniqueId;
+  jsonDoc["value_template"] = F("{% set ns = namespace(found=false) %}{% set statusList=[([0],'Off'),([1],'Off Timer'),([2],'Test Fire'),([3,4,5],'Ignition'),([6],'Burning'),([9],'Cool'),([10],'Fire Stop'),([11],'Clean Fire'),([12],'Cool'),([239],'MFDoor Alarm'),([240],'Fire Error'),([241],'Chimney Alarm'),([243],'Grate Error'),([244],'NTC2 Alarm'),([245],'NTC3 Alarm'),([247],'Door Alarm'),([248],'Pressure Alarm'),([249],'NTC1 Alarm'),([250],'TC1 Alarm'),([252],'Gas Alarm'),([253],'No Pellet Alarm')] %}{% for num,text in statusList %}{% if int(value) in num %}{{ text }}{% set ns.found = true %}{% break %}{% endif %}{% endfor %}{% if not ns.found %}Unkown STATUS code {{ value }}{% endif %}");
   serializeJson(jsonDoc, payload);
 
   // publish
@@ -465,6 +496,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     payload = "";
   }
 
+  // TODO
   return true;
 }
 
