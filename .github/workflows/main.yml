@@ -15,7 +15,11 @@ jobs:
 
     steps:
       - name: Display Directory Structure Before Build
-        run: find / -name 'Main.h'
+        run: ls src/
+      - name: Display Directory Structure Before Build
+        run: ls ../src/
+      - name: Display Directory Structure Before Build
+        run: ls ../../src/
       - name: Get Versions
         id: versions
         run: |
