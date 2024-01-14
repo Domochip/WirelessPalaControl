@@ -15,11 +15,7 @@ jobs:
 
     steps:
       - name: Display Directory Structure Before Build
-        run: ls src/
-      - name: Display Directory Structure Before Build
-        run: ls ../src/
-      - name: Display Directory Structure Before Build
-        run: ls ../../src/
+        run: ls  ${{ env.BASE_DIR }}
       - name: Get Versions
         id: versions
         run: |
