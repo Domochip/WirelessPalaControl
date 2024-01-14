@@ -1,0 +1,55 @@
+name: PlatformIO CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches: 
+      - '**'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Get Versions
+        id: versions
+        run: |
+          VERSION_NUMBER=$(grep -oP '(?<=#define VERSION_NUMBER ").*(?=")'  ./src/Main.h)
+          BASE_VERSION=$(grep -oP '(?<=#define BASE_VERSION ").*(?=")'  ./src/base/Version.h)
+          echo "VERSION_NUMBER=${VERSION_NUMBER}" >> $GITHUB_ENV
+          echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_ENV
+    
+      - name: Build PlatformIO Project
+        run: pio run
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: .pio/build/d1_mini/WirelessPalaControl.bin
+          tag_name: "v${{ env.BASE_VERSION }}-${{ env.VERSION_NUMBER }}"
+          title: "Release ${{ env.BASE_VERSION }}-${{ env.VERSION_NUMBER }}"
+          body: "Base Version: ${{ env.BASE_VERSION }}\nFirmware Version: ${{ env.VERSION_NUMBER }}"
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
