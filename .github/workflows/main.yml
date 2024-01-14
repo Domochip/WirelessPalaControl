@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Display Directory Structure Before Build
-        run: ls -R $GITHUB_WORKSPACE
+        run: ls -R
       - name: Get Versions
         id: versions
         run: |
