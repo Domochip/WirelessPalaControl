@@ -41,7 +41,7 @@ jobs:
     needs: build 
     steps:
       - name: Display Directory Structure
-        run: ls ../..
+        run: ls ../../..
       - name: Get Versions
         id: versions
         run: |
