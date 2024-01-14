@@ -15,12 +15,12 @@ jobs:
 
     steps:
       - name: Display Directory Structure Before Build
-        run: ls -R
+        run: find / -name 'Main.h'
       - name: Get Versions
         id: versions
         run: |
-          VERSION_NUMBER=$(grep -oP '(?<=#define VERSION_NUMBER ").*(?=")' ./src/Main.h)
-          BASE_VERSION=$(grep -oP '(?<=#define BASE_VERSION ").*(?=")' ./src/base/Version.h)
+          VERSION_NUMBER=$(grep -oP '(?<=#define VERSION_NUMBER ").*(?=")' src/Main.h)
+          BASE_VERSION=$(grep -oP '(?<=#define BASE_VERSION ").*(?=")' src/base/Version.h)
           echo "VERSION_NUMBER=${VERSION_NUMBER}" >> $GITHUB_ENV
           echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_ENV
     
