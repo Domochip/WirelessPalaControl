@@ -14,16 +14,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Display Directory Structure Before Build
-        run: ls  ~
-      - name: Get Versions
-        id: versions
-        run: |
-          VERSION_NUMBER=$(grep -oP '(?<=#define VERSION_NUMBER ").*(?=")'  ~/src/Main.h)
-          BASE_VERSION=$(grep -oP '(?<=#define BASE_VERSION ").*(?=")'  ~/src/base/Version.h)
-          echo "VERSION_NUMBER=${VERSION_NUMBER}" >> $GITHUB_ENV
-          echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_ENV
-    
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -42,6 +32,16 @@ jobs:
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
 
+      - name: Display Directory Structure Before Build
+        run: ls  ~
+      - name: Get Versions
+        id: versions
+        run: |
+          VERSION_NUMBER=$(grep -oP '(?<=#define VERSION_NUMBER ").*(?=")'  ./src/Main.h)
+          BASE_VERSION=$(grep -oP '(?<=#define BASE_VERSION ").*(?=")'  ./src/base/Version.h)
+          echo "VERSION_NUMBER=${VERSION_NUMBER}" >> $GITHUB_ENV
+          echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_ENV
+    
       - name: Build PlatformIO Project
         run: pio run
 
