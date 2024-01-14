@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    name: Build and Release
     runs-on: ubuntu-latest
 
     steps:
@@ -33,3 +34,10 @@ jobs:
 
       - name: Build PlatformIO Project
         run: pio run -e d1_mini
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: .pio/build/d1_mini/WirelessPalaControl.bin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
