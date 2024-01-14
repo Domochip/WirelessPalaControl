@@ -14,6 +14,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Get Versions
+        id: versions
+        run: |
+          VERSION_NUMBER=$(grep -oP '(?<=#define VERSION_NUMBER ").*(?=")' $GITHUB_WORKSPACE/src/Main.h)
+          BASE_VERSION=$(grep -oP '(?<=#define BASE_VERSION ").*(?=")' $GITHUB_WORKSPACE/src/base/Version.h)
+          echo "VERSION_NUMBER=${VERSION_NUMBER}" >> $GITHUB_ENV
+          echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_ENV
+    
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -40,26 +48,6 @@ jobs:
     runs-on: ubuntu-20.04
     needs: build 
     steps:
-      - name: Display Directory Structure
-        run: ls
-
-      - name: Display Directory Structure
-        run: ls ..
-
-      - name: Display Directory Structure
-        run: ls ../..
-
-      - name: Display Directory Structure
-        run: ls ../../..
-        
-      - name: Get Versions
-        id: versions
-        run: |
-          VERSION_NUMBER=$(grep -oP '(?<=#define VERSION_NUMBER ").*(?=")' $GITHUB_WORKSPACE/src/Main.h)
-          BASE_VERSION=$(grep -oP '(?<=#define BASE_VERSION ").*(?=")' $GITHUB_WORKSPACE/src/base/Version.h)
-          echo "VERSION_NUMBER=${VERSION_NUMBER}" >> $GITHUB_ENV
-          echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_ENV
-
       - name: Set Git Tag
         run: git tag -a "v${{ env.VERSION_NUMBER }}" -m "Version ${{ env.VERSION_NUMBER }}"
         env:
