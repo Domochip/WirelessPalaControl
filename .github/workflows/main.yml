@@ -8,9 +8,6 @@ on:
     branches: 
       - '**'
 
-env:
-  APP_NAME: ${{ github.event.repository.name }}
-
 jobs:
   build:
     name: Build
