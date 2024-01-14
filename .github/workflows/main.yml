@@ -33,7 +33,9 @@ jobs:
         run: pip install --upgrade platformio
 
       - name: Display Directory Structure Before Build
-        run: ls  ~
+        run: grep -oP '(?<=#define VERSION_NUMBER ").*(?=")' ./src/Main.h
+      - name: Display Directory Structure Before Build
+        run: grep -oP '(?<=#define BASE_VERSION ").*(?=")'  ./src/base/Version.h
       - name: Get Versions
         id: versions
         run: |
