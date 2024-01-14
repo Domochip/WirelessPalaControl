@@ -34,8 +34,10 @@ jobs:
 
       - name: Display Directory Structure Before Build
         run: grep -oP '(?<=#define VERSION_NUMBER ").*(?=")' ./src/Main.h
+
       - name: Display Directory Structure Before Build
         run: grep -oP '(?<=#define BASE_VERSION ").*(?=")'  ./src/base/Version.h
+
       - name: Get Versions
         id: versions
         run: |
@@ -47,11 +49,6 @@ jobs:
       - name: Build PlatformIO Project
         run: pio run
 
-  release:
-    name: Release
-    runs-on: ubuntu-20.04
-    needs: build
-    steps:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
