@@ -45,7 +45,6 @@ jobs:
     steps:
       - name: Display Directory Structure
         run: ls -R
-        working-directory: WirelessPalaControl
       - name: Get Versions
         id: versions
         run: |
