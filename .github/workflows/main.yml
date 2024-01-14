@@ -45,25 +45,10 @@ jobs:
       - name: Build PlatformIO Project
         run: pio run
 
-  version:
-    name: Versioning
-    runs-on: ubuntu-20.04
-    needs: build 
-    steps:
-      - name: Set Git Tag
-        run: git tag -a "v${{ env.VERSION_NUMBER }}" -m "Version ${{ env.VERSION_NUMBER }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push Git Tag
-        run: git push origin "v${{ env.VERSION_NUMBER }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   release:
     name: Release
     runs-on: ubuntu-20.04
-    needs: [ build, version]
+    needs: build
     steps:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
