@@ -121,8 +121,8 @@
                         console.log(WNL.wnl)
                     $(qsp + "#wnl").innerHTML = '<option>Choose Your Network</option>';
                     for (k in WNL.wnl) {
-                        if ($(qsp + "#s").value == WNL.wnl[k].SSID) $(qsp + "#wnl").innerHTML += '<option value="' + WNL.wnl[k].SSID + '" selected>' + WNL.wnl[k].SSID + ' ' + WNL.wnl[k].RSSI + '</option>';
-                        else $(qsp + "#wnl").innerHTML += '<option value="' + WNL.wnl[k].SSID+ '">' + WNL.wnl[k].SSID + ' ' + WNL.wnl[k].RSSI + '</option>';
+                        if ($(qsp + "#s").value == WNL.wnl[k].SSID) $(qsp + "#wnl").innerHTML += '<option value="' + WNL.wnl[k].SSID + '" selected>' + WNL.wnl[k].SSID + ' (' + WNL.wnl[k].RSSI + ') dBm</option>';
+                        else $(qsp + "#wnl").innerHTML += '<option value="' + WNL.wnl[k].SSID+ '">' + WNL.wnl[k].SSID + ' (' + WNL.wnl[k].RSSI + ') dBm</option>';
                     }
                     $(qsp + "#wnl").addEventListener('change', function () { $(qsp + "#s").value = $(qsp + "#wnl").value });
                 }
