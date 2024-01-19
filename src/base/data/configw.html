@@ -118,7 +118,6 @@
             else { //scan done
                 if (WNL.r == 0) $(qsp + "#wnl").innerHTML = '<option>No Network Found</option>';
                 else {
-                        console.log(WNL.wnl)
                     $(qsp + "#wnl").innerHTML = '<option>Choose Your Network</option>';
                     for (k in WNL.wnl) {
                         if ($(qsp + "#s").value == WNL.wnl[k].SSID) $(qsp + "#wnl").innerHTML += '<option value="' + WNL.wnl[k].SSID + '" selected>' + WNL.wnl[k].SSID + ' (' + WNL.wnl[k].RSSI + ' dBm)</option>';
