@@ -412,7 +412,7 @@ void WifiMan::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, boo
       networksJSON = networksJSON + n + F(",\"wnl\":[");
       for (byte i = 0; i < n; i++)
       {
-        networksJSON = networksJSON + F("{\"SSID\":\"") + WiFi.SSID(i) + F(",\"RSSI\":\"") + WiFi.RSSI(i) + F("'\"}'") 
+        networksJSON = networksJSON + F("{\"SSID\":\"") + WiFi.SSID(i) + F(",\"RSSI\":\"") + WiFi.RSSI(i) + F("\"}")
         if (i != (n - 1))
           networksJSON += ',';
       }
