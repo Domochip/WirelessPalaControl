@@ -192,6 +192,14 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), getHTMLContent(fw), getHTMLContentSize(fw)); });
 
+  // HTML mn handler
+  sprintf_P(url, PSTR("/mn%c.html"), _appId);
+  server.on(url, HTTP_GET, [this, &server]()
+            {
+    server.keepAlive(false);
+    server.sendHeader(F("Content-Encoding"), F("gzip"));
+    server.send_P(200, PSTR("text/html"), getHTMLContent(mn), getHTMLContentSize(mn)); });
+
   // HTML discover handler
   sprintf_P(url, PSTR("/discover%c.html"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
