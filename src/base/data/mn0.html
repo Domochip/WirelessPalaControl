@@ -8,7 +8,12 @@
     .redfont { color:red; }
     .greenfont { color:green; }
     .inputResult { margin-left: 5px; width: 60px; }
-    .textareaResponse { border: 1px solid #ccc; padding: 1px 6px; display: block; width: 80%; overflow: hidden; resize: both; min-height: 40px; line-height: 20px; }
+    .textareaResponse { border: 1px solid #ccc; padding: 1px 6px; display: block; overflow: hidden; resize: both; min-height: 40px; line-height: 20px; }
+    @media (max-width: 48em) {
+        #liveData tr .name {
+            display: none;
+        }
+    }
 </style>
 <span id="lastRefresh">Loading...</span>
 <table id="liveData" class="pure-form">
@@ -40,7 +45,7 @@
         <td class="name">Setpoint</td>
         <td class="value" data-unit="°C" data-number="1"></td>
         <td class="action"><input id="STPDCMD" class="pure-button pure-button-primary" type="button" value="-" />
-            <input type="range" id="SETPCMD" value="0" min="5" max="51" />
+            <input type="range" id="SETPCMD" value="0" min="5" max="51" /><!--SPLMIN and SPLMAX-->
             <input id="STPUCMD" class="pure-button pure-button-primary" type="button" value="+" /></td>
     </tr>
     <tr id="T1">
@@ -83,7 +88,7 @@
         <td class="name">Room Fan Level</td>
         <td class="value" data-number="1"></td>
         <td class="action"><input id="F2LDCMD" class="pure-button pure-button-primary" type="button" value="-" />
-            <select id="F2LCMD">
+            <select id="F2LCMD"><!--FANLMINMAX[1] and FANLMINMAX[2]-->
                 <option value="0">Auto</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -105,6 +110,10 @@
         <td class="name"></td>
         <td class="value" data-number="1"></td>
     </tr>
+    <!--tr id="F3L">FANLMINMAX[3] and FANLMINMAX[4]
+    </tr--->
+    <!--tr id="F4L">FANLMINMAX[5] and FANLMINMAX[6]
+    </tr--->
     <tr id="IGN">
         <td class="id">IGN 💥</td>
         <td class="name">Number of ignitions</td>
@@ -285,6 +294,7 @@
                 switch (k) {
                     case "STATUS":
                         $(qsp + '#' + k + ' #ONOFFCMD').value = (liveData[k] != 6 ? 'OFF' : 'ON');
+
                         liveData[k] = statusCode[liveData[k]];
                         break;
                     case "PWR":
@@ -389,7 +399,7 @@
         sendCmd('SET+STPD');
     });
     $(qsp + '#STPUCMD').addEventListener("click", function (evt) {
-        $(qsp + '#SETP .value').innerText = parseInt($(qsp + '#SETP .value').innerText) + 1+ ' ' + $(qsp + '#SETP .value').getAttribute('data-unit');
+        $(qsp + '#SETP .value').innerText = parseInt($(qsp + '#SETP .value').innerText) + 1 + ' ' + $(qsp + '#SETP .value').getAttribute('data-unit');
         sendCmd('SET+STPU');
     });
     
