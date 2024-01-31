@@ -168,28 +168,17 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   // read static data from stove
   char SN[28];
   byte SNCHK;
-  int MBTYPE;
-  uint16_t MOD, VER, CORE;
+  uint16_t MOD, VER;
   char FWDATE[11];
   uint16_t FLUID;
-  uint16_t SPLMIN, SPLMAX;
-  byte UICONFIG;
-  byte HWTYPE;
-  uint16_t DSPFWVER;
-  byte CONFIG;
-  byte PELLETTYPE;
-  uint16_t PSENSTYPE;
-  byte PSENSLMAX, PSENSLTSH, PSENSLMIN;
   byte MAINTPROBE;
   byte STOVETYPE;
   byte FAN2TYPE;
   byte FAN2MODE;
-  byte BLEMBMODE;
-  byte BLEDSPMODE;
-  byte CHRONOTYPE;
-  byte AUTONOMYTYPE;
-  byte NOMINALPWR;
-  if (!_Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR))
+  if (!_Pala.getStaticData(&SN, &SNCHK, nullptr, &MOD, &VER, nullptr, &FWDATE, &FLUID, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, nullptr, nullptr, nullptr, nullptr, nullptr))
+    return false;
+
+  if (!SNCHK)
     return false;
 
   // read setpoint from stove
