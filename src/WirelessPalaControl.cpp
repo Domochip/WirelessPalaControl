@@ -186,7 +186,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   if (!_Pala.getSetPoint(&SETP))
     return false;
 
-  // calculate flags
+  // calculate flags (https://github.com/palazzetti/palazzetti-sdk-asset-parser-python/blob/main/palazzetti_sdk_asset_parser/data/asset_parser.json)
   bool hasSetPoint = (SETP != 0);
   bool hasPower = (STOVETYPE != 8);
   bool hasOnOff = (STOVETYPE != 7 && STOVETYPE != 8);
