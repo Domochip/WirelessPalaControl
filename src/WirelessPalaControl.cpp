@@ -652,6 +652,39 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     payload = "";
   }
 
+  //
+  // Pellet consumption entity
+  //
+
+  uniqueId = uniqueIdPrefixStove;
+  uniqueId += F("_PQT");
+
+  topic = _ha.mqtt.hassDiscoveryPrefix;
+  topic += F("/sensor/");
+  topic += uniqueId;
+  topic += F("/config");
+
+  // prepare payload for Stove pellet consumption sensor
+  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+  jsonDoc["availability"] = serialized(availability);
+  jsonDoc["device"] = serialized(device);
+  jsonDoc["device_class"] = F("weight");
+  jsonDoc["icon"] = F("mdi:chart-bell-curve-cumulative");
+  jsonDoc["name"] = F("Pellet Consumed");
+  jsonDoc["object_id"] = F("stove_pqt");
+  jsonDoc["state_class"] = F("total_increasing");
+  jsonDoc["state_topic"] = F("~/PQT");
+  jsonDoc["unique_id"] = uniqueId;
+  jsonDoc["unit_of_measurement"] = F("kg");
+  serializeJson(jsonDoc, payload);
+
+  // publish
+  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+  // clean
+  jsonDoc.clear();
+  payload = "";
+
   // TODO
   return true;
 }
