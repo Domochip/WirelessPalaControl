@@ -190,6 +190,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   bool hasSetPoint = (SETP != 0);
   bool hasPower = (STOVETYPE != 8);
   bool hasOnOff = (STOVETYPE != 7 && STOVETYPE != 8);
+  bool hasRoomFan = (FAN2TYPE > 1);
 
   // variables
   DynamicJsonDocument jsonDoc(2048);
@@ -475,6 +476,53 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     jsonDoc["state_topic"] = F("~/STATUS");
     jsonDoc["unique_id"] = uniqueId;
     jsonDoc["value_template"] = F("{{ iif(int(value) > 1, 'ON', 'OFF') }}");
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  //
+  // RoomFan entity
+  //
+
+  if (hasRoomFan)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_RFAN");
+
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += F("/number/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove room fan
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+
+    // specific availibility for room fan
+    JsonArray availability = jsonDoc.createNestedArray("availability");
+    JsonObject availability_0 = availability.createNestedObject();
+    availability_0["topic"] = F("~/connected");
+    availability_0["value_template"] = F("{{ iif(int(value) > 0, 'online', 'offline') }}");
+    JsonObject availability_1 = availability.createNestedObject();
+    availability_1["topic"] = F("~/F2L");
+    availability_1["value_template"] = F("{{ iif(int(value) < 7, 'online', 'offline') }}");
+    jsonDoc["availability_mode"] = F("all");
+
+    jsonDoc["command_template"] = F("SET+RFAN+{{ value }}");
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["min"] = 0;
+    jsonDoc["max"] = 6;
+    jsonDoc["name"] = F("Room Fan");
+    jsonDoc["object_id"] = F("stove_rfan");
+    jsonDoc["payload_reset"] = F("7");
+    jsonDoc["state_topic"] = F("~/F2L");
+    jsonDoc["unique_id"] = uniqueId;
     serializeJson(jsonDoc, payload);
 
     // publish
