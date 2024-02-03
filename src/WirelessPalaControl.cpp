@@ -802,7 +802,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t SPLMIN, SPLMAX;
     byte UICONFIG;
     byte HWTYPE;
-    byte _DSPTYPE;
+    byte DSPTYPE;
     byte DSPFWVER;
     byte CONFIG;
     byte PELLETTYPE;
@@ -817,7 +817,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     byte CHRONOTYPE;
     byte AUTONOMYTYPE;
     byte NOMINALPWR;
-    cmdSuccess = _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &_DSPTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
+    cmdSuccess = _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
 
     if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
@@ -875,6 +875,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       data["SPLMAX"] = SPLMAX;
       data["UICONFIG"] = UICONFIG;
       data["HWTYPE"] = HWTYPE;
+      data["DSPTYPE"] = DSPTYPE;
       data["DSPFWVER"] = DSPFWVER;
       data["CONFIG"] = CONFIG;
       data["PELLETTYPE"] = PELLETTYPE;
