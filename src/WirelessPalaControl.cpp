@@ -375,6 +375,39 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   payload = "";
 
   //
+  // Room temperature entity
+  //
+
+  uniqueId = uniqueIdPrefixStove;
+  uniqueId += F("_RoomTemp");
+
+  topic = _ha.mqtt.hassDiscoveryPrefix;
+  topic += F("/sensor/");
+  topic += uniqueId;
+  topic += F("/config");
+
+  // prepare payload for Stove room temperature sensor
+  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+  jsonDoc["availability"] = serialized(availability);
+  jsonDoc["device"] = serialized(device);
+  jsonDoc["device_class"] = F("temperature");
+  jsonDoc["name"] = F("Room Temperature");
+  jsonDoc["object_id"] = F("stove_roomtemp");
+  jsonDoc["suggested_display_precision"] = 1;
+  jsonDoc["state_class"] = F("measurement");
+  jsonDoc["state_topic"] = String('T') + ('1' + MAINTPROBE);
+  jsonDoc["unique_id"] = uniqueId;
+  jsonDoc["unit_of_measurement"] = F("°C");
+  serializeJson(jsonDoc, payload);
+
+  // publish
+  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+  // clean
+  jsonDoc.clear();
+  payload = "";
+
+  //
   // SetPoint entity
   //
 
