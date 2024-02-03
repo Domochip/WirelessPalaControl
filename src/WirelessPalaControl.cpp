@@ -137,7 +137,7 @@ bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &pa
       res = _mqttMan.publish(topic.c_str(), serializedData.c_str());
     }
 
-    if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+    if (_ha.mqtt.type == HA_MQTT_GENERIC_CATEGORIZED)
     {
       // prepare category topic
       String categoryTopic(baseTopic);
