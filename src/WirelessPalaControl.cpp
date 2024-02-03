@@ -191,6 +191,8 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   bool hasPower = (STOVETYPE != 8);
   bool hasOnOff = (STOVETYPE != 7 && STOVETYPE != 8);
   bool hasRoomFan = (FAN2TYPE > 1);
+  bool isAirType = (STOVETYPE == 1 || STOVETYPE == 3 || STOVETYPE == 5 || STOVETYPE == 7 || STOVETYPE == 8);
+  bool hasFanAuto = (FAN2MODE == 2 || FAN2MODE == 3);
 
   // variables
   DynamicJsonDocument jsonDoc(2048);
@@ -523,6 +525,45 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     jsonDoc["payload_reset"] = F("7");
     jsonDoc["state_topic"] = F("~/F2L");
     jsonDoc["unique_id"] = uniqueId;
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  //
+  // RoomFan Auto entity
+  //
+
+  if (isAirType && hasFanAuto)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_RFAN_Auto");
+
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += F("/switch/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove room fan auto mode
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+    jsonDoc["availability"] = serialized(availability);
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["icon"] = F("mdi:fan-auto");
+    jsonDoc["name"] = F("Room Fan Auto");
+    jsonDoc["object_id"] = F("stove_rfan_auto");
+    jsonDoc["payload_off"] = F("SET+RFAN+3");
+    jsonDoc["payload_on"] = F("SET+RFAN+7");
+    jsonDoc["state_off"] = F("OFF");
+    jsonDoc["state_on"] = F("ON");
+    jsonDoc["state_topic"] = F("~/F2L");
+    jsonDoc["unique_id"] = uniqueId;
+    jsonDoc["value_template"] = F("{{ iif(int(value) == 7, 'ON', 'OFF') }}");
     serializeJson(jsonDoc, payload);
 
     // publish
