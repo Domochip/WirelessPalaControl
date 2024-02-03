@@ -12,7 +12,7 @@
 #define APPLICATION1_DESC "DomoChip Wireless Palazzetti Control"
 #define APPLICATION1_CLASS WebPalaControl
 
-#define VERSION_NUMBER "3.1.1"
+#define VERSION_NUMBER "3.1.2"
 
 #define DEFAULT_AP_SSID "WirelessPalaControl"
 #define DEFAULT_AP_PSK "PasswordPalaControl"
