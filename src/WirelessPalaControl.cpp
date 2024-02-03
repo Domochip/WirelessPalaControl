@@ -163,6 +163,11 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   if (!_Pala.isInitialized() || !_mqttMan.connected())
     return false;
 
+  // TODO : if MQTT Type is not "Generic" then don't publish
+  if (_ha.mqtt.type != HA_MQTT_GENERIC)
+    return true;
+
+
   LOG_SERIAL.println(F("Publish Home Assistant Discovery data"));
 
   // read static data from stove
