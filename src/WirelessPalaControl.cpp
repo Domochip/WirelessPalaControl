@@ -175,7 +175,12 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   byte STOVETYPE;
   byte FAN2TYPE;
   byte FAN2MODE;
-  if (!_Pala.getStaticData(&SN, &SNCHK, nullptr, &MOD, &VER, nullptr, &FWDATE, &FLUID, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, nullptr, nullptr, nullptr, nullptr, nullptr))
+  byte BLEMBMODE;
+  byte BLEDSPMODE;
+  byte CHRONOTYPE;
+  byte AUTONOMYTYPE;
+  byte NOMINALPWR;
+  if (Palazzetti::CommandResult::OK != _Pala.getStaticData(&SN, &SNCHK, nullptr, &MOD, &VER, nullptr, &FWDATE, &FLUID, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, nullptr, nullptr, nullptr, nullptr, nullptr))
     return false;
 
   if (!SNCHK)
@@ -183,7 +188,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
 
   // read setpoint from stove
   float SETP;
-  if (!_Pala.getSetPoint(&SETP))
+  if (Palazzetti::CommandResult::OK != _Pala.getSetPoint(&SETP))
     return false;
 
   // calculate flags (https://github.com/palazzetti/palazzetti-sdk-asset-parser-python/blob/main/palazzetti_sdk_asset_parser/data/asset_parser.json)
@@ -724,8 +729,8 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
 
 bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool publish /* = false*/)
 {
-  bool cmdProcessed = false; // cmd has been processed
-  bool cmdSuccess = false;   // Palazzetti function calls successful
+  bool cmdProcessed = false;                                                             // cmd has been processed
+  Palazzetti::CommandResult cmdSuccess = Palazzetti::CommandResult::COMMUNICATION_ERROR; // Palazzetti function calls successful
 
   // Prepare answer structure
   JsonDocument jsonDoc;
@@ -802,7 +807,8 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t SPLMIN, SPLMAX;
     byte UICONFIG;
     byte HWTYPE;
-    uint16_t DSPFWVER;
+    byte _DSPTYPE;
+    byte DSPFWVER;
     byte CONFIG;
     byte PELLETTYPE;
     uint16_t PSENSTYPE;
@@ -816,9 +822,9 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     byte CHRONOTYPE;
     byte AUTONOMYTYPE;
     byte NOMINALPWR;
-    cmdSuccess = _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
+    cmdSuccess = _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &_DSPTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       // ----- WPalaControl generated values -----
       data["LABEL"] = WiFi.getHostname();
@@ -896,7 +902,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET LABL"))
   {
     cmdProcessed = true;
-    cmdSuccess = true;
+    cmdSuccess = Palazzetti::CommandResult::OK;
 
     data["LABEL"] = WiFi.getHostname();
   }
@@ -942,7 +948,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     char SN[28];
     cmdSuccess = _Pala.getAllStatus(refreshStatus, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &APLTS, &APLWDAY, &CHRSTATUS, &STATUS, &LSTATUS, &isMFSTATUSValid, &MFSTATUS, &SETP, &PUMP, &PQT, &F1V, &F1RPM, &F2L, &F2LF, &FANLMINMAX, &F2V, &isF3LF4LValid, &F3L, &F4L, &PWR, &FDR, &DPT, &DP, &IN, &OUT, &T1, &T2, &T3, &T4, &T5, &isSNValid, &SN);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       if (refreshStatus)
         _lastAllStatusRefreshMillis = currentMillis;
@@ -1002,13 +1008,14 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    uint16_t STATUS, LSTATUS;
-    cmdSuccess = _Pala.getStatus(&STATUS, &LSTATUS);
+    uint16_t STATUS, LSTATUS, FSTATUS;
+    cmdSuccess = _Pala.getStatus(&STATUS, &LSTATUS, &FSTATUS);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["STATUS"] = STATUS;
       data["LSTATUS"] = LSTATUS;
+      data["FSTATUS"] = FSTATUS;
     }
   }
 
@@ -1019,7 +1026,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     float T1, T2, T3, T4, T5;
     cmdSuccess = _Pala.getAllTemps(&T1, &T2, &T3, &T4, &T5);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["T1"] = serialized(String(T1, 2));
       data["T2"] = serialized(String(T2, 2));
@@ -1040,7 +1047,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t F3L, F4L;
     cmdSuccess = _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3SF4SValid, &F3S, &F4S, &isF3LF4LValid, &F3L, &F4L);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["F1V"] = F1V;
       data["F2V"] = F2V;
@@ -1067,7 +1074,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     float SETP;
     cmdSuccess = _Pala.getSetPoint(&SETP);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["SETP"] = serialized(String(SETP, 2));
     }
@@ -1081,7 +1088,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     float FDR;
     cmdSuccess = _Pala.getPower(&PWR, &FDR);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["PWR"] = PWR;
       data["FDR"] = serialized(String(FDR, 2));
@@ -1095,7 +1102,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQT;
     cmdSuccess = _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQT);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["IGN"] = IGN;
       data["POWERTIME"] = String(POWERTIMEh) + ':' + (POWERTIMEm / 10) + (POWERTIMEm % 10);
@@ -1115,7 +1122,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t DP_TARGET, DP_PRESS;
     cmdSuccess = _Pala.getDPressData(&DP_TARGET, &DP_PRESS);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["DP_TARGET"] = DP_TARGET;
       data["DP_PRESS"] = DP_PRESS;
@@ -1130,7 +1137,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     byte STOVE_WDAY;
     cmdSuccess = _Pala.getDateTime(&STOVE_DATETIME, &STOVE_WDAY);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["STOVE_DATETIME"] = STOVE_DATETIME;
       data["STOVE_WDAY"] = STOVE_WDAY;
@@ -1145,7 +1152,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     byte OUT_O01, OUT_O02, OUT_O03, OUT_O04, OUT_O05, OUT_O06, OUT_O07;
     cmdSuccess = _Pala.getIO(&IN_I01, &IN_I02, &IN_I03, &IN_I04, &OUT_O01, &OUT_O02, &OUT_O03, &OUT_O04, &OUT_O05, &OUT_O06, &OUT_O07);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["IN_I01"] = IN_I01;
       data["IN_I02"] = IN_I02;
@@ -1168,7 +1175,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     char SN[28];
     cmdSuccess = _Pala.getSN(&SN);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["SN"] = SN;
     }
@@ -1182,7 +1189,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     char FWDATE[11];
     cmdSuccess = _Pala.getModelVersion(&MOD, &VER, &CORE, &FWDATE);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["MOD"] = MOD;
       data["VER"] = VER;
@@ -1202,7 +1209,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     byte DM[7][3];
     cmdSuccess = _Pala.getChronoData(&CHRSTATUS, &PCHRSETP, &PSTART, &PSTOP, &DM);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["CHRSTATUS"] = CHRSTATUS;
 
@@ -1260,7 +1267,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       byte paramValue;
       cmdSuccess = _Pala.getParameter(cmdParams[0], &paramValue);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         String paramName("PAR");
         paramName += cmdParams[0];
@@ -1281,7 +1288,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       uint16_t hiddenParamValue;
       cmdSuccess = _Pala.getHiddenParameter(cmdParams[0], &hiddenParamValue);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         String hiddenParamName("HPAR");
         hiddenParamName += cmdParams[0];
@@ -1294,13 +1301,14 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    uint16_t STATUS, LSTATUS;
-    cmdSuccess = _Pala.switchOn(&STATUS, &LSTATUS);
+    uint16_t STATUS, LSTATUS, FSTATUS;
+    cmdSuccess = _Pala.switchOn(&STATUS, &LSTATUS, &FSTATUS);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["STATUS"] = STATUS;
       data["LSTATUS"] = LSTATUS;
+      data["FSTATUS"] = FSTATUS;
     }
   }
 
@@ -1308,13 +1316,14 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    uint16_t STATUS, LSTATUS;
-    cmdSuccess = _Pala.switchOff(&STATUS, &LSTATUS);
+    uint16_t STATUS, LSTATUS, FSTATUS;
+    cmdSuccess = _Pala.switchOff(&STATUS, &LSTATUS, &FSTATUS);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["STATUS"] = STATUS;
       data["LSTATUS"] = LSTATUS;
+      data["FSTATUS"] = FSTATUS;
     }
   }
 
@@ -1333,7 +1342,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       uint16_t FANLMINMAXReturn[6];
       cmdSuccess = _Pala.setPower(cmdParams[0], &PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["PWR"] = PWRReturn;
         if (isF2LReturnValid)
@@ -1359,7 +1368,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t FANLMINMAXReturn[6];
     cmdSuccess = _Pala.setPowerUp(&PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["PWR"] = PWRReturn;
       if (isF2LReturnValid)
@@ -1384,7 +1393,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t FANLMINMAXReturn[6];
     cmdSuccess = _Pala.setPowerDown(&PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["PWR"] = PWRReturn;
       if (isF2LReturnValid)
@@ -1430,7 +1439,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       byte STOVE_WDAYReturn;
       cmdSuccess = _Pala.setDateTime(cmdParams[0], cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4], cmdParams[5], &STOVE_DATETIMEReturn, &STOVE_WDAYReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["STOVE_DATETIME"] = STOVE_DATETIMEReturn;
         data["STOVE_WDAY"] = STOVE_WDAYReturn;
@@ -1453,7 +1462,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       uint16_t F2LFReturn;
       cmdSuccess = _Pala.setRoomFan(cmdParams[0], &isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         if (isPWRReturnValid)
           data["PWR"] = PWRReturn;
@@ -1473,7 +1482,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t F2LFReturn;
     cmdSuccess = _Pala.setRoomFanUp(&isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       if (isPWRReturnValid)
         data["PWR"] = PWRReturn;
@@ -1492,7 +1501,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t F2LFReturn;
     cmdSuccess = _Pala.setRoomFanDown(&isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       if (isPWRReturnValid)
         data["PWR"] = PWRReturn;
@@ -1513,7 +1522,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       uint16_t F3LReturn;
       cmdSuccess = _Pala.setRoomFan3(cmdParams[0], &F3LReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["F3L"] = F3LReturn;
       }
@@ -1532,7 +1541,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       uint16_t F4LReturn;
       cmdSuccess = _Pala.setRoomFan4(cmdParams[0], &F4LReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["F4L"] = F4LReturn;
       }
@@ -1557,7 +1566,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       uint16_t F4LReturn;
       cmdSuccess = _Pala.setSilentMode(cmdParams[0], &SLNTReturn, &PWRReturn, &F2LReturn, &F2LFReturn, &isF3LF4LReturnValid, &F3LReturn, &F4LReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["SLNT"] = SLNTReturn;
         data["PWR"] = PWRReturn;
@@ -1584,7 +1593,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       byte CHRSTATUSReturn;
       cmdSuccess = _Pala.setChronoStatus(cmdParams[0], &CHRSTATUSReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["CHRSTATUS"] = CHRSTATUSReturn;
       }
@@ -1657,7 +1666,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     {
       cmdSuccess = _Pala.setChronoDay(cmdParams[0], cmdParams[1], cmdParams[2]);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         char dayName[3] = {'D', 'X', 0};
         char memoryName[3] = {'M', 'X', 0};
@@ -1684,7 +1693,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     {
       cmdSuccess = _Pala.setChronoPrg(cmdParams[0], cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4], cmdParams[5]);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         char programName[3] = {'P', 'X', 0};
         char time[6] = {'0', '0', ':', '0', '0', 0};
@@ -1718,7 +1727,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       float SETPReturn;
       cmdSuccess = _Pala.setSetpoint((byte)cmdParams[0], &SETPReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["SETP"] = serialized(String(SETPReturn, 2));
       }
@@ -1732,7 +1741,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     float SETPReturn;
     cmdSuccess = _Pala.setSetPointUp(&SETPReturn);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["SETP"] = serialized(String(SETPReturn, 2));
     }
@@ -1745,7 +1754,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     float SETPReturn;
     cmdSuccess = _Pala.setSetPointDown(&SETPReturn);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["SETP"] = serialized(String(SETPReturn, 2));
     }
@@ -1770,7 +1779,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       float SETPReturn;
       cmdSuccess = _Pala.setSetpoint(setPointFloat, &SETPReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["SETP"] = serialized(String(SETPReturn, 2));
       }
@@ -1788,7 +1797,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     {
       cmdSuccess = _Pala.setParameter(cmdParams[0], cmdParams[1]);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data[String(F("PAR")) + cmdParams[0]] = cmdParams[1];
       }
@@ -1806,7 +1815,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     {
       cmdSuccess = _Pala.setHiddenParameter(cmdParams[0], cmdParams[1]);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data[String(F("HPAR")) + cmdParams[0]] = cmdParams[1];
       }
@@ -1819,10 +1828,10 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     // if MQTT protocol is enabled then update connected topic to reflect stove connectivity
     if (_ha.protocol == HA_PROTO_MQTT)
-      publishStoveConnectedToMqtt(cmdSuccess);
+      publishStoveConnectedToMqtt(cmdSuccess == Palazzetti::CommandResult::OK);
 
     // if communication with stove was successful
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       info["CMD"] = cmd.substring(0, 8);
 
@@ -2087,7 +2096,7 @@ String WebPalaControl::generateStatusJSON()
   String gs('{');
 
   char SN[28];
-  if (_Pala.getSN(&SN))
+  if (_Pala.getSN(&SN) == Palazzetti::CommandResult::OK)
     gs = gs + F("\"liveData\":{\"SN\":\"") + SN + F("\"}");
   else
     gs = gs + F("\"liveData\":{\"MSG\":\"Stove communication failed! please check cabling to your stove.\"}");
@@ -2178,8 +2187,8 @@ bool WebPalaControl::appInit(bool reInit)
 
   LOG_SERIAL.println(F("Connecting to Stove..."));
 
-  bool res = true;
-  res &= _Pala.initialize(
+  Palazzetti::CommandResult cmdRes;
+  cmdRes = _Pala.initialize(
       std::bind(&WebPalaControl::myOpenSerial, this, std::placeholders::_1),
       std::bind(&WebPalaControl::myCloseSerial, this),
       std::bind(&WebPalaControl::mySelectSerial, this, std::placeholders::_1),
@@ -2189,7 +2198,7 @@ bool WebPalaControl::appInit(bool reInit)
       std::bind(&WebPalaControl::myFlushSerial, this),
       std::bind(&WebPalaControl::myUSleep, this, std::placeholders::_1));
 
-  if (res)
+  if (cmdRes == Palazzetti::CommandResult::OK)
   {
     LOG_SERIAL.println(F("Stove connected"));
     char SN[28];
@@ -2202,7 +2211,7 @@ bool WebPalaControl::appInit(bool reInit)
     LOG_SERIAL.println(F("Stove connection failed"));
   }
 
-  if (res)
+  if (cmdRes == Palazzetti::CommandResult::OK)
     publishTick(); // if configuration changed, publish immediately
 
   _publishTicker.attach(_ha.uploadPeriod, [this]()
@@ -2211,7 +2220,7 @@ bool WebPalaControl::appInit(bool reInit)
   // Start UDP Server
   _udpServer.begin(54549);
 
-  return res;
+  return cmdRes == Palazzetti::CommandResult::OK;
 }
 
 //------------------------------------------
@@ -2266,8 +2275,6 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
     // WPalaControl specific command
     if (cmd.startsWith(F("BKP PARM ")))
     {
-      bool res = true;
-
       byte fileType;
 
       String strFileType(cmd.substring(9));
@@ -2287,9 +2294,9 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
       }
 
       byte params[0x6A];
-      res &= _Pala.getAllParameters(&params);
+      Palazzetti::CommandResult cmdRes = _Pala.getAllParameters(&params);
 
-      if (res)
+      if (cmdRes == Palazzetti::CommandResult::OK)
       {
         String toReturn;
 
@@ -2334,8 +2341,6 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
     // WPalaControl specific command
     if (cmd.startsWith(F("BKP HPAR ")))
     {
-      bool res = true;
-
       byte fileType;
 
       String strFileType(cmd.substring(9));
@@ -2355,9 +2360,9 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
       }
 
       uint16_t hiddenParams[0x6F];
-      res &= _Pala.getAllHiddenParameters(&hiddenParams);
+      Palazzetti::CommandResult cmdRes = _Pala.getAllHiddenParameters(&hiddenParams);
 
-      if (res)
+      if (cmdRes == Palazzetti::CommandResult::OK)
       {
         String toReturn;
 
