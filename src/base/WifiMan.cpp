@@ -90,7 +90,7 @@ void WifiMan::setConfigDefaultValues()
   dns2 = 0;
 }
 
-void WifiMan::parseConfigJSON(DynamicJsonDocument &doc)
+void WifiMan::parseConfigJSON(JsonDocument &doc)
 {
   if (!doc["s"].isNull())
     strlcpy(ssid, doc["s"], sizeof(ssid));

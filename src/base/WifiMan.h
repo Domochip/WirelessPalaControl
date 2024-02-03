@@ -42,7 +42,7 @@ private:
   void refreshWiFi();
 
   void setConfigDefaultValues();
-  void parseConfigJSON(DynamicJsonDocument &doc);
+  void parseConfigJSON(JsonDocument &doc);
   bool parseConfigWebRequest(ESP8266WebServer &server);
   String generateConfigJSON(bool forSaveFile);
   String generateStatusJSON();

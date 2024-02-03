@@ -98,42 +98,28 @@ bool Application::loadConfig()
   if (configFile)
   {
 
-    int memoryAllocation = JSON_DOC_MEM_STEP;
+    JsonDocument jsonDoc;
 
-    while (memoryAllocation <= JSON_DOC_MAX_MEM_SIZE)
+    DeserializationError deserializeJsonError = deserializeJson(jsonDoc, configFile);
+
+    // if deserialization failed, then log error and save current config (default values)
+    if (deserializeJsonError)
     {
-      DynamicJsonDocument jsonDoc(memoryAllocation);
 
-      configFile.seek(0);
-
-      auto deserializeJsonError = deserializeJson(jsonDoc, configFile);
-      // if parsing OK, pass it to application then stop loop
-      if (deserializeJsonError.code() == DeserializationError::Ok)
-      {
-        parseConfigJSON(jsonDoc);
-        result = true;
-        break;
-      }
-      // if parsing result is not a NoMemory, there is a problem in JSON
-      if (deserializeJsonError.code() != DeserializationError::NoMemory)
-      {
 #ifdef LOG_SERIAL
-        LOG_SERIAL.print(F("deserializeJson() failed : "));
-        LOG_SERIAL.println(deserializeJsonError.c_str());
+      LOG_SERIAL.print(F("deserializeJson() failed : "));
+      LOG_SERIAL.println(deserializeJsonError.c_str());
 #endif
-        break;
-      }
 
-      // there, we need to increase memorySize and loop
-      memoryAllocation += JSON_DOC_MEM_STEP;
+      saveConfig();
     }
-
+    else
+    { // otherwise pass it to application
+      parseConfigJSON(jsonDoc);
+      result = true;
+    }
     configFile.close();
   }
-
-  // if loading failed, then run a Save to write a good one
-  if (!result)
-    saveConfig();
 
   return result;
 }
