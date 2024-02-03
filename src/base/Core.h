@@ -16,7 +16,7 @@ class Core : public Application
 {
 private:
   void setConfigDefaultValues();
-  void parseConfigJSON(DynamicJsonDocument &doc);
+  void parseConfigJSON(JsonDocument &doc);
   bool parseConfigWebRequest(ESP8266WebServer &server);
   String generateConfigJSON(bool clearPassword);
   String generateStatusJSON();

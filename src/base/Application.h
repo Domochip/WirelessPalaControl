@@ -48,7 +48,7 @@ protected:
 
   // specialization required from the application
   virtual void setConfigDefaultValues() = 0;
-  virtual void parseConfigJSON(DynamicJsonDocument &doc) = 0;
+  virtual void parseConfigJSON(JsonDocument &doc) = 0;
   virtual bool parseConfigWebRequest(ESP8266WebServer &server) = 0;
   virtual String generateConfigJSON(bool forSaveFile = false) = 0;
   virtual String generateStatusJSON() = 0;

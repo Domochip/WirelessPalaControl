@@ -10,7 +10,7 @@
 #include "data/side-menu.js.gz.h"
 
 void Core::setConfigDefaultValues(){};
-void Core::parseConfigJSON(DynamicJsonDocument &doc){};
+void Core::parseConfigJSON(JsonDocument &doc){};
 bool Core::parseConfigWebRequest(ESP8266WebServer &server) { return true; };
 String Core::generateConfigJSON(bool clearPassword = false) { return String(); };
 String Core::generateStatusJSON()

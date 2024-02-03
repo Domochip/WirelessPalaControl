@@ -75,7 +75,7 @@ private:
   void mqttDisconnectedCallback();
   void mqttCallback(char *topic, uint8_t *payload, unsigned int length);
   void publishStoveConnectedToMqtt(bool stoveConnected);
-  bool publishDataToMqtt(const String &baseTopic, const String &palaCategory, const DynamicJsonDocument &jsonDoc);
+  bool publishDataToMqtt(const String &baseTopic, const String &palaCategory, const JsonDocument &jsonDoc);
   bool publishHassDiscoveryToMqtt();
   bool executePalaCmd(const String &cmd, String &strJson, bool publish = false);
 
@@ -83,7 +83,7 @@ private:
   void udpRequestHandler(WiFiUDP &udpServer);
 
   void setConfigDefaultValues();
-  void parseConfigJSON(DynamicJsonDocument &doc);
+  void parseConfigJSON(JsonDocument &doc);
   bool parseConfigWebRequest(ESP8266WebServer &server);
   String generateConfigJSON(bool forSaveFile);
   String generateStatusJSON();

@@ -107,7 +107,7 @@ void WebPalaControl::publishStoveConnectedToMqtt(bool stoveConnected)
   }
 }
 
-bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &palaCategory, const DynamicJsonDocument &jsonDoc)
+bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &palaCategory, const JsonDocument &jsonDoc)
 {
   bool res = false;
   if (_mqttMan.connected())
@@ -168,19 +168,9 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   // read static data from stove
   char SN[28];
   byte SNCHK;
-  int MBTYPE;
-  uint16_t MOD, VER, CORE;
+  uint16_t MOD, VER;
   char FWDATE[11];
   uint16_t FLUID;
-  uint16_t SPLMIN, SPLMAX;
-  byte UICONFIG;
-  byte HWTYPE;
-  byte _DSPTYPE;
-  byte DSPFWVER;
-  byte CONFIG;
-  byte PELLETTYPE;
-  uint16_t PSENSTYPE;
-  byte PSENSLMAX, PSENSLTSH, PSENSLMIN;
   byte MAINTPROBE;
   byte STOVETYPE;
   byte FAN2TYPE;
@@ -190,7 +180,10 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   byte CHRONOTYPE;
   byte AUTONOMYTYPE;
   byte NOMINALPWR;
-  if (Palazzetti::CommandResult::OK != _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &_DSPTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR))
+  if (Palazzetti::CommandResult::OK != _Pala.getStaticData(&SN, &SNCHK, nullptr, &MOD, &VER, nullptr, &FWDATE, &FLUID, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, nullptr, nullptr, nullptr, nullptr, nullptr))
+    return false;
+
+  if (!SNCHK)
     return false;
 
   // read setpoint from stove
@@ -198,13 +191,18 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   if (Palazzetti::CommandResult::OK != _Pala.getSetPoint(&SETP))
     return false;
 
-  // calculate flags
+  // calculate flags (https://github.com/palazzetti/palazzetti-sdk-asset-parser-python/blob/main/palazzetti_sdk_asset_parser/data/asset_parser.json)
   bool hasSetPoint = (SETP != 0);
   bool hasPower = (STOVETYPE != 8);
   bool hasOnOff = (STOVETYPE != 7 && STOVETYPE != 8);
+  bool hasRoomFan = (FAN2TYPE > 1);
+  bool hasFan3 = (FAN2TYPE > 2);
+  bool hasFan4 = (FAN2TYPE > 3);
+  bool isAirType = (STOVETYPE == 1 || STOVETYPE == 3 || STOVETYPE == 5 || STOVETYPE == 7 || STOVETYPE == 8);
+  bool hasFanAuto = (FAN2MODE == 2 || FAN2MODE == 3);
 
   // variables
-  DynamicJsonDocument jsonDoc(2048);
+  JsonDocument jsonDoc;
   String device, availability, payload;
   String baseTopic;
   String uniqueIdPrefixWPalaControl, uniqueIdPrefixStove;
@@ -382,6 +380,39 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   payload = "";
 
   //
+  // Room temperature entity
+  //
+
+  uniqueId = uniqueIdPrefixStove;
+  uniqueId += F("_RoomTemp");
+
+  topic = _ha.mqtt.hassDiscoveryPrefix;
+  topic += F("/sensor/");
+  topic += uniqueId;
+  topic += F("/config");
+
+  // prepare payload for Stove room temperature sensor
+  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+  jsonDoc["availability"] = serialized(availability);
+  jsonDoc["device"] = serialized(device);
+  jsonDoc["device_class"] = F("temperature");
+  jsonDoc["name"] = F("Room Temperature");
+  jsonDoc["object_id"] = F("stove_roomtemp");
+  jsonDoc["suggested_display_precision"] = 1;
+  jsonDoc["state_class"] = F("measurement");
+  jsonDoc["state_topic"] = String(F("~/T")) + (char)('1' + MAINTPROBE);
+  jsonDoc["unique_id"] = uniqueId;
+  jsonDoc["unit_of_measurement"] = F("°C");
+  serializeJson(jsonDoc, payload);
+
+  // publish
+  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+  // clean
+  jsonDoc.clear();
+  payload = "";
+
+  //
   // SetPoint entity
   //
 
@@ -497,6 +528,201 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     payload = "";
   }
 
+  //
+  // RoomFan entity
+  //
+
+  if (hasRoomFan)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_RFAN");
+
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += F("/number/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove room fan
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+
+    // specific availibility for room fan
+    JsonArray availability = jsonDoc["availability"].to<JsonArray>();
+    JsonObject availability_0 = availability.add<JsonObject>();
+    availability_0["topic"] = F("~/connected");
+    availability_0["value_template"] = F("{{ iif(int(value) > 0, 'online', 'offline') }}");
+    JsonObject availability_1 = availability.add<JsonObject>();
+    availability_1["topic"] = F("~/F2L");
+    availability_1["value_template"] = F("{{ iif(int(value) < 7, 'online', 'offline') }}");
+    jsonDoc["availability_mode"] = F("all");
+
+    jsonDoc["command_template"] = F("SET+RFAN+{{ value }}");
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["min"] = 0;
+    jsonDoc["max"] = 6;
+    jsonDoc["name"] = F("Room Fan");
+    jsonDoc["object_id"] = F("stove_rfan");
+    jsonDoc["payload_reset"] = F("7");
+    jsonDoc["state_topic"] = F("~/F2L");
+    jsonDoc["unique_id"] = uniqueId;
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  //
+  // RoomFan Auto entity
+  //
+
+  if (isAirType && hasFanAuto)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_RFAN_Auto");
+
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += F("/switch/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove room fan auto mode
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+    jsonDoc["availability"] = serialized(availability);
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["icon"] = F("mdi:fan-auto");
+    jsonDoc["name"] = F("Room Fan Auto");
+    jsonDoc["object_id"] = F("stove_rfan_auto");
+    jsonDoc["payload_off"] = F("SET+RFAN+3");
+    jsonDoc["payload_on"] = F("SET+RFAN+7");
+    jsonDoc["state_off"] = F("OFF");
+    jsonDoc["state_on"] = F("ON");
+    jsonDoc["state_topic"] = F("~/F2L");
+    jsonDoc["unique_id"] = uniqueId;
+    jsonDoc["value_template"] = F("{{ iif(int(value) == 7, 'ON', 'OFF') }}");
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  //
+  // Fan3 entity
+  //
+
+  if (hasFan3)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_FAN3");
+
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += F("/switch/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove fan3 number
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+    jsonDoc["availability"] = serialized(availability);
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["icon"] = F("mdi:fan-speed-2");
+    jsonDoc["name"] = F("Left Fan");
+    jsonDoc["object_id"] = F("stove_fan3");
+    jsonDoc["payload_off"] = F("SET+FN3L+0");
+    jsonDoc["payload_on"] = F("SET+FN3L+1");
+    jsonDoc["state_off"] = F("0");
+    jsonDoc["state_on"] = F("1");
+    jsonDoc["state_topic"] = F("~/F3L");
+    jsonDoc["unique_id"] = uniqueId;
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  //
+  // Fan4 entity
+  //
+
+  if (hasFan4)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_FAN4");
+
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += F("/switch/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove fan4 number
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+    jsonDoc["availability"] = serialized(availability);
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["icon"] = F("mdi:fan-speed-3");
+    jsonDoc["name"] = F("Right Fan");
+    jsonDoc["object_id"] = F("stove_fan4");
+    jsonDoc["payload_off"] = F("SET+FN4L+0");
+    jsonDoc["payload_on"] = F("SET+FN4L+1");
+    jsonDoc["state_off"] = F("0");
+    jsonDoc["state_on"] = F("1");
+    jsonDoc["state_topic"] = F("~/F4L");
+    jsonDoc["unique_id"] = uniqueId;
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  //
+  // Pellet consumption entity
+  //
+
+  uniqueId = uniqueIdPrefixStove;
+  uniqueId += F("_PQT");
+
+  topic = _ha.mqtt.hassDiscoveryPrefix;
+  topic += F("/sensor/");
+  topic += uniqueId;
+  topic += F("/config");
+
+  // prepare payload for Stove pellet consumption sensor
+  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+  jsonDoc["availability"] = serialized(availability);
+  jsonDoc["device"] = serialized(device);
+  jsonDoc["device_class"] = F("weight");
+  jsonDoc["icon"] = F("mdi:chart-bell-curve-cumulative");
+  jsonDoc["name"] = F("Pellet Consumed");
+  jsonDoc["object_id"] = F("stove_pqt");
+  jsonDoc["state_class"] = F("total_increasing");
+  jsonDoc["state_topic"] = F("~/PQT");
+  jsonDoc["unique_id"] = uniqueId;
+  jsonDoc["unit_of_measurement"] = F("kg");
+  serializeJson(jsonDoc, payload);
+
+  // publish
+  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+  // clean
+  jsonDoc.clear();
+  payload = "";
+
   // TODO
   return true;
 }
@@ -507,9 +733,9 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   Palazzetti::CommandResult cmdSuccess = Palazzetti::CommandResult::COMMUNICATION_ERROR; // Palazzetti function calls successful
 
   // Prepare answer structure
-  DynamicJsonDocument jsonDoc(2048);
-  JsonObject info = jsonDoc.createNestedObject("INFO");
-  JsonObject data = jsonDoc.createNestedObject("DATA");
+  JsonDocument jsonDoc;
+  JsonObject info = jsonDoc["INFO"].to<JsonObject>();
+  JsonObject data = jsonDoc["DATA"].to<JsonObject>();
 
   // Parse parameters
   byte cmdParamNumber = 0;
@@ -596,7 +822,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     byte CHRONOTYPE;
     byte AUTONOMYTYPE;
     byte NOMINALPWR;
-    cmdSuccess = _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &_DSPTYPE,&DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
+    cmdSuccess = _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &_DSPTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
 
     if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
@@ -607,8 +833,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       data["GWDEVICE"] = F("wlan0"); // always wifi
       data["MAC"] = WiFi.macAddress();
       data["GATEWAY"] = WiFi.gatewayIP().toString();
-      JsonArray dns = data.createNestedArray("DNS");
-      dns.add(WiFi.dnsIP().toString());
+      data["DNS"][0] = WiFi.dnsIP().toString();
 
       // Wifi infos
       data["WMAC"] = WiFi.macAddress();
@@ -748,7 +973,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       data["F1RPM"] = F1RPM;
       data["F2L"] = F2L;
       data["F2LF"] = F2LF;
-      JsonArray fanlminmax = data.createNestedArray("FANLMINMAX");
+      JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
       fanlminmax.add(FANLMINMAX[0]);
       fanlminmax.add(FANLMINMAX[1]);
       fanlminmax.add(FANLMINMAX[2]);
@@ -994,7 +1219,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       for (byte i = 0; i < 6; i++)
       {
         programName[1] = i + '1';
-        JsonObject px = data.createNestedObject(programName);
+        JsonObject px = data[programName].to<JsonObject>();
         px["CHRSETP"] = serialized(String(PCHRSETP[i], 2));
         time[0] = PSTART[i][0] / 10 + '0';
         time[1] = PSTART[i][0] % 10 + '0';
@@ -1014,7 +1239,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       for (byte dayNumber = 0; dayNumber < 7; dayNumber++)
       {
         dayName[1] = dayNumber + '1';
-        JsonObject dx = data.createNestedObject(dayName);
+        JsonObject dx = data[dayName].to<JsonObject>();
         for (byte memoryNumber = 0; memoryNumber < 3; memoryNumber++)
         {
           memoryName[1] = memoryNumber + '1';
@@ -1122,7 +1347,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
         data["PWR"] = PWRReturn;
         if (isF2LReturnValid)
           data["F2L"] = _F2LReturn;
-        JsonArray fanlminmax = data.createNestedArray("FANLMINMAX");
+        JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
         fanlminmax.add(FANLMINMAXReturn[0]);
         fanlminmax.add(FANLMINMAXReturn[1]);
         fanlminmax.add(FANLMINMAXReturn[2]);
@@ -1148,7 +1373,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       data["PWR"] = PWRReturn;
       if (isF2LReturnValid)
         data["F2L"] = _F2LReturn;
-      JsonArray fanlminmax = data.createNestedArray("FANLMINMAX");
+      JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
       fanlminmax.add(FANLMINMAXReturn[0]);
       fanlminmax.add(FANLMINMAXReturn[1]);
       fanlminmax.add(FANLMINMAXReturn[2]);
@@ -1173,7 +1398,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       data["PWR"] = PWRReturn;
       if (isF2LReturnValid)
         data["F2L"] = _F2LReturn;
-      JsonArray fanlminmax = data.createNestedArray("FANLMINMAX");
+      JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
       fanlminmax.add(FANLMINMAXReturn[0]);
       fanlminmax.add(FANLMINMAXReturn[1]);
       fanlminmax.add(FANLMINMAXReturn[2]);
@@ -1451,7 +1676,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
         memoryName[1] = cmdParams[1] + '0';
         programName[1] = cmdParams[2] + '0';
 
-        JsonObject dx = data.createNestedObject(dayName);
+        JsonObject dx = data[dayName].to<JsonObject>();
         if (cmdParams[2])
           dx[memoryName] = programName;
         else
@@ -1474,7 +1699,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
         char time[6] = {'0', '0', ':', '0', '0', 0};
 
         programName[1] = cmdParams[0] + '0';
-        JsonObject px = data.createNestedObject(programName);
+        JsonObject px = data[programName].to<JsonObject>();
         px["CHRSETP"] = (float)cmdParams[1];
         time[0] = cmdParams[2] / 10 + '0';
         time[1] = cmdParams[2] % 10 + '0';
@@ -1739,7 +1964,7 @@ void WebPalaControl::setConfigDefaultValues()
 
 //------------------------------------------
 // Parse JSON object into configuration properties
-void WebPalaControl::parseConfigJSON(DynamicJsonDocument &doc)
+void WebPalaControl::parseConfigJSON(JsonDocument &doc)
 {
   if (!doc[F("haproto")].isNull())
     _ha.protocol = doc[F("haproto")];
@@ -2191,7 +2416,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
       F("/cgi-bin/sendmsg.lua"), HTTP_POST, [this, &server]()
       {
         String cmd;
-        DynamicJsonDocument jsonDoc(128);
+        JsonDocument jsonDoc;
         String strJson;
 
         DeserializationError error = deserializeJson(jsonDoc, server.arg(F("plain")));
