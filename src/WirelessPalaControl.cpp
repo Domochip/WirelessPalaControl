@@ -558,6 +558,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     jsonDoc["command_template"] = F("SET+RFAN+{{ value }}");
     jsonDoc["command_topic"] = F("~/cmd");
     jsonDoc["device"] = serialized(device);
+    jsonDoc["icon"] = F("mdi:fan");
     jsonDoc["min"] = 0;
     jsonDoc["max"] = 6;
     jsonDoc["name"] = F("Room Fan");
