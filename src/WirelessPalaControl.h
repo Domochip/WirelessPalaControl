@@ -2,6 +2,7 @@
 #define WirelessPalaControl_h
 
 #include "Main.h"
+#include "base/Version.h" //for BASE_VERSION define
 #include "base/Utils.h"
 #include "base/MQTTMan.h"
 #include "base/Application.h"
@@ -32,6 +33,8 @@ private:
     {
       char baseTopic[64 + 1] = {0};
     } generic;
+    bool hassDiscoveryEnabled = true;
+    char hassDiscoveryPrefix[64 + 1] = {0};
   } MQTT;
 
 #define HA_PROTO_DISABLED 0
@@ -57,6 +60,7 @@ private:
   bool _needPublish = false;
   Ticker _publishTicker;
   bool _publishedStoveConnected = false;
+  bool _needPublishHassDiscovery = false; // set to true when MQTT connection is established
 
   int myOpenSerial(uint32_t baudrate);
   void myCloseSerial();
@@ -72,6 +76,7 @@ private:
   void mqttCallback(char *topic, uint8_t *payload, unsigned int length);
   void publishStoveConnectedToMqtt(bool stoveConnected);
   bool publishDataToMqtt(const String &baseTopic, const String &palaCategory, const DynamicJsonDocument &jsonDoc);
+  bool publishHassDiscoveryToMqtt();
   bool executePalaCmd(const String &cmd, String &strJson, bool publish = false);
 
   void publishTick();
