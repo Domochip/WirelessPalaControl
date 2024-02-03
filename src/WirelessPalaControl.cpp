@@ -175,11 +175,6 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   byte STOVETYPE;
   byte FAN2TYPE;
   byte FAN2MODE;
-  byte BLEMBMODE;
-  byte BLEDSPMODE;
-  byte CHRONOTYPE;
-  byte AUTONOMYTYPE;
-  byte NOMINALPWR;
   if (Palazzetti::CommandResult::OK != _Pala.getStaticData(&SN, &SNCHK, nullptr, &MOD, &VER, nullptr, &FWDATE, &FLUID, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, nullptr, nullptr, nullptr, nullptr, nullptr))
     return false;
 
