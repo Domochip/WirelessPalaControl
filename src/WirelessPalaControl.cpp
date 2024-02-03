@@ -395,7 +395,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   jsonDoc["object_id"] = F("stove_roomtemp");
   jsonDoc["suggested_display_precision"] = 1;
   jsonDoc["state_class"] = F("measurement");
-  jsonDoc["state_topic"] = String(F("~/T")) + ('1' + MAINTPROBE);
+  jsonDoc["state_topic"] = String(F("~/T")) + (char)('1' + MAINTPROBE);
   jsonDoc["unique_id"] = uniqueId;
   jsonDoc["unit_of_measurement"] = F("°C");
   serializeJson(jsonDoc, payload);
