@@ -25,7 +25,7 @@ HomeAssistant: MQTT Integration (MQTT broker required)
 
 ## Build your adapter
 
-You can find details to build it here : [BUILD](BUILD)
+You can find details to build it here : [BUILD](BUILD.md)
 
 ## Connect
 
