@@ -119,10 +119,6 @@ It returns you useful informations about the module and the stove.
 It allows you to flash a new firmware version using `WirelessPalaControl.*.bin` file:  
 ![firmware screenshot](img/firmware.png)
 
-### Discover
-
-![discover screenshot](img/discover.png)
-
 ## Use it
 
 ### HTTP
