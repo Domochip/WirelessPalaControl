@@ -857,7 +857,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
       data["CBTYPE"] = F("miniembplug"); // CBox model
       data["sendmsg"] = F("2.1.2 2018-03-28 10:19:09");
-      data["plzbridge"] = F("2.2.1 2021-10-08 09:30:45");
+      data["plzbridge"] = F("2.2.1 2022-10-24 11:13:21");
       data["SYSTEM"] = F("2.5.3 2021-10-08 10:30:20 (657c8cf)");
 
       data["CLOUD_ENABLED"] = true;
