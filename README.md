@@ -3,7 +3,7 @@
 This project uses "Palazzetti library" and a D1 Mini to control Fumis based stove.  
 It allows to power On/Off, change the setPoint, change fans speed, get status/alarms/temperatures of the stove.
 
-Native HTTP requests are available which make is fully compatible with all existing home automation plugins/apps.
+Native HTTP requests are available which make is fully compatible with all existing Palazzetti/Fumis home automation plugins/apps.
 
 Additionally, this project add MQTT protocol to monitor/control your stove in a much more efficient way.
 
@@ -11,57 +11,23 @@ Additionally, this project add MQTT protocol to monitor/control your stove in a 
 ## Stove Compatibility
 
 Fumis Controller is used by many manufacturer for their stoves.
-Here is a non-exhaustive list: 
-* Palazzetti
-* Jotul
-* TurboFonte
-* Godin
-* Fonte Flamme
-* Invicta
-* Casatelli
-* Alpis
-* Faizen
-* HETA
-* ...
+Here is a non-exhaustive list:  
+  
+Palazzetti / Jotul / TurboFonte / Godin / Fonte Flamme / Invicta / Casatelli / Alpis / Faizen / HETA / ...
 
 If you have this control panel and/or controller in your stove, it's compatible.  
  ![Fumis Controller](img/fumis2.png)![Fumis Controller](img/fumis.png)
 
+## Home Automation compatibility
+
+Jeedom: Palazzetti plugin https://www.jeedom.com/market/index.php?v=d&p=market_display&id=3104 
+HomeAssistant: MQTT Integration (MQTT broker required)
+
 ## Build your adapter
 
-This adapter is designed to works with a D1 Mini (ESP8266) but it provides convenient header pins to use it with any other uController.
+You can find details to build it here : [BUILD](BUILD)
 
-It is designed by Palazzetti using a Si8621 (Silicon Labs Isolator) to provide electrical isolation between uController and Stove electronic.  
-This design uses exact same schematic and components.
-
-### Schematic
-
-All files are inside `schematic` subfolder and has been designed with KiCad (free and open source)  
-
-![WirelessPalaControl schematic](img/schematic.png)
-
-### PCB
-
-<img src="img/pcb-top.png" alt="WirelessPalaControl PCB Top" width="239" height="315"><img src="img/pcb-bottom.png" alt="WirelessPalaControl PCB Bottom" width="239" height="315">  
-
-<img src="img/3boards.png" alt="WirelessPalaControl 3boards"  width="334">  
-
-*We produced a small batch of this adapter for test/debugging and our personal use.*  
-*If you are interested, please PM.*
-
-### Box
-
-Box project (Fusion 360 & STL) can be found into `box` folder
-
-![WirelessPalaControl box](img/box.png)
-
-### Firmware
-
-Source code can be compiled using VisualStudioCode/Platformio and flashed onto a D1 Mini  
-Or  
-Download latest release in Release section
-
-### Connect
+## Connect
 
 ⚠️ **You need to use a crossed RJ11 phone cable like this:** ⚠️  
 ![WirelessPalaControl rj11](img/rj11-pinout.png)
