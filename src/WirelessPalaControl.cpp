@@ -181,10 +181,17 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   if (!SNCHK)
     return false;
 
-  // read setpoint from stove
+  // read all status from stove
+  bool refreshStatus = false;
+  unsigned long currentMillis = millis();
+  if ((currentMillis - _lastAllStatusRefreshMillis) > 15000UL) // refresh AllStatus data if it's 15sec old
+    refreshStatus = true;
   float SETP;
-  if (Palazzetti::CommandResult::OK != _Pala.getSetPoint(&SETP))
+  uint16_t FANLMINMAX[6];
+  if (Palazzetti::CommandResult::OK != _Pala.getAllStatus(false, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &SETP, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &FANLMINMAX, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr))
     return false;
+  else if (refreshStatus)
+    _lastAllStatusRefreshMillis = currentMillis;
 
   // calculate flags (https://github.com/palazzetti/palazzetti-sdk-asset-parser-python/blob/main/palazzetti_sdk_asset_parser/data/asset_parser.json)
   bool hasSetPoint = (SETP != 0);
