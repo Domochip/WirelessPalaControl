@@ -199,7 +199,9 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   bool hasOnOff = (STOVETYPE != 7 && STOVETYPE != 8);
   bool hasRoomFan = (FAN2TYPE > 1);
   bool hasFan3 = (FAN2TYPE > 2);
+  bool ifFan3SwitchEntity = (FANLMINMAX[2] == 0 && FANLMINMAX[3] == 1);
   bool hasFan4 = (FAN2TYPE > 3);
+  bool ifFan4SwitchEntity = (FANLMINMAX[4] == 0 && FANLMINMAX[5] == 1);
   bool isAirType = (STOVETYPE == 1 || STOVETYPE == 3 || STOVETYPE == 5 || STOVETYPE == 7 || STOVETYPE == 8);
   bool hasFanAuto = (FAN2MODE == 2 || FAN2MODE == 3);
 
@@ -674,8 +676,9 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     uniqueId = uniqueIdPrefixStove;
     uniqueId += F("_FAN3");
 
+    // entity type depends on Min and Max value of FAN3
     topic = _ha.mqtt.hassDiscoveryPrefix;
-    topic += F("/switch/");
+    topic += ifFan3SwitchEntity ? F("/switch/") : F("/number/");
     topic += uniqueId;
     topic += F("/config");
 
@@ -687,15 +690,27 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     jsonDoc["icon"] = F("mdi:fan-speed-2");
     jsonDoc["name"] = F("Left Fan");
     jsonDoc["object_id"] = F("stove_fan3");
-    jsonDoc["payload_off"] = F("SET+FN3L+0");
-    jsonDoc["payload_on"] = F("SET+FN3L+1");
-    jsonDoc["state_off"] = F("0");
-    jsonDoc["state_on"] = F("1");
     const __FlashStringHelper *f3lTopicList[] = {F("~/F3L"), F("~/FAND"), F("~/FAND/F3L")};
     jsonDoc["state_topic"] = f3lTopicList[_ha.mqtt.type];
     jsonDoc["unique_id"] = uniqueId;
     if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
       jsonDoc["value_template"] = F("{{ value_json.F3L }}");
+
+    // add entity type specific configuration
+    if (ifFan3SwitchEntity)
+    {
+      jsonDoc["payload_off"] = F("SET+FN3L+0");
+      jsonDoc["payload_on"] = F("SET+FN3L+1");
+      jsonDoc["state_off"] = F("0");
+      jsonDoc["state_on"] = F("1");
+    }
+    else
+    {
+      jsonDoc["command_template"] = F("SET+FN3L+{{ value }}");
+      jsonDoc["min"] = FANLMINMAX[2];
+      jsonDoc["max"] = FANLMINMAX[3];
+      jsonDoc["mode"] = F("slider");
+    }
 
     serializeJson(jsonDoc, payload);
 
@@ -716,8 +731,9 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     uniqueId = uniqueIdPrefixStove;
     uniqueId += F("_FAN4");
 
+    // entity type depends on Min and Max value of FAN4
     topic = _ha.mqtt.hassDiscoveryPrefix;
-    topic += F("/switch/");
+    topic += ifFan4SwitchEntity ? F("/switch/") : F("/number/");
     topic += uniqueId;
     topic += F("/config");
 
@@ -729,15 +745,27 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     jsonDoc["icon"] = F("mdi:fan-speed-3");
     jsonDoc["name"] = F("Right Fan");
     jsonDoc["object_id"] = F("stove_fan4");
-    jsonDoc["payload_off"] = F("SET+FN4L+0");
-    jsonDoc["payload_on"] = F("SET+FN4L+1");
-    jsonDoc["state_off"] = F("0");
-    jsonDoc["state_on"] = F("1");
     const __FlashStringHelper *f4lTopicList[] = {F("~/F4L"), F("~/FAND"), F("~/FAND/F4L")};
     jsonDoc["state_topic"] = f4lTopicList[_ha.mqtt.type];
     jsonDoc["unique_id"] = uniqueId;
     if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
       jsonDoc["value_template"] = F("{{ value_json.F4L }}");
+
+    // add entity type specific configuration
+    if (ifFan4SwitchEntity)
+    {
+      jsonDoc["payload_off"] = F("SET+FN4L+0");
+      jsonDoc["payload_on"] = F("SET+FN4L+1");
+      jsonDoc["state_off"] = F("0");
+      jsonDoc["state_on"] = F("1");
+    }
+    else
+    {
+      jsonDoc["command_template"] = F("SET+FN4L+{{ value }}");
+      jsonDoc["min"] = FANLMINMAX[4];
+      jsonDoc["max"] = FANLMINMAX[5];
+      jsonDoc["mode"] = F("slider");
+    }
 
     serializeJson(jsonDoc, payload);
 
