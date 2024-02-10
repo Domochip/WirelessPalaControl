@@ -436,6 +436,87 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   payload = "";
 
   //
+  // Pellet consumption entity
+  //
+
+  uniqueId = uniqueIdPrefixStove;
+  uniqueId += F("_PQT");
+
+  topic = _ha.mqtt.hassDiscoveryPrefix;
+  topic += F("/sensor/");
+  topic += uniqueId;
+  topic += F("/config");
+
+  // prepare payload for Stove pellet consumption sensor
+  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+  jsonDoc["availability"] = serialized(availability);
+  jsonDoc["device"] = serialized(device);
+  jsonDoc["device_class"] = F("weight");
+  jsonDoc["icon"] = F("mdi:chart-bell-curve-cumulative");
+  jsonDoc["name"] = F("Pellet Consumed");
+  jsonDoc["object_id"] = F("stove_pqt");
+  jsonDoc["state_class"] = F("total_increasing");
+  const __FlashStringHelper *pqtTopicList[] = {F("~/PQT"), F("~/CNTR"), F("~/CNTR/PQT")};
+  jsonDoc["state_topic"] = pqtTopicList[_ha.mqtt.type];
+  jsonDoc["unique_id"] = uniqueId;
+  jsonDoc["unit_of_measurement"] = F("kg");
+  if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+    jsonDoc["value_template"] = F("{{ value_json.PQT }}");
+
+  serializeJson(jsonDoc, payload);
+
+  // publish
+  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+  // clean
+  jsonDoc.clear();
+  payload = "";
+
+  //
+  // OnOff entity
+  //
+
+  if (hasOnOff)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_ON_OFF");
+
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += F("/switch/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove onoff switch
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+    jsonDoc["availability"] = serialized(availability);
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["icon"] = F("mdi:power");
+    jsonDoc["name"] = F("On/Off");
+    jsonDoc["object_id"] = F("stove_on_off");
+    jsonDoc["payload_off"] = F("CMD+OFF");
+    jsonDoc["payload_on"] = F("CMD+ON");
+    jsonDoc["state_off"] = F("OFF");
+    jsonDoc["state_on"] = F("ON");
+    // const __FlashStringHelper *statusTopicList[] = {F("~/STATUS"), F("~/STAT"), F("~/STAT/STATUS")}; // reuse statusTopicList
+    jsonDoc["state_topic"] = statusTopicList[_ha.mqtt.type];
+    jsonDoc["unique_id"] = uniqueId;
+    if (_ha.mqtt.type == HA_MQTT_GENERIC || _ha.mqtt.type == HA_MQTT_GENERIC_CATEGORIZED)
+      jsonDoc["value_template"] = F("{{ iif(int(value) > 1, 'ON', 'OFF') }}");
+    else if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+      jsonDoc["value_template"] = F("{{ iif(int(value_json.STATUS) > 1, 'ON', 'OFF') }}");
+
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  //
   // SetPoint entity
   //
 
@@ -509,50 +590,6 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     jsonDoc["unique_id"] = uniqueId;
     if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
       jsonDoc["value_template"] = F("{{ value_json.PWR }}");
-
-    serializeJson(jsonDoc, payload);
-
-    // publish
-    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
-
-    // clean
-    jsonDoc.clear();
-    payload = "";
-  }
-
-  //
-  // OnOff entity
-  //
-
-  if (hasOnOff)
-  {
-    uniqueId = uniqueIdPrefixStove;
-    uniqueId += F("_ON_OFF");
-
-    topic = _ha.mqtt.hassDiscoveryPrefix;
-    topic += F("/switch/");
-    topic += uniqueId;
-    topic += F("/config");
-
-    // prepare payload for Stove onoff switch
-    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
-    jsonDoc["availability"] = serialized(availability);
-    jsonDoc["command_topic"] = F("~/cmd");
-    jsonDoc["device"] = serialized(device);
-    jsonDoc["icon"] = F("mdi:power");
-    jsonDoc["name"] = F("On/Off");
-    jsonDoc["object_id"] = F("stove_on_off");
-    jsonDoc["payload_off"] = F("CMD+OFF");
-    jsonDoc["payload_on"] = F("CMD+ON");
-    jsonDoc["state_off"] = F("OFF");
-    jsonDoc["state_on"] = F("ON");
-    // const __FlashStringHelper *statusTopicList[] = {F("~/STATUS"), F("~/STAT"), F("~/STAT/STATUS")}; // reuse statusTopicList
-    jsonDoc["state_topic"] = statusTopicList[_ha.mqtt.type];
-    jsonDoc["unique_id"] = uniqueId;
-    if (_ha.mqtt.type == HA_MQTT_GENERIC || _ha.mqtt.type == HA_MQTT_GENERIC_CATEGORIZED)
-      jsonDoc["value_template"] = F("{{ iif(int(value) > 1, 'ON', 'OFF') }}");
-    else if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
-      jsonDoc["value_template"] = F("{{ iif(int(value_json.STATUS) > 1, 'ON', 'OFF') }}");
 
     serializeJson(jsonDoc, payload);
 
@@ -776,43 +813,6 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     jsonDoc.clear();
     payload = "";
   }
-
-  //
-  // Pellet consumption entity
-  //
-
-  uniqueId = uniqueIdPrefixStove;
-  uniqueId += F("_PQT");
-
-  topic = _ha.mqtt.hassDiscoveryPrefix;
-  topic += F("/sensor/");
-  topic += uniqueId;
-  topic += F("/config");
-
-  // prepare payload for Stove pellet consumption sensor
-  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
-  jsonDoc["availability"] = serialized(availability);
-  jsonDoc["device"] = serialized(device);
-  jsonDoc["device_class"] = F("weight");
-  jsonDoc["icon"] = F("mdi:chart-bell-curve-cumulative");
-  jsonDoc["name"] = F("Pellet Consumed");
-  jsonDoc["object_id"] = F("stove_pqt");
-  jsonDoc["state_class"] = F("total_increasing");
-  const __FlashStringHelper *pqtTopicList[] = {F("~/PQT"), F("~/CNTR"), F("~/CNTR/PQT")};
-  jsonDoc["state_topic"] = pqtTopicList[_ha.mqtt.type];
-  jsonDoc["unique_id"] = uniqueId;
-  jsonDoc["unit_of_measurement"] = F("kg");
-  if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
-    jsonDoc["value_template"] = F("{{ value_json.PQT }}");
-
-  serializeJson(jsonDoc, payload);
-
-  // publish
-  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
-
-  // clean
-  jsonDoc.clear();
-  payload = "";
 
   // TODO
   return true;
