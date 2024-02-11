@@ -576,7 +576,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     // prepare payload for Stove power number
     jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
     jsonDoc["availability"] = serialized(availability);
-    jsonDoc["command_template"] = F("SET+PWR+{{ value }}");
+    jsonDoc["command_template"] = F("SET+POWR+{{ value }}");
     jsonDoc["command_topic"] = F("~/cmd");
     jsonDoc["device"] = serialized(device);
     jsonDoc["icon"] = F("mdi:signal");
