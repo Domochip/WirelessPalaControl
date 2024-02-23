@@ -11,55 +11,228 @@
         if (ret) document.getElementById('r').innerHTML = 'In Progress...';
         return ret;
     }
+
+    function firmwareOTAValidation() {
+        var url = document.getElementById("url_ota").value;
+        if (!url.match(/(^http|^https)?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()!@:%_\+.~#?&\/\/=]*)\.bin$/)) {
+            alert("Invalid firmware URL. The URL must end with '.bin'.");
+            return false;
+        };
+        var ret = confirm("Are you sure to perform OTA upgrade?");
+        if (ret) document.getElementById('r').innerHTML = 'OTA upgrade in progress...';
+        return ret;
+    }
 </script>
-
-<h3>Upload a new Firmware : </h3>
-<form class="pure-form pure-form-aligned" id="f" method='POST' action='/fw' enctype='multipart/form-data'
-    onsubmit='return firmwareValidation()'>
+<!-- Affichage des versions -->
+<div class="pure-form pure-form-aligned" id='fw0'>
     <fieldset>
-        <div class="pure-control-group">
-            <label for="name">Firmware File</label>
-            <input type='file' name='fi' id='fi' accept='.bin' required>
-        </div>
-        <div class="pure-controls">
-            <input type='submit' name='sub' id='sub' value='/!\ Upload Firmware /!\'
-                class="pure-button pure-button-primary">
-        </div>
+        <h2 class="content-subhead">Device Information</h2>
+            <div class="pure-control-group">
+                <label for="name">Wireless Base:</label>
+                <span id="currentBaseVersion"></span>
+            </div>
+            <div class="pure-control-group">
+                <label for="name">Firmware:</label>
+                <span id="currentVersionFirmware"></span>
+            </div>
 
+        <h2 class="content-subhead">Online Firmware: </h2>
+            <div class="pure-control-group">
+                <label for="name">Latest Wireless Base:</label>
+                <span id="latestBaseVersion"></span>
+            </div>
+            <div class="pure-control-group">
+                <label for="name">Latest firmware:</label>
+                <span id="latestVersionFirmware"></span>
+            </div>
+            <div class="pure-control-group">
+                <label for="name">Date of publication:</label>
+                <span id="publishDate"></span>
+            </div>
+            <div class="pure-control-group" style="display: inline;">
+                <div style="float: right;">
+                    <input type="submit" name="check_upg" id="check_upg" value="Check for upgrade"
+                    class="pure-button pure-button-primary">
+                </div>
+                <div>
+                    <label></label>
+                    <a id="release_mes"></a>
+                </div>
+            </div>
+
+        <h2 class="content-subhead">Upgrade Firmware</h2>
+            <div class="pure-control-group">
+                <span id="body"></span>
+            </div>
+
+            <h3 class="content-subhead">Manual upgrade</h3>
+                <div class="pure-control-group" style="display: inline;">
+                    <form class="pure-form pure-form-aligned" id="fw" method='POST' action='/fw' enctype='multipart/form-data'
+                    onsubmit='return firmwareValidation()'>
+                        <fieldset>
+                            <div style="float: right;">
+                                <input type="submit" name="sub" id="sub" value="/!\ Upload Firmware /!\"
+                                class="pure-button pure-button-primary">
+                            </div>
+                            <div>
+                                <input type="file" name="fi" id="fi" accept=".bin" required="">
+                            </div>
+                        </fieldset>
+                    </form>
+                </div>
+
+            <div id="ota_group">
+                <h3 class="content-subhead">Online upgrade</h3>
+                    <div class="pure-control-group" style="display: inline;">
+                        <form class="pure-form pure-form-aligned" id="fw_ota" method='POST' action='/fw' enctype='multipart/form-data'
+                        onsubmit='return firmwareOTAValidation()'>
+                            <fieldset>
+                                <div style="float: right;">
+                                    <input type='submit' name='ota_upg' id='ota_upg' value='OTA upgrade'
+                                    class="pure-button pure-button-primary">
+                                </div>
+                                <div>
+                                    <input type='url' name='url_ota' id='url_ota' accept='.bin' size='75' pattern='(^http|^https)?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()!@:%_\+.~#?&\/\/=]*)\.bin$' required>
+                                </div>
+                            </fieldset>
+                        </form>
+                    </div>
+            </div>
+
+            <span id='r'></span>
     </fieldset>
 </form>
-<span id='r'></span>
 
 <script>
     //QuerySelector Prefix is added by load function to know into what element queySelector need to look for
     //var qsp = '#content0 ';
+    function getOnlineFirmwareInfos() {
+        document.getElementById("latestBaseVersion").textContent = '';
+        document.getElementById("latestVersionFirmware").textContent = '';
+        document.getElementById("publishDate").textContent = '';
+        document.getElementById("release_mes").innerHTML = '';
 
-    $(qsp + "#f").addEventListener('submit', function (evt) {
+        getJSON("/gs" + qsp[8], function (GS) {
+            var currentVersions = extractVersionsParts(GS['b']);
+            document.getElementById("currentBaseVersion").textContent = currentVersions[1];
+            document.getElementById("currentVersionFirmware").textContent = currentVersions[2];
+            getJSON('https://api.github.com/repos/DomoChip/WirelessPalaControl/releases/latest', function (response) {
+                var availableVersions = extractVersionsParts(response.tag_name);
+                document.getElementById("latestBaseVersion").textContent = availableVersions[1];
+                document.getElementById("latestVersionFirmware").textContent = availableVersions[2];
+                var publishedDate = new Date(response.published_at);
+                var formattedDate = `${publishedDate.getFullYear()}-${padZero(publishedDate.getMonth() + 1)}-${padZero(publishedDate.getDate())} ${padZero(publishedDate.getHours())}:${padZero(publishedDate.getMinutes())}:${padZero(publishedDate.getSeconds())}`;
+                document.getElementById("publishDate").innerHTML = formattedDate + ' <span id="publishBodyi" name="publishBodyi" class="infotip">?</span><div class="pure-control-group" id="publishBodydiv" name="publishBodydiv" style="display:none;"><label></label><div class="infotipdiv">' + response.name + '</br>' + response.body.replace(/\r\n/g, "</br>") + '</div></div>'
+                $(qsp + "#publishBodyi").addEventListener('click', function () {
+                    $(qsp + "#publishBodydiv").style.display = ($(qsp + "#publishBodydiv").style.display == '' ? 'none' : '');
+                });
+                document.getElementById("url_ota").value = response.assets[0].browser_download_url;
+                document.getElementById("url_ota").setAttribute('filename', response.assets[0].name);
+                if (compareVersions(GS['b'], response.tag_name)) {
+                    document.getElementById("ota_group").style.visibility = 'visible';
+                    document.getElementById("body").innerHTML = response.body;
+                } else {
+                    document.getElementById("ota_group").style.visibility = 'hidden';
+                    document.getElementById("release_mes").innerHTML = '<span style="color:green;">Already up to date!</span>';
+                }
+            });
+        });
+    };
+    getOnlineFirmwareInfos();
+
+    $(qsp + '#check_upg').addEventListener('click', function (event) {
+        event.preventDefault();
+        getOnlineFirmwareInfos();
+    });
+    $(qsp + "#fw").addEventListener('submit', function (evt) {
         evt.preventDefault();
         if (!firmwareValidation()) return;
         $(qsp + '#fi').readOnly = true;
         $(qsp + '#sub').disabled = true;
         post('/fw',
-            new FormData($(qsp + '#f')),
+            new FormData($(qsp + '#fw')),
             function () {
                 var reload15sec = document.createElement('script');
                 $(qsp + '#r').innerHTML = '<h3><span style="color: green;"><b>Done</b></span> System is rebooting. This page will be reloaded in <span id="cd">20</span>sec.</h3>';
                 runScript('var count=19;var cdi=setInterval(function(){if($("#cd")){$("#cd").innerText=count;if(!count){clearInterval(cdi);location.reload();}count--;}else{clearInterval(cdi);}},1000);');
-                $(qsp + '#f').reset();
+                $(qsp + '#fw').reset();
             },
             function (responseText) {
                 $(qsp + '#r').innerHTML = '<span style="color: red;"><b>Failed</b></span> (' + responseText + ')';
-                $(qsp + '#f').reset();
+                $(qsp + '#fw').reset();
                 $(qsp + '#fi').readOnly = false;
                 $(qsp + '#sub').disabled = false;
             },
             30000,
             function (evt) {
                 $(qsp + '#r').innerHTML = 'In Progress';
-                if (evt.lengthComputable) $(qsp + '#r').innerHTML += ' : ' + evt.loaded / evt.total * 100 + '%';
+                if (evt.lengthComputable) $(qsp + '#r').innerHTML += ' : ' + Math.floor(evt.loaded / evt.total * 100) + '%';
             }
         );
     });
 
-    $(qsp + "#f").onsubmit = null; //remove default submit after new Event listener
+    $(qsp + "#fw_ota").addEventListener('submit', function (evt) {
+        evt.preventDefault();
+        var urlOta = document.getElementById('url_ota').value;
+        if (!firmwareOTAValidation()) return;
+        $(qsp + '#url_ota').readOnly = true;
+        $(qsp + '#ota_upg').disabled = true;
+        getFileBuffer_url('https://cors-anywhere.herokuapp.com/' + urlOta, document.getElementById('url_ota').getAttribute('filename'));
+    });
+
+    function readBinaryFile(binaryData, callback) {
+        var reader = new FileReader();
+        reader.onload = function (event) {
+            console.log('reader',event)
+            var result = event.target.result;
+            callback(result);
+        };
+        reader.readAsArrayBuffer(new Blob([new Uint8Array(binaryData)], { type: 'application/octet-stream' }));
+    }
+
+    function getFileBuffer_url(url, name, retry = false) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url); // use of proxy to avoid CORS security on github download links
+        xhr.responseType = "arraybuffer";
+        xhr.onprogress = function (e) {
+            $(qsp + '#r').innerHTML = 'Downloading Firmware...';
+            if (e.lengthComputable) $(qsp + '#r').innerHTML += ' : ' + Math.floor(e.loaded / e.total * 100) + '%';
+        };
+        xhr.onerror = function() {
+            if (!retry) getFileBuffer_url(url, name, true);
+        }
+        xhr.onload = function () {
+            var fileBlob = new Blob([xhr.response]);
+            if (this.status === 200) {
+                $(qsp + '#r').innerHTML = 'Firmware downloaded.';
+                var fileReader = new FileReader();
+                fileReader.onload = function () {
+                    var firmwareArrayBuffer = this.result;
+                    var formData = new FormData();
+                    formData.append('fi', new Blob([firmwareArrayBuffer], { type: 'application/octet-stream' }), name);
+
+                    post('/fw', formData, function () {
+                        var reload15sec = document.createElement('script');
+                        $(qsp + '#r').innerHTML = '<h3><span style="color: green;"><b>Done</b></span> System is rebooting. This page will be reloaded in <span id="cd">20</span>sec.</h3>';
+                        runScript('var count=19;var cdi=setInterval(function(){if($("#cd")){$("#cd").innerText=count;if(!count){clearInterval(cdi);location.reload();}count--;}else{clearInterval(cdi);}},1000);');
+                        $(qsp + '#fw_ota').reset();
+                    }, function (responseText) {
+                        $(qsp + '#r').innerHTML = '<span style="color: red;"><b>Failed</b></span> (' + responseText + ')';
+                        $(qsp + '#fw_ota').reset();
+                        $(qsp + '#url_ota').readOnly = false;
+                        $(qsp + '#ota_upg').disabled = false;
+                    }, 30000, function (evt) {
+                        $(qsp + '#r').innerHTML = 'In Progress';
+                        if (evt.lengthComputable) $(qsp + '#r').innerHTML += ' : ' + Math.floor(evt.loaded / evt.total * 100) + '%';
+                    });
+                };
+
+                fileReader.readAsArrayBuffer(fileBlob);
+            }
+        };
+        xhr.send();
+    }
+
+    $(qsp + "#fw").onsubmit = null; //remove default submit after new Event listener
+    $(qsp + "#fw_ota").onsubmit = null; //remove default submit after new Event listener
 </script>

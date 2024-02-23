@@ -155,6 +155,9 @@
             el.dispatchEvent(evt);
         }
 
+        function padZero(num) {
+            return num < 10 ? `0${num}` : num;
+        }
 
         function emptyContents() {
             $("#menuStatus").classList.remove("pure-menu-selected");
@@ -168,6 +171,24 @@
             $("#content2").innerHTML = '';
             $("#content3").innerHTML = '';
         };
+
+        function compareVersions(gsVersion, zipVersion) {
+            var gsParts = gsVersion.match(/\d+/g).map(Number);
+            var zipParts = zipVersion.match(/\d+/g).map(Number);
+
+            for (var i = 0; i < Math.max(gsParts.length, zipParts.length); i++) {
+                var gsPart = gsParts[i] || 0;
+                var zipPart = zipParts[i] || 0;
+                if (gsPart < zipPart) {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        function extractVersionsParts(version) {
+            return version.match(/v?(\d+\.\d+\.\d+)[-\/](\d+\.\d+\.\d+)/);
+        }
 
         $("#menuStatus").addEventListener("click", function (evt) {
             evt.preventDefault();
