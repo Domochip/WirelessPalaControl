@@ -1,0 +1,487 @@
+<style>
+    #liveData { width: 100%; border-collapse: collapse; }
+    #software, #liveData tr, #sendMsg { display: none; }
+    #liveData tr .id { text-align: right; }
+    #liveData tr .name { font-style: italic; }
+    #liveData tr .value, #liveData tr .action { text-align: center; }
+    #lastRefresh { float: right; font-style: italic; }
+    .redfont { color:red; }
+    .greenfont { color:green; }
+    .inputResult { margin-left: 5px; width: 60px; }
+    .textareaResponse { border: 1px solid #ccc; padding: 1px 6px; display: block; overflow: hidden; resize: both; min-height: 40px; line-height: 20px; }
+    @media (max-width: 48em) {
+        #liveData tr .name {
+            display: none;
+        }
+    }
+</style>
+<span id="lastRefresh">Loading...</span>
+<table id="liveData" class="pure-form">
+    <tr id="STATUS">
+        <td class="id">STATUS 🚦</td>
+        <td class="name">Stove Status</td>
+        <td class="value"></td>
+        <td class="action" ><select id="ONOFFCMD" data-role="flipswitch">
+            <option value="OFF">Off</option>
+            <option value="ON">On</option>
+        </select></td>
+    </tr>
+    <tr id="LSTATUS">
+        <td class="id">LSTATUS 🚦</td>
+        <td class="name">Stove Status</td>
+        <td class="value"></td>
+    </tr>
+    <tr id="PWR">
+        <td class="id">PWR ⚡</td>
+        <td class="name">Power</td>
+        <td class="value"></td>
+        <td class="action"><input id="PWRDCMD" class="pure-button pure-button-primary" type="button" value="-" />
+            <input type="range" id="PWRCMD" value="1" min="1" max="5" />
+            <input id="PWRUCMD" class="pure-button pure-button-primary" type="button" value="+" />
+        </td>
+    </tr>
+    <tr id="SETP">
+        <td class="id">SETP 🌡</td>
+        <td class="name">Setpoint</td>
+        <td class="value" data-unit="°C" data-number="1"></td>
+        <td class="action"><input id="STPDCMD" class="pure-button pure-button-primary" type="button" value="-" />
+            <input type="range" id="SETPCMD" value="0" min="5" max="51" /><!--SPLMIN and SPLMAX-->
+            <input id="STPUCMD" class="pure-button pure-button-primary" type="button" value="+" /></td>
+    </tr>
+    <tr id="T1">
+        <td class="id">T1 🌡️</td>
+        <td class="name">Ambiant Temperature (T1)</td>
+        <td class="value" data-unit="°C" data-number="1"></td>
+    </tr>
+    <tr id="T2">
+        <td class="id">T2 🌡️</td>
+        <td class="name">Pellets Temperature (T2)</td>
+        <td class="value" data-unit="°C" data-number="1"></td>
+    </tr>
+    <tr id="T3">
+        <td class="id">T3 🌡️</td>
+        <td class="name">Fumes Temperature (T3)</td>
+        <td class="value" data-unit="°C" data-number="1"></td>
+    </tr>
+    <tr id="T4">
+        <td class="id">T4 🌡️</td>
+        <td class="name"></td>
+        <td class="value" data-unit="°C" data-number="1"></td>
+    </tr>
+    <tr id="T5">
+        <td class="id">T5 🌡️</td>
+        <td class="name"></td>
+        <td class="value" data-unit="°C" data-number="1"></td>
+    </tr>
+    <tr id="F1RPM">
+        <td class="id">F1RPM 💨</td>
+        <td class="name">Exhaust Fan RPM</td>
+        <td class="value" data-unit="tr/min" data-number="1"></td>
+    </tr>
+    <tr id="F1V">
+        <td class="id">F1V 💨</td>
+        <td class="name">Exhaust Fan V</td>
+        <td class="value" data-number="1"></td>
+    </tr>
+    <tr id="F2L">
+        <td class="id">F2L 💨</td>
+        <td class="name">Room Fan Level</td>
+        <td class="value" data-number="1"></td>
+        <td class="action"><input id="F2LDCMD" class="pure-button pure-button-primary" type="button" value="-" />
+            <select id="F2LCMD"><!--FANLMINMAX[1] and FANLMINMAX[2]-->
+                <option value="0">Auto</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">Hi</option>
+                <option value="7">Off</option>
+            </select>
+            <input id="F2LUCMD" class="pure-button pure-button-primary" type="button" value="+" /></td>
+    </tr>
+    <tr id="F2V">
+        <td class="id">F2V 💨</td>
+        <td class="name">Room Fan V</td>
+        <td class="value" data-number="1"></td>
+    </tr>
+    <tr id="F2LF">
+        <td class="id">F2LF 💨</td>
+        <td class="name"></td>
+        <td class="value" data-number="1"></td>
+    </tr>
+    <!--tr id="F3L">FANLMINMAX[3] and FANLMINMAX[4]
+    </tr--->
+    <!--tr id="F4L">FANLMINMAX[5] and FANLMINMAX[6]
+    </tr--->
+    <tr id="IGN">
+        <td class="id">IGN 💥</td>
+        <td class="name">Number of ignitions</td>
+        <td class="value" data-number="1"></td>
+    </tr>
+    <tr id="IGNERRORS">
+        <td class="id">IGNERRORS ⚠️</td>
+        <td class="name">Ignition Errors</td>
+        <td class="value" data-number="1"></td>
+    </tr>
+    <tr id="OVERTMPERRORS">
+        <td class="id">OVERTMPERRORS ⚠️</td>
+        <td class="name">Overtemperature Errors</td>
+        <td class="value" data-number="1"></td>
+    </tr>
+    <tr id="POWERTIME">
+        <td class="id">POWERTIME ⌛</td>
+        <td class="name">Power Time</td>
+        <td class="value"></td>
+    </tr>
+    <tr id="HEATTIME">
+        <td class="id">HEATTIME ⌛</td>
+        <td class="name">Heat Time</td>
+        <td class="value"></td>
+    </tr>
+    <tr id="SERVICETIME">
+        <td class="id">SERVICETIME ⌛</td>
+        <td class="name">Service time</td>
+        <td class="value"></td>
+    </tr>
+    <tr id="ONTIME">
+        <td class="id">ONTIME ⌛</td>
+        <td class="name">ON Time</td>
+        <td class="value"></td>
+    </tr>
+    <tr id="PQT">
+        <td class="id">PQT 🥜</td>
+        <td class="name">Quantity of Pellet</td>
+        <td class="value" data-unit="kg" data-number="1"></td>
+    </tr>
+    <tr id="STOVE_DATETIME">
+        <td class="id">STOVE_DATETIME 📅</td>
+        <td class="name">Stove Datetime</td>
+        <td class="value"></td>
+        <td class="action"><input id="DATETIME" type="datetime-local" pattern='^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$' />
+            <input class="pure-button pure-button-primary" id="DATETIMECMD" type="button" value="Send" /></td>
+    </tr>
+    <tr id="STOVE_WDAY">
+        <td class="id">STOVE_WDAY 📅</td>
+        <td class="name">Stove Week Day</td>
+        <td class="value"></td>
+    </tr>
+    <tr id="FDR">
+        <td class="id">FDR 🚀</td>
+        <td class="name">Feeder</td>
+        <td class="value"></td>
+    </tr>
+    <tr id="DP_TARGET">
+        <td class="id">DP_TARGET 🎯</td>
+        <td class="name">Target Pressure</td>
+        <td class="value" data-number="1"></td>
+    </tr>
+    <tr id="DP_PRESS">
+        <td class="id">DP_PRESS 📈</td>
+        <td class="name">Delta Pressure</td>
+        <td class="value" data-number="1"></td>
+    </tr>
+</table>
+<div class="pure-form" id="sendMsg">
+    <select id="CUSTOMCMD">
+        <optgroup label="- [ GET COMMANDS ] -" id="GETCMDS"></optgroup>
+        <option value="" arguments="0" disabled="" selected="selected"># Select a command</option>
+        <option value="GET+STDT" arguments="0">(GET+STDT) get static data</option>
+        <option value="GET+ALLS" arguments="0">(GET+ALLS) get all status data</option>
+        <option value="GET+STAT" arguments="0">(GET+STAT) get status of the stove</option>
+        <option value="GET+TMPS" arguments="0">(GET+TMPS) get temperatures of the stove</option>
+        <option value="GET+FAND" arguments="0">(GET+FAND) get Fan values</option>
+        <option value="GET+SETP" arguments="0">(GET+SETP) get current Set Point (desired temperature)</option>
+        <option value="GET+POWR" arguments="0">(GET+POWR) get current power (1-5)</option>
+        <option value="GET+CUNT" arguments="0">(GET+CUNT) get some counters</option>
+        <option value="GET+CNTR" arguments="0">(GET+CNTR) get some counters</option>
+        <option value="GET+DPRS" arguments="0">(GET+DPRS) get delta pressure data</option>
+        <option value="GET+TIME" arguments="0">(GET+TIME) get stove clock data</option>
+        <option value="GET+IOPT" arguments="0">(GET+IOPT) get IO ports status</option>
+        <option value="GET+SERN" arguments="0">(GET+SERN) get stove Serial Number</option>
+        <option value="GET+MDVE" arguments="0">(GET+MDVE) get stove model and fw version</option>
+        <option value="GET+CHRD" arguments="0">(GET+CHRD) get chrono data</option>
+        <option value="GET+PARM+" arguments="1" pattern1="^(?:[0-9]|[1-9][0-9]|100|110)$" placeholder="0-110">(GET+PARM+XX) get parameter</option>
+        <option value="GET+HPAR+" arguments="1" pattern1="^(?:[0-9]|[1-9][0-9]|100|110)$" placeholder="0-110">(GET+HPAR+XX) get hidden parameter</option>
+        <optgroup label="- [ BKP COMMANDS ] -" id="BKPCMDS"></optgroup>
+        <option value="BKP+PARM+CSV" arguments="0">(BKP+PARM+CSV) get all parameters in a CSV file</option>
+        <option value="BKP+PARM+JSON" arguments="0">(BKP+PARM+JSON) get all parameters in a JSON file</option>
+        <option value="BKP+HPAR+CSV" arguments="0">(BKP+HPAR+CSV) get all hidden parameters in a CSV file</option>
+        <option value="BKP+HPAR+JSON" arguments="0">(BKP+HPAR+JSON) get all hidden parameters in a JSON file</option>
+        <optgroup label="- [ SET COMMANDS ] -" id="SETCMDS"></optgroup>
+        <option value="CMD+ON" arguments="0">(CMD+ON) turn stove ON</option>
+        <option value="CMD+OFF" arguments="0">(CMD+OFF) turn stove OFF</option>
+        <option value="SET+POWR+" arguments="1" pattern1="^[1-5]$" placeholder="1-5">(SET+POWR+X) set power</option>
+        <option value="SET+PWRU" arguments="0">(SET+PWRU) increase power by 1 unit</option>
+        <option value="SET+PWRD" arguments="0">(SET+PWRD) decrease power by 1 unit</option>
+        <option value="SET+SETP+" arguments="1" pattern1="^([5-9]|[1-4][0-9]|5[0-1])$" placeholder="5-51">(SET+SETP+XX) set Set Point</option>
+        <option value="SET+STPF+" arguments="1" pattern1="^(5(\.0)?|([6-9]|[1-4][0-9]|5[0-1])(\.(0|2)))$" placeholder="5.0-51.0 (step: 0.2)">(SET+STPF+XX.X) set Set Point with a 0.2° precision</option>
+        <option value="SET+STPU" arguments="0">(SET+STPU) increase Set Point by 1 unit</option>
+        <option value="SET+STPD" arguments="0">(SET+STPD) decrease Set Point by 1 unit</option>
+        <option value="SET+RFAN+" arguments="1" pattern1="^[0-7]$" placeholder="0-7">(SET+RFAN+X) set Room Fan value</option>
+        <option value="SET+FN2U" arguments="0">(SET+FN2U) increase Room Fan by 1 unit</option>
+        <option value="SET+FN2D" arguments="0">(SET+FN2D) decrease Room Fan by 1 unit</option>
+        <option value="SET+FN3L+" arguments="1" pattern1="^[0-5]$" placeholder="0-5">(SET+FN3L+X) set Room Fan 3 value</option>
+        <option value="SET+FN4L+" arguments="1" pattern1="^[0-5]$" placeholder="0-5">(SET+FN4L+X) set Room Fan 4 value</option>
+        <option value="SET+SLNT+" arguments="1" pattern1="^[0-1]$" placeholder="0-1">(SET+SLNT+X) set Silent mode value</option>
+        <option value="SET+TIME+" arguments="1" pattern1="^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$"  placeholder="2024-01-01+00:00:00">(SET+TIME+XXXX-XX-XX+XX:XX:XX) set stove Date and Time</option>
+        <option value="SET+CSST+" arguments="1" pattern1="^[0-1]$" placeholder="0-1">(SET+CSST+X) set Chrono Status value</option>
+        <option value="SET+CSTH+" arguments="2" pattern1="^[1-6]$" pattern2="^([0-9]|1[0-9]|2[0-3])$" placeholder="1-6 0-23">(SET+CSTH+X+XX) set Chrono Program Start Hour</option>
+        <option value="SET+CSTM+" arguments="2" pattern1="^[1-6]$" pattern2="^([0-9]|[1-5][0-9])$" placeholder="1-6 0-59">(SET+CSTM+X+XX) set Chrono Program Start Minute</option>
+        <option value="SET+CSPH+" arguments="2" pattern1="^[1-6]$" pattern2="^([0-9]|1[0-9]|2[0-3])$" placeholder="1-6 0-23">(SET+CSPH+X+XX) set Chrono Program Stop Hour</option>
+        <option value="SET+CSPM+" arguments="2" pattern1="^[1-6]$" pattern2="^([0-9]|[1-5][0-9])$" placeholder="1-6 0-59">(SET+CSPM+X+XX) set Chrono Program Stop Minute</option>
+        <option value="SET+CSET+" arguments="2" pattern1="^[1-6]$" pattern2="^([5-9]|[1-4][0-9]|5[0-1])$" placeholder="1-6 5-51">(SET+CSET+X+XX) set Chrono Program Set Point</option>
+        <option value="SET+CDAY+" arguments="3" pattern1="^[1-7]$" pattern2="^[1-3]$" pattern3="^[1-6]$" placeholder="1-7 1-3 1-6">(SET+CDAY+X+X+X) set Chrono Program for week day</option>
+        <option value="SET+CPRD+" arguments="6" pattern1="^[1-6]$" pattern2="^([5-9]|[1-4][0-9]|5[0-1])$" pattern3="^([0-9]|1[0-9]|2[0-3])$" pattern4="^([0-9]|[1-5][0-9])$" pattern5="^([0-9]|1[0-9]|2[0-3])$" pattern6="^([0-9]|[1-5][0-9])$" placeholder="1-6 5-51 0-23 0-59 0-23 0-59">(SET+CPRD+X+XX+XX+XX+XX+XX) set Chrono Program data</option>
+        <option value="SET+PARM+" arguments="2" pattern1="^(?:[0-9]|[1-9][0-9]|100|110)$" pattern2="^-?\d+$" placeholder="0-110 XXX">(SET+PARM+XX+XX) set parameter XX to a given value</option>
+        <option value="SET+HPAR+" arguments="2" pattern1="^(?:[0-9]|[1-9][0-9]|100|110)$" pattern2="^-?\d+$" placeholder="0-110 XXX">(SET+HPAR+XX+XX) set hidden parameter XX to given value</option>
+    </select>
+    <div id="cmdResult"></div>
+</div>
+<script>
+    //QuerySelector Prefix is added by load function to know into what element queySelector need to look for
+    //var qsp = '#content1 ';
+
+    var statusCode = { 0: 'OFF ❌', 1: 'OFF TIMER ⏲️❌', 2: 'TESTFIRE', 3: 'HEATUP', 4: 'FUELIGN', 5: 'IGNTEST', 6: 'BURNING 🔥', 9: 'COOLFLUID', 10: 'FIRESTOP', 11: 'CLEANFIRE', 12: 'COOL ❄️', 241: 'CHIMNEY ALARM 🚨', 243: 'GRATE ERROR ⚠️', 244: 'NTC2 ALARM 🚨', 245: 'NTC3 ALARM 🚨', 247: 'DOOR ALARM 🚨', 248: 'PRESS ALARM 🚨', 249: 'NTC1 ALARM 🚨', 250: 'TC1 ALARM 🚨', 252: 'GAS ALARM 🚨', 253: 'NOPELLET ALARM 🚨' };
+    function sendCmd(cmd) {
+        if (cmd == 'BKP+HPAR+CSV' | cmd == 'BKP+PARM+CSV') {
+            get("/cgi-bin/sendmsg.lua?cmd=" + cmd,
+                function (response) {
+                    $(qsp + '#cmdResult').innerHTML = '<b><span class="greenfont">Successful command ' + cmd + '</span></b></br>';
+                    $(qsp + '#cmdResult').innerHTML += '<div class="textareaResponse" ><pre>' + response + '</pre></div>';
+                }, function (response) {
+                    var resp = {'INFO': {'MSG': cmd},'DATA': response};
+                    printErrorResult(resp);
+                }
+            );
+            return;
+        }
+        getJSON("/cgi-bin/sendmsg.lua?cmd=" + cmd,
+            function (response) {
+                if (response.SUCCESS === false) {
+                    printErrorResult(response);
+                } else {
+                    if (response.INFO) {
+                        $(qsp + '#cmdResult').innerHTML = '<b><span class="greenfont">Successful command ' + response.INFO.CMD + '</span></b></br>';
+                        $(qsp + '#cmdResult').innerHTML += '<div class="textareaResponse" ><pre>' + JSON.stringify(response.DATA, null, "\t") + '</pre></div>';
+                    } else if (response.PARM) {
+                        $(qsp + '#cmdResult').innerHTML = '<b><span class="greenfont">Successful command ' + cmd + '</span></b></br>';
+                        $(qsp + '#cmdResult').innerHTML += '<div class="textareaResponse" ><pre>' + JSON.stringify(response.PARM, null, "\t") + '</pre></div>';
+                    } else if (response.HPAR) {
+                        $(qsp + '#cmdResult').innerHTML = '<b><span class="greenfont">Successful command ' + cmd + '</span></b></br>';
+                        $(qsp + '#cmdResult').innerHTML += '<div class="textareaResponse" ><pre>' + JSON.stringify(response.HPAR, null, "\t") + '</pre></div>';
+                    }
+                }
+            },
+            function (response) {
+                printErrorResult(response);
+            }
+        );
+    };
+    function printErrorResult(resp) {
+        $(qsp + '#cmdResult').innerHTML = '<b><span class="redfont">Error command ' + resp.INFO.MSG + '</span></b></br>';
+        $(qsp + '#cmdResult').innerHTML += '<div class="textareaResponse" >' + resp.DATA + '</div>';
+    }
+    function parseLiveData(liveData) {
+        if ($(qsp + '#liveData') == undefined) return;
+        for (k in liveData) {
+            kForId = (/[^a-zA-Z]/.test(k[0]) ? 'a' : '') + k; //k[0] is not in a-zA-Z then we need to add 'a'
+            kForId = kForId.replace(/ /g, '_');
+            if ($(qsp + '#' + kForId) != undefined) {
+                $(qsp + '#' + kForId).style.display = 'table-row';
+
+                var existingElement = $(qsp + '#' + kForId + ' .value');
+                switch (k) {
+                    case "STATUS":
+                        $(qsp + '#' + k + ' #ONOFFCMD').value = (liveData[k] != 6 ? 'OFF' : 'ON');
+
+                        liveData[k] = statusCode[liveData[k]];
+                        break;
+                    case "PWR":
+                        $(qsp + '#PWRDCMD').disabled = false;
+                        $(qsp + '#PWRUCMD').disabled = false;
+                        if (liveData[k] == 1) {
+                            $(qsp + '#PWRDCMD').disabled = true;
+                        } else if (liveData[k] == 5) {
+                            $(qsp + '#PWRUCMD').disabled = true;
+                        }
+                        $(qsp + '#' + k + 'CMD').value = liveData[k];
+                        break;
+                    case "SETP":
+                        $(qsp + '#STPDCMD').disabled = false;
+                        $(qsp + '#STPUCMD').disabled = false;
+                        if (liveData[k] == 5) {
+                            $(qsp + '#STPDCMD').disabled = true;
+                        } else if (liveData[k] == 51) {
+                            $(qsp + '#STPUCMD').disabled = true;
+                        }
+                        $(qsp + '#' + k + 'CMD').value = liveData[k];
+                        break;
+                    case "F2L":
+                        $(qsp + '#F2LDCMD').disabled = false;
+                        $(qsp + '#F2LUCMD').disabled = false;
+                        if (liveData[k] == 0) {
+                            $(qsp + '#F2LDCMD').disabled = true;
+                        } else if (liveData[k] == 7) {
+                            $(qsp + '#F2LUCMD').disabled = true;
+                        }
+                        $(qsp + '#' + k + 'CMD').value = liveData[k];
+                        break;
+                    case "T4":
+                        if (liveData[k] == 0) {
+                            $(qsp + '#T4').style.display = 'none';
+                        }
+                    case "T5":
+                        if (liveData[k] == 0) {
+                            $(qsp + '#T5').style.display = 'none';
+                        }
+                }
+
+                var valueText = liveData[k];
+                if (existingElement.getAttribute('data-unit') != null) {
+                    valueText += ' ' + existingElement.getAttribute('data-unit');
+                }
+                var fontText = "normal";
+                if (existingElement.getAttribute('data-number') == '1') {
+                    if (valueText > parseFloat(existingElement.innerText)) {
+                        valueText += '<a class="redfont">&uarr;</a>';
+                        fontText = "bold";
+                    } else if (valueText < parseFloat(existingElement.innerText)) {
+                        valueText += '<a class="greenfont">&darr;</a>';
+                        fontText = "bold";
+                    }
+                } else {
+                    if (valueText != existingElement.innerText) {
+                        fontText = "bold";
+                    }
+                }
+                existingElement.innerHTML = valueText;
+                existingElement.style.fontWeight = fontText;
+            }
+        }
+        $(qsp + '#sendMsg').style.display = 'block';
+        if ($(qsp + '#lastRefresh') != undefined) {
+            $(qsp + '#lastRefresh').innerText = (new Date()).toLocaleString();
+        }
+    }
+
+    if (!!window.EventSource) {
+        var statusEventSource = new EventSource('/statusEvt' + qsp[8]);
+        statusEventSource.addEventListener('message', function (e) {
+            parseLiveData(JSON.parse(e.data));
+        });
+    }
+
+    $(qsp + '#ONOFFCMD').addEventListener("change", function (evt) {
+        $(qsp + '#STATUS .value').innerText = evt.target.value;
+        sendCmd('CMD+' + evt.target.value);
+    });
+
+    $(qsp + '#PWRCMD').addEventListener("change", function (evt) {
+        $(qsp + '#PWR .value').innerText = evt.target.value;
+        sendCmd('SET+POWR+' + evt.target.value);
+    });
+    $(qsp + '#PWRDCMD').addEventListener("click", function (evt) {
+        $(qsp + '#PWR .value').innerText = parseInt($(qsp + '#PWR .value').innerText) - 1;
+        sendCmd('SET+PWRD');
+    });
+    $(qsp + '#PWRUCMD').addEventListener("click", function (evt) {
+        $(qsp + '#PWR .value').innerText = parseInt($(qsp + '#PWR .value').innerText) + 1;
+        sendCmd('SET+PWRU');
+    });
+
+    $(qsp + '#SETPCMD').addEventListener("change", function (evt) {
+        $(qsp + '#SETP .value').innerText = evt.target.value + ' ' + $(qsp + '#SETP .value').getAttribute('data-unit');
+        sendCmd('SET+SETP+' + evt.target.value);
+    });
+    $(qsp + '#STPDCMD').addEventListener("click", function (evt) {
+        $(qsp + '#SETP .value').innerText = parseInt($(qsp + '#SETP .value').innerText) - 1 + ' ' + $(qsp + '#SETP .value').getAttribute('data-unit');
+        sendCmd('SET+STPD');
+    });
+    $(qsp + '#STPUCMD').addEventListener("click", function (evt) {
+        $(qsp + '#SETP .value').innerText = parseInt($(qsp + '#SETP .value').innerText) + 1 + ' ' + $(qsp + '#SETP .value').getAttribute('data-unit');
+        sendCmd('SET+STPU');
+    });
+    
+    $(qsp + '#F2LCMD').addEventListener("change", function (evt) {
+        $(qsp + '#F2L .value').innerText = evt.target.value;
+        sendCmd('SET+RFAN+' + evt.target.value);
+    });
+    $(qsp + '#F2LDCMD').addEventListener("click", function (evt) {
+        if ($(qsp + '#F2L .value').innerText > 0) 
+            $(qsp + '#F2L .value').innerText = parseInt($(qsp + '#F2L .value').innerText) - 1;
+        sendCmd('SET+FN2D');
+    });
+    $(qsp + '#F2LUCMD').addEventListener("click", function (evt) {
+        if ($(qsp + '#F2L .value').innerText < 7) 
+            $(qsp + '#F2L .value').innerText = parseInt($(qsp + '#F2L .value').innerText) + 1;
+        sendCmd('SET+FN2U');
+    });
+
+    $(qsp + '#DATETIME').addEventListener("change", function (evt) {
+        if (evt.target.value.match(evt.target.pattern)) {
+            $(qsp + '#DATETIMECMD').style.display = '';
+        } else {
+            $(qsp + '#DATETIMECMD').style.display = 'none';
+        }
+    });
+
+    $(qsp + '#DATETIMECMD').addEventListener("click", function (evt) {
+        sendCmd('SET+TIME+'+ $(qsp + '#DATETIME').value.replace('T', '+')); //SET+TIME+2023-12-28+19:42:00
+    });
+
+    $(qsp + '#CUSTOMCMD').addEventListener("change", function (evt) {
+        if (event.target.selectedOptions[0]) {
+            //remove all input fields created earlier
+            var removeInputs = document.querySelectorAll(qsp + '.inputResult');
+            if (removeInputs !== null) {
+                removeInputs.forEach(inputToRemove => {
+                    inputToRemove.remove();
+                });
+            }
+            //remove button Send created earlier
+            var removeButtons = document.querySelectorAll(qsp + '.btnSendMsg');
+            if (removeButtons !== null) {
+                removeButtons.forEach(buttonToRemove => {
+                    buttonToRemove.remove();
+                });
+            }
+            var nbArguments = event.target.selectedOptions[0].getAttribute('arguments');
+            var placeholder = event.target.selectedOptions[0].getAttribute('placeholder');
+            var value = event.target.selectedOptions[0].getAttribute('value');
+            if (nbArguments === '0') {
+                sendCmd(event.target.value);
+            } else {
+                $(qsp + '#cmdResult').innerHTML = ''; // reset field
+                for (var i = 1; i <= nbArguments; i++) {
+                    //add inputs depend on arguments quantity
+                    var placeholderArr = placeholder.split(" ");
+                    var newElement = document.createElement("input");
+                    var patternInput = event.target.selectedOptions[0].getAttribute('pattern'+i);
+                    newElement.setAttribute('placeholder', placeholderArr[i-1]);
+                    newElement.setAttribute('pattern', patternInput);
+                    newElement.setAttribute('required','');
+                    newElement.className = 'inputResult';
+                    newElement.innerText = patternInput;
+                    $(qsp + '#sendMsg').insertBefore(newElement, $(qsp + '#cmdResult'));
+                }
+                //add button Send to all inputs values 
+                var btnElement = document.createElement("button");
+                btnElement.className = 'btnSendMsg pure-button pure-button-primary';
+                btnElement.innerHTML = 'Send';
+                btnElement.onclick = function(evt) {
+                    var inputResults = document.querySelectorAll(qsp + '.inputResult');
+                    var inputValues = [];
+                    inputResults.forEach(function(inputResult) {
+                        inputValues.push(inputResult.value);
+                    });
+                    var joinedValues = inputValues.join('+');
+                    console.log('sendCmd ARG>0 ', value + joinedValues);
+                    sendCmd(value + joinedValues);
+                };
+                document.querySelector('#sendMsg').insertBefore(btnElement, $(qsp + '#cmdResult'));
+            }
+        }
+    });
+    
+</script>
