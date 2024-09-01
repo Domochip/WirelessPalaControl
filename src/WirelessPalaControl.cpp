@@ -2306,8 +2306,13 @@ bool WebPalaControl::appInit(bool reInit)
   if (cmdRes == Palazzetti::CommandResult::OK)
     publishTick(); // if configuration changed, publish immediately
 
+#ifdef ESP8266
   _publishTicker.attach(_ha.uploadPeriod, [this]()
                         { this->_needPublish = true; });
+#else
+  _publishTicker.attach<typeof this>(_ha.uploadPeriod, [](typeof this palaControl)
+                                     { palaControl->_needPublish = true; }, this);
+#endif
 
   // Start UDP Server
   _udpServer.begin(54549);
