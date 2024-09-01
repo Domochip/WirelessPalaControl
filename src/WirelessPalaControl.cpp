@@ -2033,7 +2033,7 @@ void WebPalaControl::udpRequestHandler(WiFiUDP &udpServer)
 
   // answer to the requester
   udpServer.beginPacket(udpServer.remoteIP(), udpServer.remotePort());
-  udpServer.write(strAnswer.c_str(), strAnswer.length());
+  udpServer.write((const uint8_t *)strAnswer.c_str(), strAnswer.length());
   udpServer.endPacket();
 }
 
