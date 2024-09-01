@@ -2380,7 +2380,7 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
         String ret(F("{\"INFO\":{\"CMD\":\"BKP PARM\",\"MSG\":\"Incorrect File Type : "));
         ret += strFileType;
         ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-        server.keepAlive(false);
+        SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), ret);
         return;
       }
@@ -2400,7 +2400,7 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
             toReturn += String(i) + ';' + params[i] + '\r' + '\n';
 
           server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"PARM.csv\""));
-          server.keepAlive(false);
+          SERVER_KEEPALIVE_FALSE()
           server.send(200, F("text/csv"), toReturn);
           break;
 
@@ -2415,7 +2415,7 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
           toReturn += F("]}");
 
           server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"PARM.json\""));
-          server.keepAlive(false);
+          SERVER_KEEPALIVE_FALSE()
           server.send(200, F("text/json"), toReturn);
           break;
         }
@@ -2424,7 +2424,7 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
       }
       else
       {
-        server.keepAlive(false);
+        SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP PARM\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
         return;
       }
@@ -2446,7 +2446,7 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
         String ret(F("{\"INFO\":{\"CMD\":\"BKP HPAR\",\"MSG\":\"Incorrect File Type : "));
         ret += strFileType;
         ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-        server.keepAlive(false);
+        SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), ret);
         return;
       }
@@ -2465,7 +2465,7 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
           for (byte i = 0; i < 0x6F; i++)
             toReturn += String(i) + ';' + hiddenParams[i] + '\r' + '\n';
 
-          server.keepAlive(false);
+          SERVER_KEEPALIVE_FALSE()
           server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"HPAR.csv\""));
           server.send(200, F("text/csv"), toReturn);
           break;
@@ -2480,7 +2480,7 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
           }
           toReturn += F("]}");
 
-          server.keepAlive(false);
+          SERVER_KEEPALIVE_FALSE()
           server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"HPAR.json\""));
           server.send(200, F("text/json"), toReturn);
           break;
@@ -2490,7 +2490,7 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
       }
       else
       {
-        server.keepAlive(false);
+        SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP HPAR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
         return;
       }
@@ -2500,7 +2500,7 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
     executePalaCmd(cmd, strJson);
 
     // send response
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.send(200, F("text/json"), strJson); });
 
   // Handle HTTP POST requests (Body contains a JSON)
@@ -2520,7 +2520,7 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
         executePalaCmd(cmd, strJson);
 
         // send response
-        server.keepAlive(false);
+        SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), strJson); });
 }
 
