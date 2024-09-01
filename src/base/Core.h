@@ -17,13 +17,13 @@ class Core : public Application
 private:
   void setConfigDefaultValues();
   void parseConfigJSON(JsonDocument &doc);
-  bool parseConfigWebRequest(ESP8266WebServer &server);
+  bool parseConfigWebRequest(WebServer &server);
   String generateConfigJSON(bool clearPassword);
   String generateStatusJSON();
   bool appInit(bool reInit);
   const PROGMEM char *getHTMLContent(WebPageForPlaceHolder wp);
   size_t getHTMLContentSize(WebPageForPlaceHolder wp);
-  void appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication);
+  void appInitWebServer(WebServer &server, bool &shouldReboot, bool &pauseApplication);
   void appRun(){};
 
 public:

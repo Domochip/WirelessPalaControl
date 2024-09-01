@@ -2,7 +2,7 @@
 
 #if ENABLE_STATUS_EVTSRC
 
-void Application::statusEventSourceHandler(ESP8266WebServer &server)
+void Application::statusEventSourceHandler(WebServer &server)
 {
   uint8_t subPos = 0;
 
@@ -26,7 +26,11 @@ void Application::statusEventSourceHandler(ESP8266WebServer &server)
       return server.send(500);
   }
 
+#ifdef ESP8266
   server.client().setSync(true); // disable Nagle's algorithm and flush immediately
+#else
+  server.client().setNoDelay(true);
+#endif
 
   // create/update subscription
   _statusEvtSrcClient[subPos] = server.client();
@@ -150,7 +154,7 @@ void Application::init(bool skipExistingConfig)
 #endif
 }
 
-void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication)
+void Application::initWebServer(WebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   char url[16];
 
@@ -158,7 +162,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/status%c.html"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), getHTMLContent(status), getHTMLContentSize(status)); });
 
@@ -166,7 +170,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/config%c.html"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), getHTMLContent(config), getHTMLContentSize(config)); });
 
@@ -174,7 +178,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/fw%c.html"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), getHTMLContent(fw), getHTMLContentSize(fw)); });
 
@@ -182,7 +186,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/discover%c.html"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), getHTMLContent(discover), getHTMLContentSize(discover)); });
 
@@ -190,7 +194,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/gs%c"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Cache-Control"), F("no-cache"));
     server.send(200, F("text/json"), generateStatusJSON()); });
 
@@ -198,7 +202,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/gc%c"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Cache-Control"), F("no-cache"));
     server.send(200, F("text/json"), generateConfigJSON()); });
 
@@ -214,12 +218,12 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
     //Send client answer
     if (result)
     {
-      server.keepAlive(false);
+      SERVER_KEEPALIVE_FALSE()
       server.send(200);
       _reInit = true;
     }
     else{
-      server.keepAlive(false);
+      SERVER_KEEPALIVE_FALSE()
       server.send(500, F("text/html"), F("Configuration hasn't been saved"));
     } });
 
@@ -230,8 +234,13 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
             { statusEventSourceHandler(server); });
 #if ENABLE_STATUS_EVTSRC_KEEPALIVE
   // send keep alive event every 60 seconds
+#ifdef ESP8266
   _statusEvtSrcKeepAliveTicker.attach(60, [this]()
                                       { _needStatusEvtSrcKeepAlive = true; });
+#else
+  _statusEvtSrcKeepAliveTicker.attach<typeof this>(60, [](typeof this application)
+                                                   { application->_needStatusEvtSrcKeepAlive = true; }, this);
+#endif
 #endif
 #endif
 

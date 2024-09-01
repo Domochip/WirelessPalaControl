@@ -11,7 +11,7 @@
 
 void Core::setConfigDefaultValues(){};
 void Core::parseConfigJSON(JsonDocument &doc){};
-bool Core::parseConfigWebRequest(ESP8266WebServer &server) { return true; };
+bool Core::parseConfigWebRequest(WebServer &server) { return true; };
 String Core::generateConfigJSON(bool clearPassword = false) { return String(); };
 String Core::generateStatusJSON()
 {
@@ -76,12 +76,12 @@ size_t Core::getHTMLContentSize(WebPageForPlaceHolder wp)
   };
   return 0;
 }
-void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication)
+void Core::appInitWebServer(WebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   // root is index
   server.on("/", HTTP_GET, [&server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), indexhtmlgz, sizeof(indexhtmlgz)); });
 
@@ -100,7 +100,7 @@ void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &
 #else
     sprintf_P(chipID, PSTR("%08x"), (uint32_t)(ESP.getEfuseMac() << 40 >> 40));
 #endif
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.enableCORS(true); //allow this URL to be requested from everywhere
     server.sendHeader(F("Cache-Control"), F("no-cache"));
     server.send(200, "text/html", chipID); });
@@ -115,7 +115,7 @@ void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &
 #else
     sprintf_P(discoJSON, PSTR("{\"sn\":\"%08x\",\"m\":\"%s\",\"v\":\"%s\"}"), (uint32_t)(ESP.getEfuseMac() << 40 >> 40), APPLICATION1_NAME, BASE_VERSION "/" VERSION);
 #endif
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.enableCORS(true); //allow this URL to be requested from everywhere
     server.sendHeader(F("Cache-Control"), F("no-cache"));
     server.send(200, "text/json", discoJSON); });
@@ -126,7 +126,7 @@ void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &
       {
     shouldReboot = !Update.hasError();
     if (shouldReboot) {
-      server.keepAlive(false);
+      SERVER_KEEPALIVE_FALSE()
       server.send(200, F("text/html"), F("Firmware Successfully Uploaded<script>setTimeout(function(){if('referrer' in document)window.location=document.referrer;},10000);</script>"));
     }
     else {
@@ -177,7 +177,7 @@ void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &
 #else
       errorMsg=Update.errorString();
 #endif
-      server.keepAlive(false);
+      SERVER_KEEPALIVE_FALSE()
       server.send(500, F("text/html"), errorMsg);
     } },
       [&pauseApplication, &server]()
@@ -236,14 +236,14 @@ void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &
   // reboot POST
   server.on("/rbt", HTTP_POST, [&shouldReboot, &server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.send_P(200,PSTR("text/html"),PSTR("Reboot command received<script>setTimeout(function(){if('referrer' in document)window.location=document.referrer;},30000);</script>"));
     shouldReboot = true; });
 
   // reboot Rescue POST
   server.on("/rbtrsc", HTTP_POST, [&shouldReboot, &server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.send_P(200,PSTR("text/html"),PSTR("Reboot in rescue command received<script>setTimeout(function(){if('referrer' in document)window.location=document.referrer;},30000);</script>"));
     //Set EEPROM for Rescue mode flag
     EEPROM.begin(4);
@@ -254,21 +254,21 @@ void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &
   // Ressources URLs
   server.on("/pure-min.css", HTTP_GET, [&server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.sendHeader(F("Cache-Control"), F("max-age=604800, public"));
     server.send_P(200, PSTR("text/css"), puremincssgz, sizeof(puremincssgz)); });
 
   server.on("/side-menu.css", HTTP_GET, [&server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.sendHeader(F("Cache-Control"), F("max-age=604800, public"));
     server.send_P(200, PSTR("text/css"), sidemenucssgz, sizeof(sidemenucssgz)); });
 
   server.on("/side-menu.js", HTTP_GET, [&server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.sendHeader(F("Cache-Control"), F("max-age=604800, public"));
     server.send_P(200, PSTR("text/javascript"), sidemenujsgz, sizeof(sidemenujsgz)); });
@@ -276,6 +276,6 @@ void Core::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &
   // 404 on not found
   server.onNotFound([&server]()
                     {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.send(404); });
 }

@@ -159,8 +159,14 @@ bool MQTTMan::loop()
             LOG_SERIAL.println(F("MQTT Disconnected"));
 #endif
             // set Ticker to reconnect after 20 or 60 sec (Wifi connected or not)
+#ifdef ESP8266
             _mqttReconnectTicker.once((WiFi.isConnected() ? 20 : 60), [this]()
                                       { _needMqttReconnect = true; });
+
+#else
+            _mqttReconnectTicker.once<typeof this>((WiFi.isConnected() ? 20 : 60), [](typeof this mqttMan)
+                                                   { mqttMan->_needMqttReconnect = true; }, this);
+#endif
         }
 
         return PubSubClient::loop();
