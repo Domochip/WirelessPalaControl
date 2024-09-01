@@ -124,7 +124,7 @@ bool WifiMan::parseConfigWebRequest(WebServer &server)
   // basic control
   if (!server.hasArg(F("s")))
   {
-    // server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.send_P(400, PSTR("text/html"), PSTR("SSID missing"));
     return false;
   }
