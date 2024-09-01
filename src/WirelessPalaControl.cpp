@@ -2086,7 +2086,7 @@ void WebPalaControl::parseConfigJSON(JsonDocument &doc)
 
 //------------------------------------------
 // Parse HTTP POST parameters in request into configuration properties
-bool WebPalaControl::parseConfigWebRequest(ESP8266WebServer &server)
+bool WebPalaControl::parseConfigWebRequest(WebServer &server)
 {
 
   // Parse HA protocol
@@ -2354,7 +2354,7 @@ size_t WebPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
 
 //------------------------------------------
 // code to register web request answer to the web server
-void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication)
+void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   // Handle HTTP GET requests
   server.on(F("/cgi-bin/sendmsg.lua"), HTTP_GET, [this, &server]()
