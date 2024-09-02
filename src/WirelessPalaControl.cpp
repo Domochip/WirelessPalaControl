@@ -1,39 +1,55 @@
 #include "WirelessPalaControl.h"
 
+#ifdef ESP8266
+#define PALA_SERIAL Serial
+#else
+#define PALA_SERIAL Serial2
+#endif
+
 // Serial management functions -------------
 int WebPalaControl::myOpenSerial(uint32_t baudrate)
 {
-  Serial.begin(baudrate);
-  Serial.pins(15, 13); // swap ESP8266 pins to alternative positions (D7(GPIO13)(RX)/D8(GPIO15)(TX))
+#ifdef ESP8266
+  PALA_SERIAL.begin(baudrate);
+  PALA_SERIAL.pins(15, 13); // swap ESP8266 pins to alternative positions (D7(GPIO13)(RX)/D8(GPIO15)(TX))
+#else
+  PALA_SERIAL.begin(baudrate, SERIAL_8N1, 23, 5); // set ESP32 pins to match hat position (IO23(RX)/IO5(TX))
+#endif
   return 0;
 }
 void WebPalaControl::myCloseSerial()
 {
-  Serial.end();
+  PALA_SERIAL.end();
+#ifdef ESP8266
   // TX/GPIO15 is pulled down and so block the stove bus by default...
   pinMode(15, OUTPUT); // set TX PIN to OUTPUT HIGH
   digitalWrite(15, HIGH);
+#else
+  // not tested on ESP32 but anyway a good thing
+  pinMode(5, OUTPUT); // set TX PIN to OUTPUT HIGH
+  digitalWrite(5, HIGH);
+#endif
 }
 int WebPalaControl::mySelectSerial(unsigned long timeout)
 {
   size_t avail;
   unsigned long startmillis = millis();
-  while ((avail = Serial.available()) == 0 && (startmillis + timeout) > millis())
+  while ((avail = PALA_SERIAL.available()) == 0 && (startmillis + timeout) > millis())
     ;
 
   return avail;
 }
-size_t WebPalaControl::myReadSerial(void *buf, size_t count) { return Serial.read((char *)buf, count); }
-size_t WebPalaControl::myWriteSerial(const void *buf, size_t count) { return Serial.write((const uint8_t *)buf, count); }
+size_t WebPalaControl::myReadSerial(void *buf, size_t count) { return PALA_SERIAL.read((char *)buf, count); }
+size_t WebPalaControl::myWriteSerial(const void *buf, size_t count) { return PALA_SERIAL.write((const uint8_t *)buf, count); }
 int WebPalaControl::myDrainSerial()
 {
-  Serial.flush(); // On ESP, Serial.flush() is drain
+  PALA_SERIAL.flush(); // On ESP, Serial.flush() is drain
   return 0;
 }
 int WebPalaControl::myFlushSerial()
 {
-  Serial.flush();
-  while (Serial.read() != -1)
+  PALA_SERIAL.flush();
+  while (PALA_SERIAL.read() != -1)
     ; // flush RX buffer
   return 0;
 }
