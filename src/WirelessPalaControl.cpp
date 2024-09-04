@@ -20,13 +20,12 @@ int WebPalaControl::myOpenSerial(uint32_t baudrate)
 void WebPalaControl::myCloseSerial()
 {
   PALA_SERIAL.end();
+  // set TX PIN to OUTPUT HIGH to avoid stove bus blocking
 #ifdef ESP8266
-  // TX/GPIO15 is pulled down and so block the stove bus by default...
-  pinMode(15, OUTPUT); // set TX PIN to OUTPUT HIGH
+  pinMode(15, OUTPUT);
   digitalWrite(15, HIGH);
 #else
-  // not tested on ESP32 but anyway a good thing
-  pinMode(5, OUTPUT); // set TX PIN to OUTPUT HIGH
+  pinMode(5, OUTPUT);
   digitalWrite(5, HIGH);
 #endif
 }
