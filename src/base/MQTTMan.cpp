@@ -26,9 +26,6 @@ void MQTTMan::prepareTopic(String &topic)
 
 bool MQTTMan::connect(bool firstConnection)
 {
-    if (!WiFi.isConnected())
-        return false;
-
     char sn[9];
 #ifdef ESP8266
     sprintf_P(sn, PSTR("%08x"), ESP.getChipId());
