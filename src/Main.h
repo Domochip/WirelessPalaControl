@@ -26,7 +26,11 @@
 #define DEVELOPPER_MODE 0
 
 // Log Serial Object
-#define LOG_SERIAL Serial1 //
+#ifdef ESP8266
+#define LOG_SERIAL Serial1
+#else
+#define LOG_SERIAL Serial
+#endif
 // Choose Log Serial Speed
 #define LOG_SERIAL_SPEED 38400
 

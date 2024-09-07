@@ -1,39 +1,54 @@
 #include "WirelessPalaControl.h"
 
+#ifdef ESP8266
+#define PALA_SERIAL Serial
+#else
+#define PALA_SERIAL Serial2
+#endif
+
 // Serial management functions -------------
 int WebPalaControl::myOpenSerial(uint32_t baudrate)
 {
-  Serial.begin(baudrate);
-  Serial.pins(15, 13); // swap ESP8266 pins to alternative positions (D7(GPIO13)(RX)/D8(GPIO15)(TX))
+#ifdef ESP8266
+  PALA_SERIAL.begin(baudrate);
+  PALA_SERIAL.pins(15, 13); // swap ESP8266 pins to alternative positions (D7(GPIO13)(RX)/D8(GPIO15)(TX))
+#else
+  PALA_SERIAL.begin(baudrate, SERIAL_8N1, 23, 5); // set ESP32 pins to match hat position (IO23(RX)/IO5(TX))
+#endif
   return 0;
 }
 void WebPalaControl::myCloseSerial()
 {
-  Serial.end();
-  // TX/GPIO15 is pulled down and so block the stove bus by default...
-  pinMode(15, OUTPUT); // set TX PIN to OUTPUT HIGH
+  PALA_SERIAL.end();
+  // set TX PIN to OUTPUT HIGH to avoid stove bus blocking
+#ifdef ESP8266
+  pinMode(15, OUTPUT);
   digitalWrite(15, HIGH);
+#else
+  pinMode(5, OUTPUT);
+  digitalWrite(5, HIGH);
+#endif
 }
 int WebPalaControl::mySelectSerial(unsigned long timeout)
 {
   size_t avail;
-  esp8266::polledTimeout::oneShotMs timeOut(timeout);
-  while ((avail = Serial.available()) == 0 && !timeOut)
+  unsigned long startmillis = millis();
+  while ((avail = PALA_SERIAL.available()) == 0 && (startmillis + timeout) > millis())
     ;
 
   return avail;
 }
-size_t WebPalaControl::myReadSerial(void *buf, size_t count) { return Serial.read((char *)buf, count); }
-size_t WebPalaControl::myWriteSerial(const void *buf, size_t count) { return Serial.write((const uint8_t *)buf, count); }
+size_t WebPalaControl::myReadSerial(void *buf, size_t count) { return PALA_SERIAL.read((char *)buf, count); }
+size_t WebPalaControl::myWriteSerial(const void *buf, size_t count) { return PALA_SERIAL.write((const uint8_t *)buf, count); }
 int WebPalaControl::myDrainSerial()
 {
-  Serial.flush(); // On ESP, Serial.flush() is drain
+  PALA_SERIAL.flush(); // On ESP, Serial.flush() is drain
   return 0;
 }
 int WebPalaControl::myFlushSerial()
 {
-  Serial.flush();
-  while (Serial.read() != -1)
+  PALA_SERIAL.flush();
+  while (PALA_SERIAL.read() != -1)
     ; // flush RX buffer
   return 0;
 }
@@ -2033,7 +2048,7 @@ void WebPalaControl::udpRequestHandler(WiFiUDP &udpServer)
 
   // answer to the requester
   udpServer.beginPacket(udpServer.remoteIP(), udpServer.remotePort());
-  udpServer.write(strAnswer.c_str(), strAnswer.length());
+  udpServer.write((const uint8_t *)strAnswer.c_str(), strAnswer.length());
   udpServer.endPacket();
 }
 
@@ -2086,7 +2101,7 @@ void WebPalaControl::parseConfigJSON(JsonDocument &doc)
 
 //------------------------------------------
 // Parse HTTP POST parameters in request into configuration properties
-bool WebPalaControl::parseConfigWebRequest(ESP8266WebServer &server)
+bool WebPalaControl::parseConfigWebRequest(WebServer &server)
 {
 
   // Parse HA protocol
@@ -2306,8 +2321,13 @@ bool WebPalaControl::appInit(bool reInit)
   if (cmdRes == Palazzetti::CommandResult::OK)
     publishTick(); // if configuration changed, publish immediately
 
+#ifdef ESP8266
   _publishTicker.attach(_ha.uploadPeriod, [this]()
                         { this->_needPublish = true; });
+#else
+  _publishTicker.attach<typeof this>(_ha.uploadPeriod, [](typeof this palaControl)
+                                     { palaControl->_needPublish = true; }, this);
+#endif
 
   // Start UDP Server
   _udpServer.begin(54549);
@@ -2354,7 +2374,7 @@ size_t WebPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
 
 //------------------------------------------
 // code to register web request answer to the web server
-void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication)
+void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   // Handle HTTP GET requests
   server.on(F("/cgi-bin/sendmsg.lua"), HTTP_GET, [this, &server]()
@@ -2380,7 +2400,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
         String ret(F("{\"INFO\":{\"CMD\":\"BKP PARM\",\"MSG\":\"Incorrect File Type : "));
         ret += strFileType;
         ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-        server.keepAlive(false);
+        SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), ret);
         return;
       }
@@ -2400,7 +2420,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
             toReturn += String(i) + ';' + params[i] + '\r' + '\n';
 
           server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"PARM.csv\""));
-          server.keepAlive(false);
+          SERVER_KEEPALIVE_FALSE()
           server.send(200, F("text/csv"), toReturn);
           break;
 
@@ -2415,7 +2435,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
           toReturn += F("]}");
 
           server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"PARM.json\""));
-          server.keepAlive(false);
+          SERVER_KEEPALIVE_FALSE()
           server.send(200, F("text/json"), toReturn);
           break;
         }
@@ -2424,7 +2444,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
       }
       else
       {
-        server.keepAlive(false);
+        SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP PARM\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
         return;
       }
@@ -2446,7 +2466,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
         String ret(F("{\"INFO\":{\"CMD\":\"BKP HPAR\",\"MSG\":\"Incorrect File Type : "));
         ret += strFileType;
         ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-        server.keepAlive(false);
+        SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), ret);
         return;
       }
@@ -2465,7 +2485,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
           for (byte i = 0; i < 0x6F; i++)
             toReturn += String(i) + ';' + hiddenParams[i] + '\r' + '\n';
 
-          server.keepAlive(false);
+          SERVER_KEEPALIVE_FALSE()
           server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"HPAR.csv\""));
           server.send(200, F("text/csv"), toReturn);
           break;
@@ -2480,7 +2500,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
           }
           toReturn += F("]}");
 
-          server.keepAlive(false);
+          SERVER_KEEPALIVE_FALSE()
           server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"HPAR.json\""));
           server.send(200, F("text/json"), toReturn);
           break;
@@ -2490,7 +2510,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
       }
       else
       {
-        server.keepAlive(false);
+        SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP HPAR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
         return;
       }
@@ -2500,7 +2520,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
     executePalaCmd(cmd, strJson);
 
     // send response
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.send(200, F("text/json"), strJson); });
 
   // Handle HTTP POST requests (Body contains a JSON)
@@ -2520,7 +2540,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
         executePalaCmd(cmd, strJson);
 
         // send response
-        server.keepAlive(false);
+        SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), strJson); });
 }
 
