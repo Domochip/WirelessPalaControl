@@ -1,4 +1,5 @@
 ![GitHub Release](https://img.shields.io/github/v/release/Domochip/WirelessPalaControl)
+![Home Assistant](https://img.shields.io/badge/home_assistant-2021.2-blue.svg?logo=homeassistant)
 
 # WirelessPalaControl
 
