@@ -10,7 +10,6 @@ Native HTTP requests are available which make is fully compatible with all exist
 
 Additionally, this project add MQTT protocol to monitor/control your stove in a much more efficient way.
 
-
 ## Stove Compatibility
 
 Fumis Controller is used by many manufacturer for their stoves.
@@ -19,11 +18,9 @@ Here is a non-exhaustive list:
 Palazzetti / Jotul / TurboFonte / Godin / Fonte Flamme / Invicta / Casatelli / Alpis / Faizen / HETA / ...
 
 If you have this control panel and/or controller in your stove, it's compatible.  
- ![Fumis Controller](img/fumis2.png)![Fumis Controller](img/fumis.png)
+![Fumis Controller](img/fumis2.png)![Fumis Controller](img/fumis.png)
 
 ## Home Automation compatibility
-
-    
 
 ![Logo Jeedom](https://www.jeedom.com/logo.png) Palazzetti plugin https://www.jeedom.com/market/index.php?v=d&p=market_display&id=3104  
   
@@ -57,6 +54,7 @@ During First Boot, the ESP boot in Access Point Mode
 Connect to this network and then configure it.
 
 ## Configuration pages
+
 ### Status
 
 It returns you useful informations about the module and the stove.  
@@ -65,18 +63,23 @@ It returns you useful informations about the module and the stove.
 
 ### Config
 
-![config screenshot](img/config.png)  
-#### System:  
+![config screenshot](img/config.png)
+
+#### System
+
 - **Reboot**: restart the module
 - **Reboot in Rescue Mode**: restart the module with default configuration
 
-#### WiFi:  
+#### WiFi
+
 - **ssid & password**: IDs of your Wifi Network  
 - **hostname**: name of ESP on the network  
 - **IP,GW,NetMask,DNS1&2**: Fixed IP configuration  
 
-![configMQTT screenshot](img/configMQTT.png)  
-#### PalaControl - Home Automation:  
+![configMQTT screenshot](img/configMQTT.png)
+
+#### PalaControl - Home Automation
+
 - **Type**: enable/disable MQTT communication  
 - **Upload Period**: delay between refresh of stove information (in seconds)  
 - **Hostname,Port,Username,Password**: MQTT server infos (username and password are - optional)  
@@ -101,14 +104,16 @@ Syntax:  **http://wpalacontrol.local/cgi-bin/sendmsg.lua?cmd={command}**
 ### MQTT
 
 Commands can be sent via MQTT to %BaseTopic%**/cmd** topic once MQTT is configured.  
-Execution result is:  
- - published following the configured MQTT Type
- - published on %BaseTopic%**/result** in JSON format 
+Execution result is:
 
-Module connection status is published to %BaseTopic%**/connected**: 
- - 0: not connected
- - 1: Module connected but no communication with the stove
- - 2: Module and stove connected
+- published following the configured MQTT Type
+- published on %BaseTopic%**/result** in JSON format 
+
+Module connection status is published to %BaseTopic%**/connected**:
+
+- 0: not connected
+- 1: Module connected but no communication with the stove
+- 2: Module and stove connected
 
 ### Command List
   
@@ -167,6 +172,7 @@ Module connection status is published to %BaseTopic%**/connected**:
 ### Description
 
 MQTT infos published every "Upload Period":
+
 - `STATUS`: status of the stove
 - `LSTATUS`: status of the stove
 - `T1`, `T2`, `T3`, `T4`, `T5`: temperature of the stove
