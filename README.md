@@ -88,6 +88,7 @@ It returns you useful informations about the module and the stove.
   - **Generic**: publish raw values under the base topic (e.g. "{baseTopic}/T1" = "*20.00*")
   - **Generic JSON**: publish values JSON to "category" topic under base topic (e.g. "{baseTopic}/TMPS" = "*{"INFO":{"CMD":"GET TMPS","RSP":"OK......*")
   - **Generic Categorized**: publish raw values to "category" topic under base topic (e.g. "{baseTopic}/TMPS/T1" = "*20.00*")
+- **Home Assistant Discovery**: Enable/disable Home Assistant auto-discovery
 
 ### Firmware
 
