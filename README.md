@@ -1,3 +1,5 @@
+![GitHub Release](https://img.shields.io/github/v/release/Domochip/WirelessPalaControl)
+
 # WirelessPalaControl
 
 This project uses "Palazzetti library" and a D1 Mini to control Fumis based stove.  
