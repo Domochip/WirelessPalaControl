@@ -22,9 +22,9 @@ If you have this control panel and/or controller in your stove, it's compatible.
 
 ## Home Automation compatibility
 
-![Logo Jeedom](https://www.jeedom.com/logo.png) Palazzetti plugin https://www.jeedom.com/market/index.php?v=d&p=market_display&id=3104  
-  
-<img src="https://www.home-assistant.io/images/home-assistant-logo-vertical.svg" alt="Logo HASS" height="128">  MQTT Integration (MQTT broker required) ![hacard](img/hacard.jpg)
+| <img src="https://www.home-assistant.io/images/home-assistant-logo-vertical.svg" alt="Logo HASS" height="128"> | [MQTT Integration](https://www.home-assistant.io/integrations/mqtt/) | ![hacard](img/hacard.jpg) |
+| ------------- | ------------- | ------------- |
+| ![Logo Jeedom](https://www.jeedom.com/logo.png) | [Palazzetti plugin](https://www.jeedom.com/market/index.php?v=d&p=market_display&id=3104) | ![Jeedom widget](https://domotechdiscord.github.io/Docs/Palazzetti/images/widget_1.png) |
 
 ## Build your adapter
 
