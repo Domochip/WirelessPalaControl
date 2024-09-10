@@ -22,7 +22,7 @@ If you have this control panel and/or controller in your stove, it's compatible.
 
 ## Home Automation compatibility
 
-| <img src="https://www.home-assistant.io/images/home-assistant-logo-vertical.svg" alt="Logo HASS" height="128"> | [MQTT Integration](https://www.home-assistant.io/integrations/mqtt/) | ![hacard](img/hacard.jpg) |
+| <img src="https://www.home-assistant.io/images/home-assistant-logo-vertical.svg" alt="Logo HASS" height="128"> | [MQTT Integration](https://www.home-assistant.io/integrations/mqtt/) (autodiscovery) | ![hacard](img/hacard.jpg) |
 | ------------- | ------------- | ------------- |
 | ![Logo Jeedom](https://www.jeedom.com/logo.png) | [Palazzetti plugin](https://www.jeedom.com/market/index.php?v=d&p=market_display&id=3104) | ![Jeedom widget](https://domotechdiscord.github.io/Docs/Palazzetti/images/widget_1.png) |
 
@@ -30,9 +30,9 @@ If you have this control panel and/or controller in your stove, it's compatible.
 
 ![complete Module](./img/complete-module.jpg)
 
-🔧 If you want to build it yourself, you can find all details here : [BUILD](BUILD.md)  
+🔧 If you want to build it yourself, you can find all details here : [BUILD](BUILD.md) 🔧  
 
-🛍️🚀 Otherwise, I'm producing some small batches and offering it ready to use here : [WPalaControl on tindie](https://www.tindie.com/products/domochip/wirelesspalacontrol-aka-wpalacontrol/)
+🛍️🚀 Otherwise, I'm producing some small batches and offering it ready to use here : [WPalaControl on tindie](https://www.tindie.com/products/domochip/wirelesspalacontrol-aka-wpalacontrol/) 🛍️  
 
 ## Connect
 
