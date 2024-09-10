@@ -26,9 +26,13 @@ If you have this control panel and/or controller in your stove, it's compatible.
 | ------------- | ------------- | ------------- |
 | ![Logo Jeedom](https://www.jeedom.com/logo.png) | [Palazzetti plugin](https://www.jeedom.com/market/index.php?v=d&p=market_display&id=3104) | ![Jeedom widget](https://domotechdiscord.github.io/Docs/Palazzetti/images/widget_1.png) |
 
-## Build your adapter
+## Make/Get your adapter
 
-You can find details to build it here : [BUILD](BUILD.md)
+![complete Module](./img/complete-module.jpg)
+
+🔧 If you want to build it yourself, you can find all details here : [BUILD](BUILD.md)  
+
+🛍️🚀 Otherwise, I'm producing some small batches and offering it ready to use here : [WPalaControl on tindie](https://www.tindie.com/products/domochip/wirelesspalacontrol-aka-wpalacontrol/)
 
 ## Connect
 
