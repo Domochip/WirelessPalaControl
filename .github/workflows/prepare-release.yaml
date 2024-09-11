@@ -37,10 +37,13 @@ jobs:
       - name: Build PlatformIO Project
         run: pio run
 
+      - name: Rename Firmware
+        run: mv .pio/build/d1_mini/WirelessPalaControl.bin .pio/build/d1_mini/WirelessPalaControl.${{ env.VERSION }}.bin
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: .pio/build/d1_mini/WirelessPalaControl.bin
+          files: .pio/build/d1_mini/WirelessPalaControl.${{ env.VERSION }}.bin
           tag_name: "${{ env.VERSION }}"
           title: "${{ env.VERSION }}"
           body: "Base Version: ${{ env.BASE_VERSION }}\nFirmware Version: ${{ env.VERSION_NUMBER }}"
