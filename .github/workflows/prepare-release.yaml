@@ -41,8 +41,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: .pio/build/d1_mini/WirelessPalaControl.bin
-          tag_name: "v${{ env.BASE_VERSION }}-${{ env.VERSION_NUMBER }}"
-          title: "Release ${{ env.BASE_VERSION }}-${{ env.VERSION_NUMBER }}"
+          tag_name: "${{ env.VERSION }}"
+          title: "${{ env.VERSION }}"
           body: "Base Version: ${{ env.BASE_VERSION }}\nFirmware Version: ${{ env.VERSION_NUMBER }}"
           generate_release_notes: true
         env:
