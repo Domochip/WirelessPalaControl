@@ -48,6 +48,6 @@ jobs:
         with:
           draft: true
           tag_name: "${{ env.VERSION }}"
-          body: "Base Version: ${{ env.BASE_VERSION }}\nFirmware Version: ${{ env.VERSION_NUMBER }}"
+          body: "Base Version: ${{ env.BASE_VERSION }}\nWPalaControl Version: ${{ env.VERSION_NUMBER }}"
           generate_release_notes: true
           files: .pio/build/d1_mini/WirelessPalaControl.${{ env.VERSION }}.bin
