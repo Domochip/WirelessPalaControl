@@ -32,6 +32,7 @@ jobs:
           BASE_VERSION=$(grep -oP '(?<=#define BASE_VERSION ").*(?=")'  ./src/base/Version.h)
           echo "VERSION_NUMBER=${VERSION_NUMBER}" >> $GITHUB_ENV
           echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_ENV
+          echo "VERSION=v${BASE_VERSION}-${VERSION_NUMBER}" >> $GITHUB_ENV
     
       - name: Build PlatformIO Project
         run: pio run
