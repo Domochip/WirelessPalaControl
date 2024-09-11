@@ -1,4 +1,4 @@
-name: PlatformIO CI
+name: Prepare Release
 
 on:
   workflow_dispatch:
