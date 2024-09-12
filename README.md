@@ -139,17 +139,17 @@ Module connection status is published to %BaseTopic%**/connected**:
 - `GET+CHRD`: get chrono data
 - `GET+PARM+92`: get parameter (ex : 92=pellet type (1-3))
 - `GET+HPAR+57`: get hidden parameter (ex : 57=% of pellet to feed for pellet type 3)
-- `BKP+PARM+CSV`: get all parameters in a CSV file (HTTP only) 🔷
-- `BKP+PARM+JSON`: get all parameters in a JSON file (HTTP only) 🔷
-- `BKP+HPAR+CSV`: get all hidden parameters in a CSV file (HTTP only) 🔷
-- `BKP+HPAR+JSON`: get all hidden parameters in a JSON file (HTTP only) 🔷
+- `BKP+PARM+CSV`: get all parameters in a CSV file (HTTP only) ✨
+- `BKP+PARM+JSON`: get all parameters in a JSON file (HTTP only) ✨
+- `BKP+HPAR+CSV`: get all hidden parameters in a CSV file (HTTP only) ✨
+- `BKP+HPAR+JSON`: get all hidden parameters in a JSON file (HTTP only) ✨
 - `CMD+ON`: turn stove ON
 - `CMD+OFF`: turn stove OFF
 - `SET+POWR+3`: set power (1-5)
 - `SET+PWRU`: increase power by 1 unit
 - `SET+PWRD`: decrease power by 1 unit
 - `SET+SETP+20`: set Set Point (desired temperature)
-- `SET+STPF+19.8`: set Set Point with a 0.2° precision (depend of your stove model)🔷
+- `SET+STPF+19.8`: set Set Point with a 0.2° precision (depend of your stove model)✨
 - `SET+STPU`: increase Set Point by 1 unit
 - `SET+STPD`: decrease Set Point by 1 unit
 - `SET+RFAN+7`: set Room Fan value (0-5;6=Max;7=Auto)
@@ -171,7 +171,7 @@ Module connection status is published to %BaseTopic%**/connected**:
 - `SET+HPAR+57+95`: set hidden parameter 57 to value 95 (ex : 57=% of pellet to feed for pellet type 3)
 
 ⏲️: Published automatically  
-🔷: WPalaControl specific commands
+✨: WPalaControl specific commands
 
 
 ### Description
