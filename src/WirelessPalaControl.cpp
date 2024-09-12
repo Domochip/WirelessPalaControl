@@ -193,9 +193,6 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   if (Palazzetti::CommandResult::OK != _Pala.getStaticData(&SN, &SNCHK, nullptr, &MOD, &VER, nullptr, &FWDATE, &FLUID, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, nullptr, nullptr, nullptr, nullptr, nullptr))
     return false;
 
-  if (!SNCHK)
-    return false;
-
   // read all status from stove
   bool refreshStatus = false;
   unsigned long currentMillis = millis();
