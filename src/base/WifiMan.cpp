@@ -445,7 +445,7 @@ void WifiMan::appInitWebServer(WebServer &server, bool &shouldReboot, bool &paus
       networksJSON = networksJSON + n + F(",\"wnl\":[");
       for (byte i = 0; i < n; i++)
       {
-        networksJSON = networksJSON + F("{\"SSID\":\"") + WiFi.SSID(i) + F("\",\"RSSI\":\"") + WiFi.RSSI(i) + F("\"}");
+        networksJSON = networksJSON + F("{\"SSID\":\"") + WiFi.SSID(i) + F("\",\"RSSI\":") + WiFi.RSSI(i) + F("}");
         if (i != (n - 1))
           networksJSON += ',';
       }
