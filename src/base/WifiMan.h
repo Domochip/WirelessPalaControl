@@ -5,7 +5,11 @@
 #include "Application.h"
 
 #include <Ticker.h>
+#ifdef ESP8266
 #include <ESP8266mDNS.h>
+#else
+#include <ESPmDNS.h>
+#endif
 
 #include "data/statusw.html.gz.h"
 #include "data/configw.html.gz.h"
@@ -27,9 +31,11 @@ private:
   uint32_t dns2 = 0;
 
   // Run properties
+  #ifdef ESP8266
   WiFiEventHandler _discoEventHandler;
   WiFiEventHandler _staConnectedHandler;
   WiFiEventHandler _staDisconnectedHandler;
+  #endif
   int _apChannel = 2;
   char _apSsid[64];
   bool _needRefreshWifi = false;
@@ -42,14 +48,14 @@ private:
   void refreshWiFi();
 
   void setConfigDefaultValues();
-  void parseConfigJSON(DynamicJsonDocument &doc);
-  bool parseConfigWebRequest(ESP8266WebServer &server);
+  void parseConfigJSON(JsonDocument &doc);
+  bool parseConfigWebRequest(WebServer &server);
   String generateConfigJSON(bool forSaveFile);
   String generateStatusJSON();
   bool appInit(bool reInit);
   const PROGMEM char *getHTMLContent(WebPageForPlaceHolder wp);
   size_t getHTMLContentSize(WebPageForPlaceHolder wp);
-  void appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication);
+  void appInitWebServer(WebServer &server, bool &shouldReboot, bool &pauseApplication);
   void appRun();
 
 public:

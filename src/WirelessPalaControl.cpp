@@ -1,39 +1,54 @@
 #include "WirelessPalaControl.h"
 
+#ifdef ESP8266
+#define PALA_SERIAL Serial
+#else
+#define PALA_SERIAL Serial2
+#endif
+
 // Serial management functions -------------
 int WebPalaControl::myOpenSerial(uint32_t baudrate)
 {
-  Serial.begin(baudrate);
-  Serial.pins(15, 13); // swap ESP8266 pins to alternative positions (D7(GPIO13)(RX)/D8(GPIO15)(TX))
+#ifdef ESP8266
+  PALA_SERIAL.begin(baudrate);
+  PALA_SERIAL.pins(15, 13); // swap ESP8266 pins to alternative positions (D7(GPIO13)(RX)/D8(GPIO15)(TX))
+#else
+  PALA_SERIAL.begin(baudrate, SERIAL_8N1, 23, 5); // set ESP32 pins to match hat position (IO23(RX)/IO5(TX))
+#endif
   return 0;
 }
 void WebPalaControl::myCloseSerial()
 {
-  Serial.end();
-  // TX/GPIO15 is pulled down and so block the stove bus by default...
-  pinMode(15, OUTPUT); // set TX PIN to OUTPUT HIGH
+  PALA_SERIAL.end();
+  // set TX PIN to OUTPUT HIGH to avoid stove bus blocking
+#ifdef ESP8266
+  pinMode(15, OUTPUT);
   digitalWrite(15, HIGH);
+#else
+  pinMode(5, OUTPUT);
+  digitalWrite(5, HIGH);
+#endif
 }
 int WebPalaControl::mySelectSerial(unsigned long timeout)
 {
   size_t avail;
-  esp8266::polledTimeout::oneShotMs timeOut(timeout);
-  while ((avail = Serial.available()) == 0 && !timeOut)
+  unsigned long startmillis = millis();
+  while ((avail = PALA_SERIAL.available()) == 0 && (startmillis + timeout) > millis())
     ;
 
   return avail;
 }
-size_t WebPalaControl::myReadSerial(void *buf, size_t count) { return Serial.read((char *)buf, count); }
-size_t WebPalaControl::myWriteSerial(const void *buf, size_t count) { return Serial.write((const uint8_t *)buf, count); }
+size_t WebPalaControl::myReadSerial(void *buf, size_t count) { return PALA_SERIAL.read((char *)buf, count); }
+size_t WebPalaControl::myWriteSerial(const void *buf, size_t count) { return PALA_SERIAL.write((const uint8_t *)buf, count); }
 int WebPalaControl::myDrainSerial()
 {
-  Serial.flush(); // On ESP, Serial.flush() is drain
+  PALA_SERIAL.flush(); // On ESP, Serial.flush() is drain
   return 0;
 }
 int WebPalaControl::myFlushSerial()
 {
-  Serial.flush();
-  while (Serial.read() != -1)
+  PALA_SERIAL.flush();
+  while (PALA_SERIAL.read() != -1)
     ; // flush RX buffer
   return 0;
 }
@@ -61,6 +76,9 @@ void WebPalaControl::mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnectio
   if (firstConnection)
     mqttMan->publish(subscribeTopic.c_str(), ""); // make empty publish only for firstConnection
   mqttMan->subscribe(subscribeTopic.c_str());
+
+  // raise flag to publish Home Assistant discovery data
+  _needPublishHassDiscovery = true;
 }
 
 void WebPalaControl::mqttDisconnectedCallback()
@@ -104,7 +122,7 @@ void WebPalaControl::publishStoveConnectedToMqtt(bool stoveConnected)
   }
 }
 
-bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &palaCategory, const DynamicJsonDocument &jsonDoc)
+bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &palaCategory, const JsonDocument &jsonDoc)
 {
   bool res = false;
   if (_mqttMan.connected())
@@ -134,7 +152,7 @@ bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &pa
       res = _mqttMan.publish(topic.c_str(), serializedData.c_str());
     }
 
-    if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+    if (_ha.mqtt.type == HA_MQTT_GENERIC_CATEGORIZED)
     {
       // prepare category topic
       String categoryTopic(baseTopic);
@@ -155,15 +173,672 @@ bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &pa
   return res;
 }
 
+bool WebPalaControl::publishHassDiscoveryToMqtt()
+{
+  if (!_Pala.isInitialized() || !_mqttMan.connected())
+    return false;
+
+  LOG_SERIAL.println(F("Publish Home Assistant Discovery data"));
+
+  // read static data from stove
+  char SN[28];
+  byte SNCHK;
+  uint16_t MOD, VER;
+  char FWDATE[11];
+  uint16_t FLUID;
+  byte MAINTPROBE;
+  byte STOVETYPE;
+  byte FAN2TYPE;
+  byte FAN2MODE;
+  if (Palazzetti::CommandResult::OK != _Pala.getStaticData(&SN, &SNCHK, nullptr, &MOD, &VER, nullptr, &FWDATE, &FLUID, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, nullptr, nullptr, nullptr, nullptr, nullptr))
+    return false;
+
+  // read all status from stove
+  bool refreshStatus = false;
+  unsigned long currentMillis = millis();
+  if ((currentMillis - _lastAllStatusRefreshMillis) > 15000UL) // refresh AllStatus data if it's 15sec old
+    refreshStatus = true;
+  float SETP;
+  uint16_t FANLMINMAX[6];
+  if (Palazzetti::CommandResult::OK != _Pala.getAllStatus(false, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &SETP, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &FANLMINMAX, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr))
+    return false;
+  else if (refreshStatus)
+    _lastAllStatusRefreshMillis = currentMillis;
+
+  // calculate flags (https://github.com/palazzetti/palazzetti-sdk-asset-parser-python/blob/main/palazzetti_sdk_asset_parser/data/asset_parser.json)
+  bool hasSetPoint = (SETP != 0);
+  bool hasPower = (STOVETYPE != 8);
+  bool hasOnOff = (STOVETYPE != 7 && STOVETYPE != 8);
+  bool hasRoomFan = (FAN2TYPE > 1);
+  bool hasFan3 = (FAN2TYPE > 2);
+  bool ifFan3SwitchEntity = (FANLMINMAX[2] == 0 && FANLMINMAX[3] == 1);
+  bool hasFan4 = (FAN2TYPE > 3);
+  bool ifFan4SwitchEntity = (FANLMINMAX[4] == 0 && FANLMINMAX[5] == 1);
+  bool isAirType = (STOVETYPE == 1 || STOVETYPE == 3 || STOVETYPE == 5 || STOVETYPE == 7 || STOVETYPE == 8);
+  bool hasFanAuto = (FAN2MODE == 2 || FAN2MODE == 3);
+
+  // variables
+  JsonDocument jsonDoc;
+  String device, availability, payload;
+  String baseTopic;
+  String uniqueIdPrefixWPalaControl, uniqueIdPrefixStove;
+  String uniqueId;
+  String topic;
+
+  // prepare base topic
+  baseTopic = _ha.mqtt.generic.baseTopic;
+  MQTTMan::prepareTopic(baseTopic);
+
+  // prepare unique id prefix for WPalaControl
+  uniqueIdPrefixWPalaControl = F("WPalaControl_");
+  uniqueIdPrefixWPalaControl += WiFi.macAddress();
+  uniqueIdPrefixWPalaControl.replace(":", "");
+
+  // prepare unique id prefix for Stove
+  uniqueIdPrefixStove = F("WPalaControl_");
+  uniqueIdPrefixStove += SN;
+
+  // ---------- WPalaControl Device ----------
+
+  // prepare WPalaControl device JSON
+  jsonDoc["configuration_url"] = F("http://wpalacontrol.local");
+  jsonDoc["identifiers"][0] = uniqueIdPrefixWPalaControl;
+  jsonDoc["manufacturer"] = F("Domochip");
+  jsonDoc["model"] = F("WPalaControl");
+  jsonDoc["name"] = WiFi.getHostname();
+  jsonDoc["sw_version"] = String(F("v")) + String(BASE_VERSION) + '-' + String(VERSION);
+  serializeJson(jsonDoc, device); // serialize to device String
+  jsonDoc.clear();                // clean jsonDoc
+
+  // ----- WPalaControl Entities -----
+
+  //
+  // Connectivity entity
+  //
+
+  // prepare uniqueId, topic and payload for WPalaControl connectivity sensor
+  uniqueId = uniqueIdPrefixWPalaControl;
+  uniqueId += F("_Connectivity");
+
+  topic = _ha.mqtt.hassDiscoveryPrefix;
+  topic += F("/binary_sensor/");
+  topic += uniqueId;
+  topic += F("/config");
+
+  // prepare payload for WPalaControl connectivity sensor
+  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+  jsonDoc["device_class"] = F("connectivity");
+  jsonDoc["device"] = serialized(device);
+  jsonDoc["entity_category"] = F("diagnostic");
+  jsonDoc["object_id"] = F("wpalacontrol_connectivity");
+  jsonDoc["state_topic"] = F("~/connected");
+  jsonDoc["unique_id"] = uniqueId;
+  jsonDoc["value_template"] = F("{{ iif(int(value) > 0, 'ON', 'OFF') }}");
+  serializeJson(jsonDoc, payload);
+
+  // publish
+  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+  // clean
+  jsonDoc.clear();
+  payload = "";
+  device = "";
+
+  // ---------- Stove Device ----------
+
+  // prepare availability JSON for Stove entities
+  jsonDoc["topic"] = F("~/connected");
+  jsonDoc["value_template"] = F("{{ iif(int(value) > 0, 'online', 'offline') }}");
+  serializeJson(jsonDoc, availability); // serialize to availability String
+  jsonDoc.clear();                      // clean jsonDoc
+
+  // prepare Stove device JSON
+  jsonDoc["configuration_url"] = F("http://wpalacontrol.local");
+  jsonDoc["identifiers"][0] = uniqueIdPrefixStove;
+  jsonDoc["model"] = String(MOD);
+  jsonDoc["name"] = F("Stove");
+  jsonDoc["sw_version"] = String(VER) + F(" (") + FWDATE + ')';
+  jsonDoc["via_device"] = uniqueIdPrefixWPalaControl;
+  serializeJson(jsonDoc, device); // serialize to device String
+  jsonDoc.clear();                // clean jsonDoc
+
+  // ----- Stove Entities -----
+
+  //
+  // Connectivity entity
+  //
+
+  uniqueId = uniqueIdPrefixStove;
+  uniqueId += F("_Connectivity");
+
+  topic = _ha.mqtt.hassDiscoveryPrefix;
+  topic += F("/binary_sensor/");
+  topic += uniqueId;
+  topic += F("/config");
+
+  // prepare payload for Stove connectivity sensor
+  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+  jsonDoc["device_class"] = F("connectivity");
+  jsonDoc["device"] = serialized(device);
+  jsonDoc["entity_category"] = F("diagnostic");
+  jsonDoc["object_id"] = F("stove_connectivity");
+  jsonDoc["state_topic"] = F("~/connected");
+  jsonDoc["unique_id"] = uniqueId;
+  jsonDoc["value_template"] = F("{{ iif(int(value) > 1, 'ON', 'OFF') }}");
+
+  serializeJson(jsonDoc, payload);
+
+  // publish
+  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+  // clean
+  jsonDoc.clear();
+  payload = "";
+
+  //
+  // Status entity
+  //
+
+  uniqueId = uniqueIdPrefixStove;
+  uniqueId += F("_STATUS");
+
+  topic = _ha.mqtt.hassDiscoveryPrefix;
+  topic += F("/sensor/");
+  topic += uniqueId;
+  topic += F("/config");
+
+  // prepare payload for Stove status sensor
+  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+  jsonDoc["availability"] = serialized(availability);
+  jsonDoc["device"] = serialized(device);
+  jsonDoc["entity_category"] = F("diagnostic");
+  jsonDoc["name"] = F("Status");
+  jsonDoc["object_id"] = F("stove_status");
+  const __FlashStringHelper *statusTopicList[] = {F("~/STATUS"), F("~/STAT"), F("~/STAT/STATUS")};
+  jsonDoc["state_topic"] = statusTopicList[_ha.mqtt.type];
+  jsonDoc["unique_id"] = uniqueId;
+  if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+    jsonDoc["value_template"] = F("{{ value_json.STATUS }}");
+
+  serializeJson(jsonDoc, payload);
+
+  // publish
+  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+  // clean
+  jsonDoc.clear();
+  payload = "";
+
+  //
+  // Status Text entity
+  //
+
+  uniqueId = uniqueIdPrefixStove;
+  uniqueId += F("_STATUS_Text");
+
+  topic = _ha.mqtt.hassDiscoveryPrefix;
+  topic += F("/sensor/");
+  topic += uniqueId;
+  topic += F("/config");
+
+  // prepare payload for Stove status text sensor
+  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+  jsonDoc["availability"] = serialized(availability);
+  jsonDoc["device"] = serialized(device);
+  jsonDoc["device_class"] = F("enum");
+  jsonDoc["name"] = F("Status");
+  jsonDoc["object_id"] = F("stove_status_text");
+  // const __FlashStringHelper *statusTopicList[] = {F("~/STATUS"), F("~/STAT"), F("~/STAT/STATUS")}; // reuse statusTopicList
+  jsonDoc["state_topic"] = statusTopicList[_ha.mqtt.type];
+  jsonDoc["unique_id"] = uniqueId;
+  if (_ha.mqtt.type == HA_MQTT_GENERIC || _ha.mqtt.type == HA_MQTT_GENERIC_CATEGORIZED)
+    jsonDoc["value_template"] = F("{% set ns = namespace(found=false) %}{% set statusList=[([0],'Off'),([1],'Off Timer'),([2],'Test Fire'),([3,4,5],'Ignition'),([6],'Burning'),([9],'Cool'),([10],'Fire Stop'),([11],'Clean Fire'),([12],'Cool'),([239],'MFDoor Alarm'),([240],'Fire Error'),([241],'Chimney Alarm'),([243],'Grate Error'),([244],'NTC2 Alarm'),([245],'NTC3 Alarm'),([247],'Door Alarm'),([248],'Pressure Alarm'),([249],'NTC1 Alarm'),([250],'TC1 Alarm'),([252],'Gas Alarm'),([253],'No Pellet Alarm')] %}{% for num,text in statusList %}{% if int(value) in num %}{{ text }}{% set ns.found = true %}{% break %}{% endif %}{% endfor %}{% if not ns.found %}Unkown STATUS code {{ value }}{% endif %}");
+  else if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+    jsonDoc["value_template"] = F("{% set ns = namespace(found=false) %}{% set statusList=[([0],'Off'),([1],'Off Timer'),([2],'Test Fire'),([3,4,5],'Ignition'),([6],'Burning'),([9],'Cool'),([10],'Fire Stop'),([11],'Clean Fire'),([12],'Cool'),([239],'MFDoor Alarm'),([240],'Fire Error'),([241],'Chimney Alarm'),([243],'Grate Error'),([244],'NTC2 Alarm'),([245],'NTC3 Alarm'),([247],'Door Alarm'),([248],'Pressure Alarm'),([249],'NTC1 Alarm'),([250],'TC1 Alarm'),([252],'Gas Alarm'),([253],'No Pellet Alarm')] %}{% for num,text in statusList %}{% if int(value_json.STATUS) in num %}{{ text }}{% set ns.found = true %}{% break %}{% endif %}{% endfor %}{% if not ns.found %}Unkown STATUS code {{ value_json.STATUS }}{% endif %}");
+
+  serializeJson(jsonDoc, payload);
+
+  // publish
+  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+  // clean
+  jsonDoc.clear();
+  payload = "";
+
+  //
+  // Room temperature entity
+  //
+
+  uniqueId = uniqueIdPrefixStove;
+  uniqueId += F("_RoomTemp");
+
+  topic = _ha.mqtt.hassDiscoveryPrefix;
+  topic += F("/sensor/");
+  topic += uniqueId;
+  topic += F("/config");
+
+  // prepare payload for Stove room temperature sensor
+  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+  jsonDoc["availability"] = serialized(availability);
+  jsonDoc["device"] = serialized(device);
+  jsonDoc["device_class"] = F("temperature");
+  jsonDoc["name"] = F("Room Temperature");
+  jsonDoc["object_id"] = F("stove_roomtemp");
+  jsonDoc["suggested_display_precision"] = 1;
+  jsonDoc["state_class"] = F("measurement");
+  jsonDoc["unique_id"] = uniqueId;
+  jsonDoc["unit_of_measurement"] = F("°C");
+  if (_ha.mqtt.type == HA_MQTT_GENERIC)
+    jsonDoc["state_topic"] = String(F("~/T")) + (char)('1' + MAINTPROBE);
+  else if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+  {
+    jsonDoc["state_topic"] = F("~/TMPS");
+    jsonDoc["value_template"] = String(F("{{ value_json.T")) + (char)('1' + MAINTPROBE) + F(" }}");
+  }
+  else if (_ha.mqtt.type == HA_MQTT_GENERIC_CATEGORIZED)
+    jsonDoc["state_topic"] = String(F("~/TMPS/T")) + (char)('1' + MAINTPROBE);
+
+  serializeJson(jsonDoc, payload);
+
+  // publish
+  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+  // clean
+  jsonDoc.clear();
+  payload = "";
+
+  //
+  // Pellet consumption entity
+  //
+
+  uniqueId = uniqueIdPrefixStove;
+  uniqueId += F("_PQT");
+
+  topic = _ha.mqtt.hassDiscoveryPrefix;
+  topic += F("/sensor/");
+  topic += uniqueId;
+  topic += F("/config");
+
+  // prepare payload for Stove pellet consumption sensor
+  jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+  jsonDoc["availability"] = serialized(availability);
+  jsonDoc["device"] = serialized(device);
+  jsonDoc["device_class"] = F("weight");
+  jsonDoc["icon"] = F("mdi:chart-bell-curve-cumulative");
+  jsonDoc["name"] = F("Pellet Consumed");
+  jsonDoc["object_id"] = F("stove_pqt");
+  jsonDoc["state_class"] = F("total_increasing");
+  const __FlashStringHelper *pqtTopicList[] = {F("~/PQT"), F("~/CNTR"), F("~/CNTR/PQT")};
+  jsonDoc["state_topic"] = pqtTopicList[_ha.mqtt.type];
+  jsonDoc["unique_id"] = uniqueId;
+  jsonDoc["unit_of_measurement"] = F("kg");
+  if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+    jsonDoc["value_template"] = F("{{ value_json.PQT }}");
+
+  serializeJson(jsonDoc, payload);
+
+  // publish
+  _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+  // clean
+  jsonDoc.clear();
+  payload = "";
+
+  //
+  // OnOff entity
+  //
+
+  if (hasOnOff)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_ON_OFF");
+
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += F("/switch/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove onoff switch
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+    jsonDoc["availability"] = serialized(availability);
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["icon"] = F("mdi:power");
+    jsonDoc["name"] = F("On/Off");
+    jsonDoc["object_id"] = F("stove_on_off");
+    jsonDoc["payload_off"] = F("CMD+OFF");
+    jsonDoc["payload_on"] = F("CMD+ON");
+    jsonDoc["state_off"] = F("OFF");
+    jsonDoc["state_on"] = F("ON");
+    // const __FlashStringHelper *statusTopicList[] = {F("~/STATUS"), F("~/STAT"), F("~/STAT/STATUS")}; // reuse statusTopicList
+    jsonDoc["state_topic"] = statusTopicList[_ha.mqtt.type];
+    jsonDoc["unique_id"] = uniqueId;
+    if (_ha.mqtt.type == HA_MQTT_GENERIC || _ha.mqtt.type == HA_MQTT_GENERIC_CATEGORIZED)
+      jsonDoc["value_template"] = F("{{ iif(int(value) > 1, 'ON', 'OFF') }}");
+    else if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+      jsonDoc["value_template"] = F("{{ iif(int(value_json.STATUS) > 1, 'ON', 'OFF') }}");
+
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  //
+  // SetPoint entity
+  //
+
+  if (hasSetPoint)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_SETP");
+
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += F("/number/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove setpoint number
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+    jsonDoc["availability"] = serialized(availability);
+    jsonDoc["command_template"] = F("SET+SETP+{{ value }}");
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["device_class"] = F("temperature");
+    jsonDoc["min"] = 17;
+    jsonDoc["max"] = 23;
+    jsonDoc["mode"] = F("slider");
+    jsonDoc["name"] = F("SetPoint");
+    jsonDoc["object_id"] = F("stove_setp");
+    const __FlashStringHelper *setpTopicList[] = {F("~/SETP"), F("~/SET"), F("~/SET/SETP")};
+    jsonDoc["state_topic"] = setpTopicList[_ha.mqtt.type];
+    jsonDoc["unique_id"] = uniqueId;
+    jsonDoc["unit_of_measurement"] = F("°C");
+    if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+      jsonDoc["value_template"] = F("{{ value_json.SETP }}");
+
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  //
+  // Power entity
+  //
+
+  if (hasPower)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_PWR");
+
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += F("/number/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove power number
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+    jsonDoc["availability"] = serialized(availability);
+    jsonDoc["command_template"] = F("SET+POWR+{{ value }}");
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["icon"] = F("mdi:signal");
+    jsonDoc["min"] = 1;
+    jsonDoc["max"] = 5;
+    jsonDoc["mode"] = F("slider");
+    jsonDoc["name"] = F("Power");
+    jsonDoc["object_id"] = F("stove_pwr");
+    const __FlashStringHelper *pwrTopicList[] = {F("~/PWR"), F("~/POWR"), F("~/POWR/PWR")};
+    jsonDoc["state_topic"] = pwrTopicList[_ha.mqtt.type];
+    jsonDoc["unique_id"] = uniqueId;
+    if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+      jsonDoc["value_template"] = F("{{ value_json.PWR }}");
+
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  //
+  // RoomFan entity
+  //
+
+  if (hasRoomFan)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_RFAN");
+
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += F("/number/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove room fan
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+
+    // specific availibility for room fan
+    JsonArray availability = jsonDoc["availability"].to<JsonArray>();
+
+    JsonObject availability_0 = availability.add<JsonObject>();
+    availability_0["topic"] = F("~/connected");
+    availability_0["value_template"] = F("{{ iif(int(value) > 0, 'online', 'offline') }}");
+
+    JsonObject availability_1 = availability.add<JsonObject>();
+    const __FlashStringHelper *f2lTopicList[] = {F("~/F2L"), F("~/FAND"), F("~/FAND/F2L")};
+    availability_1["topic"] = f2lTopicList[_ha.mqtt.type];
+    if (_ha.mqtt.type == HA_MQTT_GENERIC || _ha.mqtt.type == HA_MQTT_GENERIC_CATEGORIZED)
+      availability_1["value_template"] = F("{{ iif(int(value) < 7, 'online', 'offline') }}");
+    else if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+      availability_1["value_template"] = F("{{ iif(int(value_json.F2L) < 7, 'online', 'offline') }}");
+
+    jsonDoc["availability_mode"] = F("all");
+
+    jsonDoc["command_template"] = F("SET+RFAN+{{ value }}");
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["icon"] = F("mdi:fan");
+    jsonDoc["min"] = 0;
+    jsonDoc["max"] = 6;
+    jsonDoc["name"] = F("Room Fan");
+    jsonDoc["object_id"] = F("stove_rfan");
+    jsonDoc["payload_reset"] = F("7");
+    // const __FlashStringHelper *f2lTopicList[] = {F("~/F2L"), F("~/FAND"), F("~/FAND/F2L")}; //reuse f2lTopicList
+    jsonDoc["state_topic"] = f2lTopicList[_ha.mqtt.type];
+    jsonDoc["unique_id"] = uniqueId;
+    if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+      jsonDoc["value_template"] = F("{{ value_json.F2L }}");
+
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  //
+  // RoomFan Auto entity
+  //
+
+  if (isAirType && hasFanAuto)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_RFAN_Auto");
+
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += F("/switch/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove room fan auto mode
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+    jsonDoc["availability"] = serialized(availability);
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["icon"] = F("mdi:fan-auto");
+    jsonDoc["name"] = F("Room Fan Auto");
+    jsonDoc["object_id"] = F("stove_rfan_auto");
+    jsonDoc["payload_off"] = F("SET+RFAN+3");
+    jsonDoc["payload_on"] = F("SET+RFAN+7");
+    jsonDoc["state_off"] = F("OFF");
+    jsonDoc["state_on"] = F("ON");
+    const __FlashStringHelper *f2lTopicList[] = {F("~/F2L"), F("~/FAND"), F("~/FAND/F2L")};
+    jsonDoc["state_topic"] = f2lTopicList[_ha.mqtt.type];
+    jsonDoc["unique_id"] = uniqueId;
+    if (_ha.mqtt.type == HA_MQTT_GENERIC || _ha.mqtt.type == HA_MQTT_GENERIC_CATEGORIZED)
+      jsonDoc["value_template"] = F("{{ iif(int(value) == 7, 'ON', 'OFF') }}");
+    else if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+      jsonDoc["value_template"] = F("{{ iif(int(value_json.F2L) == 7, 'ON', 'OFF') }}");
+
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  //
+  // Fan3 entity
+  //
+
+  if (hasFan3)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_FAN3");
+
+    // entity type depends on Min and Max value of FAN3
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += ifFan3SwitchEntity ? F("/switch/") : F("/number/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove fan3 number
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+    jsonDoc["availability"] = serialized(availability);
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["icon"] = F("mdi:fan-speed-2");
+    jsonDoc["name"] = F("Left Fan");
+    jsonDoc["object_id"] = F("stove_fan3");
+    const __FlashStringHelper *f3lTopicList[] = {F("~/F3L"), F("~/FAND"), F("~/FAND/F3L")};
+    jsonDoc["state_topic"] = f3lTopicList[_ha.mqtt.type];
+    jsonDoc["unique_id"] = uniqueId;
+    if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+      jsonDoc["value_template"] = F("{{ value_json.F3L }}");
+
+    // add entity type specific configuration
+    if (ifFan3SwitchEntity)
+    {
+      jsonDoc["payload_off"] = F("SET+FN3L+0");
+      jsonDoc["payload_on"] = F("SET+FN3L+1");
+      jsonDoc["state_off"] = F("0");
+      jsonDoc["state_on"] = F("1");
+    }
+    else
+    {
+      jsonDoc["command_template"] = F("SET+FN3L+{{ value }}");
+      jsonDoc["min"] = FANLMINMAX[2];
+      jsonDoc["max"] = FANLMINMAX[3];
+      jsonDoc["mode"] = F("slider");
+    }
+
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  //
+  // Fan4 entity
+  //
+
+  if (hasFan4)
+  {
+    uniqueId = uniqueIdPrefixStove;
+    uniqueId += F("_FAN4");
+
+    // entity type depends on Min and Max value of FAN4
+    topic = _ha.mqtt.hassDiscoveryPrefix;
+    topic += ifFan4SwitchEntity ? F("/switch/") : F("/number/");
+    topic += uniqueId;
+    topic += F("/config");
+
+    // prepare payload for Stove fan4 number
+    jsonDoc["~"] = baseTopic.substring(0, baseTopic.length() - 1); // remove ending '/'
+    jsonDoc["availability"] = serialized(availability);
+    jsonDoc["command_topic"] = F("~/cmd");
+    jsonDoc["device"] = serialized(device);
+    jsonDoc["icon"] = F("mdi:fan-speed-3");
+    jsonDoc["name"] = F("Right Fan");
+    jsonDoc["object_id"] = F("stove_fan4");
+    const __FlashStringHelper *f4lTopicList[] = {F("~/F4L"), F("~/FAND"), F("~/FAND/F4L")};
+    jsonDoc["state_topic"] = f4lTopicList[_ha.mqtt.type];
+    jsonDoc["unique_id"] = uniqueId;
+    if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
+      jsonDoc["value_template"] = F("{{ value_json.F4L }}");
+
+    // add entity type specific configuration
+    if (ifFan4SwitchEntity)
+    {
+      jsonDoc["payload_off"] = F("SET+FN4L+0");
+      jsonDoc["payload_on"] = F("SET+FN4L+1");
+      jsonDoc["state_off"] = F("0");
+      jsonDoc["state_on"] = F("1");
+    }
+    else
+    {
+      jsonDoc["command_template"] = F("SET+FN4L+{{ value }}");
+      jsonDoc["min"] = FANLMINMAX[4];
+      jsonDoc["max"] = FANLMINMAX[5];
+      jsonDoc["mode"] = F("slider");
+    }
+
+    serializeJson(jsonDoc, payload);
+
+    // publish
+    _mqttMan.publish(topic.c_str(), payload.c_str(), true);
+
+    // clean
+    jsonDoc.clear();
+    payload = "";
+  }
+
+  // TODO
+  return true;
+}
+
 bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool publish /* = false*/)
 {
-  bool cmdProcessed = false; // cmd has been processed
-  bool cmdSuccess = false;   // Palazzetti function calls successful
+  bool cmdProcessed = false;                                                             // cmd has been processed
+  Palazzetti::CommandResult cmdSuccess = Palazzetti::CommandResult::COMMUNICATION_ERROR; // Palazzetti function calls successful
 
   // Prepare answer structure
-  DynamicJsonDocument jsonDoc(2048);
-  JsonObject info = jsonDoc.createNestedObject("INFO");
-  JsonObject data = jsonDoc.createNestedObject("DATA");
+  JsonDocument jsonDoc;
+  JsonObject info = jsonDoc["INFO"].to<JsonObject>();
+  JsonObject data = jsonDoc["DATA"].to<JsonObject>();
 
   // Parse parameters
   byte cmdParamNumber = 0;
@@ -235,7 +910,8 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t SPLMIN, SPLMAX;
     byte UICONFIG;
     byte HWTYPE;
-    uint16_t DSPFWVER;
+    byte DSPTYPE;
+    byte DSPFWVER;
     byte CONFIG;
     byte PELLETTYPE;
     uint16_t PSENSTYPE;
@@ -249,9 +925,9 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     byte CHRONOTYPE;
     byte AUTONOMYTYPE;
     byte NOMINALPWR;
-    cmdSuccess = _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
+    cmdSuccess = _Pala.getStaticData(&SN, &SNCHK, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &FLUID, &SPLMIN, &SPLMAX, &UICONFIG, &HWTYPE, &DSPTYPE, &DSPFWVER, &CONFIG, &PELLETTYPE, &PSENSTYPE, &PSENSLMAX, &PSENSLTSH, &PSENSLMIN, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, &BLEMBMODE, &BLEDSPMODE, &CHRONOTYPE, &AUTONOMYTYPE, &NOMINALPWR);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       // ----- WPalaControl generated values -----
       data["LABEL"] = WiFi.getHostname();
@@ -260,8 +936,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       data["GWDEVICE"] = F("wlan0"); // always wifi
       data["MAC"] = WiFi.macAddress();
       data["GATEWAY"] = WiFi.gatewayIP().toString();
-      JsonArray dns = data.createNestedArray("DNS");
-      dns.add(WiFi.dnsIP().toString());
+      data["DNS"][0] = WiFi.dnsIP().toString();
 
       // Wifi infos
       data["WMAC"] = WiFi.macAddress();
@@ -290,7 +965,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
       data["CBTYPE"] = F("miniembplug"); // CBox model
       data["sendmsg"] = F("2.1.2 2018-03-28 10:19:09");
-      data["plzbridge"] = F("2.2.1 2021-10-08 09:30:45");
+      data["plzbridge"] = F("2.2.1 2022-10-24 11:13:21");
       data["SYSTEM"] = F("2.5.3 2021-10-08 10:30:20 (657c8cf)");
 
       data["CLOUD_ENABLED"] = true;
@@ -308,6 +983,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       data["SPLMAX"] = SPLMAX;
       data["UICONFIG"] = UICONFIG;
       data["HWTYPE"] = HWTYPE;
+      data["DSPTYPE"] = DSPTYPE;
       data["DSPFWVER"] = DSPFWVER;
       data["CONFIG"] = CONFIG;
       data["PELLETTYPE"] = PELLETTYPE;
@@ -330,7 +1006,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET LABL"))
   {
     cmdProcessed = true;
-    cmdSuccess = true;
+    cmdSuccess = Palazzetti::CommandResult::OK;
 
     data["LABEL"] = WiFi.getHostname();
   }
@@ -376,7 +1052,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     char SN[28];
     cmdSuccess = _Pala.getAllStatus(refreshStatus, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &APLTS, &APLWDAY, &CHRSTATUS, &STATUS, &LSTATUS, &isMFSTATUSValid, &MFSTATUS, &SETP, &PUMP, &PQT, &F1V, &F1RPM, &F2L, &F2LF, &FANLMINMAX, &F2V, &isF3LF4LValid, &F3L, &F4L, &PWR, &FDR, &DPT, &DP, &IN, &OUT, &T1, &T2, &T3, &T4, &T5, &isSNValid, &SN);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       if (refreshStatus)
         _lastAllStatusRefreshMillis = currentMillis;
@@ -401,7 +1077,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       data["F1RPM"] = F1RPM;
       data["F2L"] = F2L;
       data["F2LF"] = F2LF;
-      JsonArray fanlminmax = data.createNestedArray("FANLMINMAX");
+      JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
       fanlminmax.add(FANLMINMAX[0]);
       fanlminmax.add(FANLMINMAX[1]);
       fanlminmax.add(FANLMINMAX[2]);
@@ -436,13 +1112,14 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    uint16_t STATUS, LSTATUS;
-    cmdSuccess = _Pala.getStatus(&STATUS, &LSTATUS);
+    uint16_t STATUS, LSTATUS, FSTATUS;
+    cmdSuccess = _Pala.getStatus(&STATUS, &LSTATUS, &FSTATUS);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["STATUS"] = STATUS;
       data["LSTATUS"] = LSTATUS;
+      data["FSTATUS"] = FSTATUS;
     }
   }
 
@@ -453,7 +1130,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     float T1, T2, T3, T4, T5;
     cmdSuccess = _Pala.getAllTemps(&T1, &T2, &T3, &T4, &T5);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["T1"] = serialized(String(T1, 2));
       data["T2"] = serialized(String(T2, 2));
@@ -474,7 +1151,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t F3L, F4L;
     cmdSuccess = _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3SF4SValid, &F3S, &F4S, &isF3LF4LValid, &F3L, &F4L);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["F1V"] = F1V;
       data["F2V"] = F2V;
@@ -501,7 +1178,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     float SETP;
     cmdSuccess = _Pala.getSetPoint(&SETP);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["SETP"] = serialized(String(SETP, 2));
     }
@@ -515,7 +1192,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     float FDR;
     cmdSuccess = _Pala.getPower(&PWR, &FDR);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["PWR"] = PWR;
       data["FDR"] = serialized(String(FDR, 2));
@@ -529,7 +1206,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQT;
     cmdSuccess = _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQT);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["IGN"] = IGN;
       data["POWERTIME"] = String(POWERTIMEh) + ':' + (POWERTIMEm / 10) + (POWERTIMEm % 10);
@@ -549,7 +1226,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t DP_TARGET, DP_PRESS;
     cmdSuccess = _Pala.getDPressData(&DP_TARGET, &DP_PRESS);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["DP_TARGET"] = DP_TARGET;
       data["DP_PRESS"] = DP_PRESS;
@@ -564,7 +1241,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     byte STOVE_WDAY;
     cmdSuccess = _Pala.getDateTime(&STOVE_DATETIME, &STOVE_WDAY);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["STOVE_DATETIME"] = STOVE_DATETIME;
       data["STOVE_WDAY"] = STOVE_WDAY;
@@ -579,7 +1256,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     byte OUT_O01, OUT_O02, OUT_O03, OUT_O04, OUT_O05, OUT_O06, OUT_O07;
     cmdSuccess = _Pala.getIO(&IN_I01, &IN_I02, &IN_I03, &IN_I04, &OUT_O01, &OUT_O02, &OUT_O03, &OUT_O04, &OUT_O05, &OUT_O06, &OUT_O07);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["IN_I01"] = IN_I01;
       data["IN_I02"] = IN_I02;
@@ -602,7 +1279,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     char SN[28];
     cmdSuccess = _Pala.getSN(&SN);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["SN"] = SN;
     }
@@ -616,7 +1293,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     char FWDATE[11];
     cmdSuccess = _Pala.getModelVersion(&MOD, &VER, &CORE, &FWDATE);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["MOD"] = MOD;
       data["VER"] = VER;
@@ -636,7 +1313,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     byte DM[7][3];
     cmdSuccess = _Pala.getChronoData(&CHRSTATUS, &PCHRSETP, &PSTART, &PSTOP, &DM);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["CHRSTATUS"] = CHRSTATUS;
 
@@ -646,7 +1323,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       for (byte i = 0; i < 6; i++)
       {
         programName[1] = i + '1';
-        JsonObject px = data.createNestedObject(programName);
+        JsonObject px = data[programName].to<JsonObject>();
         px["CHRSETP"] = serialized(String(PCHRSETP[i], 2));
         time[0] = PSTART[i][0] / 10 + '0';
         time[1] = PSTART[i][0] % 10 + '0';
@@ -666,7 +1343,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       for (byte dayNumber = 0; dayNumber < 7; dayNumber++)
       {
         dayName[1] = dayNumber + '1';
-        JsonObject dx = data.createNestedObject(dayName);
+        JsonObject dx = data[dayName].to<JsonObject>();
         for (byte memoryNumber = 0; memoryNumber < 3; memoryNumber++)
         {
           memoryName[1] = memoryNumber + '1';
@@ -694,7 +1371,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       byte paramValue;
       cmdSuccess = _Pala.getParameter(cmdParams[0], &paramValue);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         String paramName("PAR");
         paramName += cmdParams[0];
@@ -715,7 +1392,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       uint16_t hiddenParamValue;
       cmdSuccess = _Pala.getHiddenParameter(cmdParams[0], &hiddenParamValue);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         String hiddenParamName("HPAR");
         hiddenParamName += cmdParams[0];
@@ -728,13 +1405,14 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    uint16_t STATUS, LSTATUS;
-    cmdSuccess = _Pala.switchOn(&STATUS, &LSTATUS);
+    uint16_t STATUS, LSTATUS, FSTATUS;
+    cmdSuccess = _Pala.switchOn(&STATUS, &LSTATUS, &FSTATUS);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["STATUS"] = STATUS;
       data["LSTATUS"] = LSTATUS;
+      data["FSTATUS"] = FSTATUS;
     }
   }
 
@@ -742,13 +1420,14 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   {
     cmdProcessed = true;
 
-    uint16_t STATUS, LSTATUS;
-    cmdSuccess = _Pala.switchOff(&STATUS, &LSTATUS);
+    uint16_t STATUS, LSTATUS, FSTATUS;
+    cmdSuccess = _Pala.switchOff(&STATUS, &LSTATUS, &FSTATUS);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["STATUS"] = STATUS;
       data["LSTATUS"] = LSTATUS;
+      data["FSTATUS"] = FSTATUS;
     }
   }
 
@@ -767,12 +1446,12 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       uint16_t FANLMINMAXReturn[6];
       cmdSuccess = _Pala.setPower(cmdParams[0], &PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["PWR"] = PWRReturn;
         if (isF2LReturnValid)
           data["F2L"] = _F2LReturn;
-        JsonArray fanlminmax = data.createNestedArray("FANLMINMAX");
+        JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
         fanlminmax.add(FANLMINMAXReturn[0]);
         fanlminmax.add(FANLMINMAXReturn[1]);
         fanlminmax.add(FANLMINMAXReturn[2]);
@@ -793,12 +1472,12 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t FANLMINMAXReturn[6];
     cmdSuccess = _Pala.setPowerUp(&PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["PWR"] = PWRReturn;
       if (isF2LReturnValid)
         data["F2L"] = _F2LReturn;
-      JsonArray fanlminmax = data.createNestedArray("FANLMINMAX");
+      JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
       fanlminmax.add(FANLMINMAXReturn[0]);
       fanlminmax.add(FANLMINMAXReturn[1]);
       fanlminmax.add(FANLMINMAXReturn[2]);
@@ -818,12 +1497,12 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t FANLMINMAXReturn[6];
     cmdSuccess = _Pala.setPowerDown(&PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["PWR"] = PWRReturn;
       if (isF2LReturnValid)
         data["F2L"] = _F2LReturn;
-      JsonArray fanlminmax = data.createNestedArray("FANLMINMAX");
+      JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
       fanlminmax.add(FANLMINMAXReturn[0]);
       fanlminmax.add(FANLMINMAXReturn[1]);
       fanlminmax.add(FANLMINMAXReturn[2]);
@@ -864,7 +1543,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       byte STOVE_WDAYReturn;
       cmdSuccess = _Pala.setDateTime(cmdParams[0], cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4], cmdParams[5], &STOVE_DATETIMEReturn, &STOVE_WDAYReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["STOVE_DATETIME"] = STOVE_DATETIMEReturn;
         data["STOVE_WDAY"] = STOVE_WDAYReturn;
@@ -887,7 +1566,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       uint16_t F2LFReturn;
       cmdSuccess = _Pala.setRoomFan(cmdParams[0], &isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         if (isPWRReturnValid)
           data["PWR"] = PWRReturn;
@@ -907,7 +1586,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t F2LFReturn;
     cmdSuccess = _Pala.setRoomFanUp(&isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       if (isPWRReturnValid)
         data["PWR"] = PWRReturn;
@@ -926,7 +1605,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     uint16_t F2LFReturn;
     cmdSuccess = _Pala.setRoomFanDown(&isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       if (isPWRReturnValid)
         data["PWR"] = PWRReturn;
@@ -947,7 +1626,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       uint16_t F3LReturn;
       cmdSuccess = _Pala.setRoomFan3(cmdParams[0], &F3LReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["F3L"] = F3LReturn;
       }
@@ -966,7 +1645,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       uint16_t F4LReturn;
       cmdSuccess = _Pala.setRoomFan4(cmdParams[0], &F4LReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["F4L"] = F4LReturn;
       }
@@ -991,7 +1670,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       uint16_t F4LReturn;
       cmdSuccess = _Pala.setSilentMode(cmdParams[0], &SLNTReturn, &PWRReturn, &F2LReturn, &F2LFReturn, &isF3LF4LReturnValid, &F3LReturn, &F4LReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["SLNT"] = SLNTReturn;
         data["PWR"] = PWRReturn;
@@ -1018,7 +1697,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       byte CHRSTATUSReturn;
       cmdSuccess = _Pala.setChronoStatus(cmdParams[0], &CHRSTATUSReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["CHRSTATUS"] = CHRSTATUSReturn;
       }
@@ -1091,7 +1770,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     {
       cmdSuccess = _Pala.setChronoDay(cmdParams[0], cmdParams[1], cmdParams[2]);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         char dayName[3] = {'D', 'X', 0};
         char memoryName[3] = {'M', 'X', 0};
@@ -1101,7 +1780,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
         memoryName[1] = cmdParams[1] + '0';
         programName[1] = cmdParams[2] + '0';
 
-        JsonObject dx = data.createNestedObject(dayName);
+        JsonObject dx = data[dayName].to<JsonObject>();
         if (cmdParams[2])
           dx[memoryName] = programName;
         else
@@ -1118,13 +1797,13 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     {
       cmdSuccess = _Pala.setChronoPrg(cmdParams[0], cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4], cmdParams[5]);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         char programName[3] = {'P', 'X', 0};
         char time[6] = {'0', '0', ':', '0', '0', 0};
 
         programName[1] = cmdParams[0] + '0';
-        JsonObject px = data.createNestedObject(programName);
+        JsonObject px = data[programName].to<JsonObject>();
         px["CHRSETP"] = (float)cmdParams[1];
         time[0] = cmdParams[2] / 10 + '0';
         time[1] = cmdParams[2] % 10 + '0';
@@ -1152,7 +1831,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       float SETPReturn;
       cmdSuccess = _Pala.setSetpoint((byte)cmdParams[0], &SETPReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["SETP"] = serialized(String(SETPReturn, 2));
       }
@@ -1166,7 +1845,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     float SETPReturn;
     cmdSuccess = _Pala.setSetPointUp(&SETPReturn);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["SETP"] = serialized(String(SETPReturn, 2));
     }
@@ -1179,7 +1858,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     float SETPReturn;
     cmdSuccess = _Pala.setSetPointDown(&SETPReturn);
 
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       data["SETP"] = serialized(String(SETPReturn, 2));
     }
@@ -1204,7 +1883,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       float SETPReturn;
       cmdSuccess = _Pala.setSetpoint(setPointFloat, &SETPReturn);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data["SETP"] = serialized(String(SETPReturn, 2));
       }
@@ -1222,7 +1901,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     {
       cmdSuccess = _Pala.setParameter(cmdParams[0], cmdParams[1]);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data[String(F("PAR")) + cmdParams[0]] = cmdParams[1];
       }
@@ -1240,7 +1919,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     {
       cmdSuccess = _Pala.setHiddenParameter(cmdParams[0], cmdParams[1]);
 
-      if (cmdSuccess)
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
         data[String(F("HPAR")) + cmdParams[0]] = cmdParams[1];
       }
@@ -1253,10 +1932,10 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
     // if MQTT protocol is enabled then update connected topic to reflect stove connectivity
     if (_ha.protocol == HA_PROTO_MQTT)
-      publishStoveConnectedToMqtt(cmdSuccess);
+      publishStoveConnectedToMqtt(cmdSuccess == Palazzetti::CommandResult::OK);
 
     // if communication with stove was successful
-    if (cmdSuccess)
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
       info["CMD"] = cmd.substring(0, 8);
 
@@ -1366,7 +2045,7 @@ void WebPalaControl::udpRequestHandler(WiFiUDP &udpServer)
 
   // answer to the requester
   udpServer.beginPacket(udpServer.remoteIP(), udpServer.remotePort());
-  udpServer.write(strAnswer.c_str(), strAnswer.length());
+  udpServer.write((const uint8_t *)strAnswer.c_str(), strAnswer.length());
   udpServer.endPacket();
 }
 
@@ -1383,11 +2062,13 @@ void WebPalaControl::setConfigDefaultValues()
   _ha.mqtt.username[0] = 0;
   _ha.mqtt.password[0] = 0;
   strcpy_P(_ha.mqtt.generic.baseTopic, PSTR("$model$"));
+  _ha.mqtt.hassDiscoveryEnabled = true;
+  strcpy_P(_ha.mqtt.hassDiscoveryPrefix, PSTR("homeassistant"));
 }
 
 //------------------------------------------
 // Parse JSON object into configuration properties
-void WebPalaControl::parseConfigJSON(DynamicJsonDocument &doc)
+void WebPalaControl::parseConfigJSON(JsonDocument &doc)
 {
   if (!doc[F("haproto")].isNull())
     _ha.protocol = doc[F("haproto")];
@@ -1407,11 +2088,17 @@ void WebPalaControl::parseConfigJSON(DynamicJsonDocument &doc)
 
   if (!doc[F("hamgbt")].isNull())
     strlcpy(_ha.mqtt.generic.baseTopic, doc[F("hamgbt")], sizeof(_ha.mqtt.generic.baseTopic));
+
+  if (!doc[F("hamhassde")].isNull())
+    _ha.mqtt.hassDiscoveryEnabled = doc[F("hamhassde")];
+
+  if (!doc[F("hamhassdp")].isNull())
+    strlcpy(_ha.mqtt.hassDiscoveryPrefix, doc[F("hamhassdp")], sizeof(_ha.mqtt.hassDiscoveryPrefix));
 }
 
 //------------------------------------------
 // Parse HTTP POST parameters in request into configuration properties
-bool WebPalaControl::parseConfigWebRequest(ESP8266WebServer &server)
+bool WebPalaControl::parseConfigWebRequest(WebServer &server)
 {
 
   // Parse HA protocol
@@ -1459,6 +2146,15 @@ bool WebPalaControl::parseConfigWebRequest(ESP8266WebServer &server)
         _ha.protocol = HA_PROTO_DISABLED;
       break;
     }
+
+    if (server.hasArg(F("hamhassde")))
+      _ha.mqtt.hassDiscoveryEnabled = (server.arg(F("hamhassde")) == F("on"));
+    else
+      _ha.mqtt.hassDiscoveryEnabled = false;
+
+    if (server.hasArg(F("hamhassdp")) && server.arg(F("hamhassdp")).length() < sizeof(_ha.mqtt.hassDiscoveryPrefix))
+      strcpy(_ha.mqtt.hassDiscoveryPrefix, server.arg(F("hamhassdp")).c_str());
+
     break;
   }
   return true;
@@ -1486,6 +2182,10 @@ String WebPalaControl::generateConfigJSON(bool forSaveFile = false)
       gc = gc + F(",\"hamp\":\"") + (__FlashStringHelper *)appDataPredefPassword + '"'; // predefined special password (mean to keep already saved one)
 
     gc = gc + F(",\"hamgbt\":\"") + _ha.mqtt.generic.baseTopic + '"';
+
+    gc = gc + F(",\"hamhassde\":") + _ha.mqtt.hassDiscoveryEnabled;
+
+    gc = gc + F(",\"hamhassdp\":\"") + _ha.mqtt.hassDiscoveryPrefix + '"';
   }
 
   gc += '}';
@@ -1500,7 +2200,7 @@ String WebPalaControl::generateStatusJSON()
   String gs('{');
 
   char SN[28];
-  if (_Pala.getSN(&SN))
+  if (_Pala.getSN(&SN) == Palazzetti::CommandResult::OK)
     gs = gs + F("\"liveData\":{\"SN\":\"") + SN + F("\"}");
   else
     gs = gs + F("\"liveData\":{\"MSG\":\"Stove communication failed! please check cabling to your stove.\"}");
@@ -1578,7 +2278,7 @@ bool WebPalaControl::appInit(bool reInit)
     willTopic += F("connected");
 
     // setup MQTT
-    _mqttMan.setBufferSize(1100); // max JSON size (STDT is the longest one)
+    _mqttMan.setBufferSize(1600); // max JSON size (STDT ~1100 but STATUS_text HAss discovery ~1600)
     _mqttMan.setClient(_wifiClient).setServer(_ha.hostname, _ha.mqtt.port);
     _mqttMan.setConnectedAndWillTopic(willTopic.c_str());
     _mqttMan.setConnectedCallback(std::bind(&WebPalaControl::mqttConnectedCallback, this, std::placeholders::_1, std::placeholders::_2));
@@ -1591,8 +2291,8 @@ bool WebPalaControl::appInit(bool reInit)
 
   LOG_SERIAL.println(F("Connecting to Stove..."));
 
-  bool res = true;
-  res &= _Pala.initialize(
+  Palazzetti::CommandResult cmdRes;
+  cmdRes = _Pala.initialize(
       std::bind(&WebPalaControl::myOpenSerial, this, std::placeholders::_1),
       std::bind(&WebPalaControl::myCloseSerial, this),
       std::bind(&WebPalaControl::mySelectSerial, this, std::placeholders::_1),
@@ -1602,7 +2302,7 @@ bool WebPalaControl::appInit(bool reInit)
       std::bind(&WebPalaControl::myFlushSerial, this),
       std::bind(&WebPalaControl::myUSleep, this, std::placeholders::_1));
 
-  if (res)
+  if (cmdRes == Palazzetti::CommandResult::OK)
   {
     LOG_SERIAL.println(F("Stove connected"));
     char SN[28];
@@ -1615,16 +2315,21 @@ bool WebPalaControl::appInit(bool reInit)
     LOG_SERIAL.println(F("Stove connection failed"));
   }
 
-  if (res)
+  if (cmdRes == Palazzetti::CommandResult::OK)
     publishTick(); // if configuration changed, publish immediately
 
+#ifdef ESP8266
   _publishTicker.attach(_ha.uploadPeriod, [this]()
                         { this->_needPublish = true; });
+#else
+  _publishTicker.attach<typeof this>(_ha.uploadPeriod, [](typeof this palaControl)
+                                     { palaControl->_needPublish = true; }, this);
+#endif
 
   // Start UDP Server
   _udpServer.begin(54549);
 
-  return res;
+  return cmdRes == Palazzetti::CommandResult::OK;
 }
 
 //------------------------------------------
@@ -1666,7 +2371,7 @@ size_t WebPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
 
 //------------------------------------------
 // code to register web request answer to the web server
-void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication)
+void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   // Handle HTTP GET requests
   server.on(F("/cgi-bin/sendmsg.lua"), HTTP_GET, [this, &server]()
@@ -1679,8 +2384,6 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
     // WPalaControl specific command
     if (cmd.startsWith(F("BKP PARM ")))
     {
-      bool res = true;
-
       byte fileType;
 
       String strFileType(cmd.substring(9));
@@ -1694,15 +2397,15 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
         String ret(F("{\"INFO\":{\"CMD\":\"BKP PARM\",\"MSG\":\"Incorrect File Type : "));
         ret += strFileType;
         ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-        server.keepAlive(false);
+        SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), ret);
         return;
       }
 
       byte params[0x6A];
-      res &= _Pala.getAllParameters(&params);
+      Palazzetti::CommandResult cmdRes = _Pala.getAllParameters(&params);
 
-      if (res)
+      if (cmdRes == Palazzetti::CommandResult::OK)
       {
         String toReturn;
 
@@ -1714,7 +2417,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
             toReturn += String(i) + ';' + params[i] + '\r' + '\n';
 
           server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"PARM.csv\""));
-          server.keepAlive(false);
+          SERVER_KEEPALIVE_FALSE()
           server.send(200, F("text/csv"), toReturn);
           break;
 
@@ -1729,7 +2432,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
           toReturn += F("]}");
 
           server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"PARM.json\""));
-          server.keepAlive(false);
+          SERVER_KEEPALIVE_FALSE()
           server.send(200, F("text/json"), toReturn);
           break;
         }
@@ -1738,7 +2441,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
       }
       else
       {
-        server.keepAlive(false);
+        SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP PARM\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
         return;
       }
@@ -1747,8 +2450,6 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
     // WPalaControl specific command
     if (cmd.startsWith(F("BKP HPAR ")))
     {
-      bool res = true;
-
       byte fileType;
 
       String strFileType(cmd.substring(9));
@@ -1762,15 +2463,15 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
         String ret(F("{\"INFO\":{\"CMD\":\"BKP HPAR\",\"MSG\":\"Incorrect File Type : "));
         ret += strFileType;
         ret += F("\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}");
-        server.keepAlive(false);
+        SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), ret);
         return;
       }
 
       uint16_t hiddenParams[0x6F];
-      res &= _Pala.getAllHiddenParameters(&hiddenParams);
+      Palazzetti::CommandResult cmdRes = _Pala.getAllHiddenParameters(&hiddenParams);
 
-      if (res)
+      if (cmdRes == Palazzetti::CommandResult::OK)
       {
         String toReturn;
 
@@ -1781,7 +2482,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
           for (byte i = 0; i < 0x6F; i++)
             toReturn += String(i) + ';' + hiddenParams[i] + '\r' + '\n';
 
-          server.keepAlive(false);
+          SERVER_KEEPALIVE_FALSE()
           server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"HPAR.csv\""));
           server.send(200, F("text/csv"), toReturn);
           break;
@@ -1796,7 +2497,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
           }
           toReturn += F("]}");
 
-          server.keepAlive(false);
+          SERVER_KEEPALIVE_FALSE()
           server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"HPAR.json\""));
           server.send(200, F("text/json"), toReturn);
           break;
@@ -1806,7 +2507,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
       }
       else
       {
-        server.keepAlive(false);
+        SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), F("{\"INFO\":{\"CMD\":\"BKP HPAR\",\"MSG\":\"Stove communication failed\",\"RSP\":\"TIMEOUT\"},\"SUCCESS\":false,\"DATA\":{\"NODATA\":true}}"));
         return;
       }
@@ -1816,7 +2517,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
     executePalaCmd(cmd, strJson);
 
     // send response
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.send(200, F("text/json"), strJson); });
 
   // Handle HTTP POST requests (Body contains a JSON)
@@ -1824,7 +2525,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
       F("/cgi-bin/sendmsg.lua"), HTTP_POST, [this, &server]()
       {
         String cmd;
-        DynamicJsonDocument jsonDoc(128);
+        JsonDocument jsonDoc;
         String strJson;
 
         DeserializationError error = deserializeJson(jsonDoc, server.arg(F("plain")));
@@ -1836,7 +2537,7 @@ void WebPalaControl::appInitWebServer(ESP8266WebServer &server, bool &shouldRebo
         executePalaCmd(cmd, strJson);
 
         // send response
-        server.keepAlive(false);
+        SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), strJson); });
 }
 
@@ -1851,6 +2552,16 @@ void WebPalaControl::appRun()
   {
     _needPublish = false;
     publishTick();
+  }
+
+  // if MQTT and Home Assistant discovery enabled and publish is needed
+  if (_ha.protocol == HA_PROTO_MQTT && _ha.mqtt.hassDiscoveryEnabled && _needPublishHassDiscovery)
+  {
+    if (publishHassDiscoveryToMqtt()) // publish discovery
+    {
+      _needPublishHassDiscovery = false;
+      publishTick(); // publish immediately after HAss discovery
+    }
   }
 
   // Handle UDP requests

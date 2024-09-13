@@ -2,7 +2,7 @@
 
 #if ENABLE_STATUS_EVTSRC
 
-void Application::statusEventSourceHandler(ESP8266WebServer &server)
+void Application::statusEventSourceHandler(WebServer &server)
 {
   uint8_t subPos = 0;
 
@@ -26,7 +26,11 @@ void Application::statusEventSourceHandler(ESP8266WebServer &server)
       return server.send(500);
   }
 
+#ifdef ESP8266
   server.client().setSync(true); // disable Nagle's algorithm and flush immediately
+#else
+  server.client().setNoDelay(true);
+#endif
 
   // create/update subscription
   _statusEvtSrcClient[subPos] = server.client();
@@ -98,42 +102,28 @@ bool Application::loadConfig()
   if (configFile)
   {
 
-    int memoryAllocation = JSON_DOC_MEM_STEP;
+    JsonDocument jsonDoc;
 
-    while (memoryAllocation <= JSON_DOC_MAX_MEM_SIZE)
+    DeserializationError deserializeJsonError = deserializeJson(jsonDoc, configFile);
+
+    // if deserialization failed, then log error and save current config (default values)
+    if (deserializeJsonError)
     {
-      DynamicJsonDocument jsonDoc(memoryAllocation);
 
-      configFile.seek(0);
-
-      auto deserializeJsonError = deserializeJson(jsonDoc, configFile);
-      // if parsing OK, pass it to application then stop loop
-      if (deserializeJsonError.code() == DeserializationError::Ok)
-      {
-        parseConfigJSON(jsonDoc);
-        result = true;
-        break;
-      }
-      // if parsing result is not a NoMemory, there is a problem in JSON
-      if (deserializeJsonError.code() != DeserializationError::NoMemory)
-      {
 #ifdef LOG_SERIAL
-        LOG_SERIAL.print(F("deserializeJson() failed : "));
-        LOG_SERIAL.println(deserializeJsonError.c_str());
+      LOG_SERIAL.print(F("deserializeJson() failed : "));
+      LOG_SERIAL.println(deserializeJsonError.c_str());
 #endif
-        break;
-      }
 
-      // there, we need to increase memorySize and loop
-      memoryAllocation += JSON_DOC_MEM_STEP;
+      saveConfig();
     }
-
+    else
+    { // otherwise pass it to application
+      parseConfigJSON(jsonDoc);
+      result = true;
+    }
     configFile.close();
   }
-
-  // if loading failed, then run a Save to write a good one
-  if (!result)
-    saveConfig();
 
   return result;
 }
@@ -164,7 +154,7 @@ void Application::init(bool skipExistingConfig)
 #endif
 }
 
-void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bool &pauseApplication)
+void Application::initWebServer(WebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   char url[16];
 
@@ -172,7 +162,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/status%c.html"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), getHTMLContent(status), getHTMLContentSize(status)); });
 
@@ -180,7 +170,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/config%c.html"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), getHTMLContent(config), getHTMLContentSize(config)); });
 
@@ -188,7 +178,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/fw%c.html"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), getHTMLContent(fw), getHTMLContentSize(fw)); });
 
@@ -196,7 +186,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/discover%c.html"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), getHTMLContent(discover), getHTMLContentSize(discover)); });
 
@@ -204,7 +194,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/gs%c"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Cache-Control"), F("no-cache"));
     server.send(200, F("text/json"), generateStatusJSON()); });
 
@@ -212,7 +202,7 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
   sprintf_P(url, PSTR("/gc%c"), _appId);
   server.on(url, HTTP_GET, [this, &server]()
             {
-    server.keepAlive(false);
+    SERVER_KEEPALIVE_FALSE()
     server.sendHeader(F("Cache-Control"), F("no-cache"));
     server.send(200, F("text/json"), generateConfigJSON()); });
 
@@ -228,12 +218,12 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
     //Send client answer
     if (result)
     {
-      server.keepAlive(false);
+      SERVER_KEEPALIVE_FALSE()
       server.send(200);
       _reInit = true;
     }
     else{
-      server.keepAlive(false);
+      SERVER_KEEPALIVE_FALSE()
       server.send(500, F("text/html"), F("Configuration hasn't been saved"));
     } });
 
@@ -244,8 +234,13 @@ void Application::initWebServer(ESP8266WebServer &server, bool &shouldReboot, bo
             { statusEventSourceHandler(server); });
 #if ENABLE_STATUS_EVTSRC_KEEPALIVE
   // send keep alive event every 60 seconds
+#ifdef ESP8266
   _statusEvtSrcKeepAliveTicker.attach(60, [this]()
                                       { _needStatusEvtSrcKeepAlive = true; });
+#else
+  _statusEvtSrcKeepAliveTicker.attach<typeof this>(60, [](typeof this application)
+                                                   { application->_needStatusEvtSrcKeepAlive = true; }, this);
+#endif
 #endif
 #endif
 
