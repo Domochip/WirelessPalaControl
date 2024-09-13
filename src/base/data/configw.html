@@ -121,7 +121,8 @@
                     $(qsp + "#wnl").innerHTML = '<option>Choose Your Network</option>';
                     for (k in WNL.wnl) {
                         var quality = Math.min(Math.max(2 * (WNL.wnl[k].RSSI + 100), 0), 100);
-                        $(qsp + "#wnl").innerHTML += `<option value="${WNL.wnl[k].SSID}"${$(qsp + "#s").value == WNL.wnl[k].SSID ? ' selected' : ''}>${WNL.wnl[k].SSID} (${quality}%)</option>`;
+                        const color = `hsl(${quality * 1.2}, 100%, 45%)`;
+                        $(qsp + "#wnl").innerHTML += `<option style="color:${color}" value="${WNL.wnl[k].SSID}"${$(qsp + "#s").value == WNL.wnl[k].SSID ? ' selected' : ''}>${WNL.wnl[k].SSID} (${quality}%)</option>`;
                     }
                     $(qsp + "#wnl").addEventListener('change', function () { $(qsp + "#s").value = $(qsp + "#wnl").value });
                 }
