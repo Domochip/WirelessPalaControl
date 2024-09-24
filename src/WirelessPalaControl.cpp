@@ -210,9 +210,9 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   bool hasPower = (STOVETYPE != 8);
   bool hasOnOff = (STOVETYPE != 7 && STOVETYPE != 8);
   bool hasRoomFan = (FAN2TYPE > 1);
-  bool hasFan3 = (FAN2TYPE > 2);
+  bool hasFan3 = (FAN2TYPE > 3);
   bool ifFan3SwitchEntity = (FANLMINMAX[2] == 0 && FANLMINMAX[3] == 1);
-  bool hasFan4 = (FAN2TYPE > 3);
+  bool hasFan4 = (FAN2TYPE > 2);
   bool ifFan4SwitchEntity = (FANLMINMAX[4] == 0 && FANLMINMAX[5] == 1);
   bool isAirType = (STOVETYPE == 1 || STOVETYPE == 3 || STOVETYPE == 5 || STOVETYPE == 7 || STOVETYPE == 8);
   bool hasFanAuto = (FAN2MODE == 2 || FAN2MODE == 3);
