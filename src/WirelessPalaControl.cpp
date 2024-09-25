@@ -2239,61 +2239,61 @@ String WebPalaControl::generateConfigJSON(bool forSaveFile = false)
 // Generate JSON of application status
 String WebPalaControl::generateStatusJSON()
 {
-  String gs('{');
+  JsonDocument doc;
 
   char SN[28];
   if (_Pala.getSN(&SN) == Palazzetti::CommandResult::OK)
-    gs = gs + F("\"liveData\":{\"SN\":\"") + SN + F("\"}");
+    doc[F("liveData")][F("SN")] = SN;
   else
-    gs = gs + F("\"liveData\":{\"MSG\":\"Stove communication failed! please check cabling to your stove.\"}");
+    doc[F("liveData")][F("MSG")] = F("Stove communication failed! please check cabling to your stove.");
 
-  gs = gs + F(",\"has1\":\"");
+  String has1;
   switch (_ha.protocol)
   {
   case HA_PROTO_DISABLED:
-    gs = gs + F("Disabled");
+    has1 = F("Disabled");
     break;
   case HA_PROTO_MQTT:
-    gs = gs + F("MQTT Connection State : ");
+    has1 = F("MQTT Connection State : ");
     switch (_mqttMan.state())
     {
     case MQTT_CONNECTION_TIMEOUT:
-      gs = gs + F("Timed Out");
+      has1 = has1 + F("Timed Out");
       break;
     case MQTT_CONNECTION_LOST:
-      gs = gs + F("Lost");
+      has1 = has1 + F("Lost");
       break;
     case MQTT_CONNECT_FAILED:
-      gs = gs + F("Failed");
+      has1 = has1 + F("Failed");
       break;
     case MQTT_CONNECTED:
-      gs = gs + F("Connected");
+      has1 = has1 + F("Connected");
       break;
     case MQTT_CONNECT_BAD_PROTOCOL:
-      gs = gs + F("Bad Protocol Version");
+      has1 = has1 + F("Bad Protocol Version");
       break;
     case MQTT_CONNECT_BAD_CLIENT_ID:
-      gs = gs + F("Incorrect ClientID ");
+      has1 = has1 + F("Incorrect ClientID ");
       break;
     case MQTT_CONNECT_UNAVAILABLE:
-      gs = gs + F("Server Unavailable");
+      has1 = has1 + F("Server Unavailable");
       break;
     case MQTT_CONNECT_BAD_CREDENTIALS:
-      gs = gs + F("Bad Credentials");
+      has1 = has1 + F("Bad Credentials");
       break;
     case MQTT_CONNECT_UNAUTHORIZED:
-      gs = gs + F("Connection Unauthorized");
+      has1 = has1 + F("Connection Unauthorized");
       break;
     }
+    doc[F("has1")] = has1;
 
     if (_mqttMan.state() == MQTT_CONNECTED)
-      gs = gs + F("\",\"has2\":\"Last Publish Result : ") + (_haSendResult ? F("OK") : F("Failed"));
-
+      doc[F("has2")] = String(F("Last Publish Result : ")) + (_haSendResult ? F("OK") : F("Failed"));
     break;
   }
-  gs += '"';
 
-  gs += '}';
+  String gs;
+  serializeJson(doc, gs);
 
   return gs;
 }
