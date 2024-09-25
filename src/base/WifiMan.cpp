@@ -59,7 +59,7 @@ void WifiMan::refreshWiFi()
                             { _needRefreshWifi = true; });
 #else
         _refreshTicker.once<typeof this>(_refreshPeriod * 1000, [](typeof this wifiMan)
-                            { wifiMan->_needRefreshWifi = true; }, this);
+                                         { wifiMan->_needRefreshWifi = true; }, this);
 #endif
       }
     }
@@ -97,25 +97,27 @@ void WifiMan::setConfigDefaultValues()
 
 void WifiMan::parseConfigJSON(JsonDocument &doc)
 {
-  if (!doc["s"].isNull())
-    strlcpy(ssid, doc["s"], sizeof(ssid));
+  JsonVariant v;
 
-  if (!doc["p"].isNull())
-    strlcpy(password, doc["p"], sizeof(password));
+  if ((v = doc["s"]).is<const char *>())
+    strlcpy(ssid, v, sizeof(ssid));
 
-  if (!doc["h"].isNull())
-    strlcpy(hostname, doc["h"], sizeof(hostname));
+  if ((v = doc["p"]).is<const char *>())
+    strlcpy(password, v, sizeof(password));
 
-  if (!doc["ip"].isNull())
-    ip = doc["ip"];
-  if (!doc["gw"].isNull())
-    gw = doc["gw"];
-  if (!doc["mask"].isNull())
-    mask = doc["mask"];
-  if (!doc["dns1"].isNull())
-    dns1 = doc["dns1"];
-  if (!doc["dns2"].isNull())
-    dns2 = doc["dns2"];
+  if ((v = doc["h"]).is<const char *>())
+    strlcpy(hostname, v, sizeof(hostname));
+
+  if ((v = doc["ip"]).is<uint32_t>())
+    ip = v;
+  if ((v = doc["gw"]).is<uint32_t>())
+    gw = v;
+  if ((v = doc["mask"]).is<uint32_t>())
+    mask = v;
+  if ((v = doc["dns1"]).is<uint32_t>())
+    dns1 = v;
+  if ((v = doc["dns2"]).is<uint32_t>())
+    dns2 = v;
 }
 
 bool WifiMan::parseConfigWebRequest(WebServer &server)
