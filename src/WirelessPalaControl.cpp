@@ -2464,14 +2464,12 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
           break;
 
         case 1: //JSON
-          toReturn += F("{\"PARM\":[");
+          JsonDocument doc;
+          JsonArray PARM = doc["PARM"].to<JsonArray>();
           for (byte i = 0; i < 0x6A; i++)
-          {
-            if (i)
-              toReturn += F(",\r\n");
-            toReturn += params[i];
-          }
-          toReturn += F("]}");
+            PARM.add(params[i]);
+          
+          serializeJson(doc, toReturn);
 
           server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"PARM.json\""));
           SERVER_KEEPALIVE_FALSE()
@@ -2530,14 +2528,12 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
           break;
 
         case 1: //JSON
-          toReturn += F("{\"HPAR\":[");
+          JsonDocument doc;
+          JsonArray HPAR = doc["HPAR"].to<JsonArray>();
           for (byte i = 0; i < 0x6F; i++)
-          {
-            if (i)
-              toReturn += F(",\r\n");
-            toReturn += hiddenParams[i];
-          }
-          toReturn += F("]}");
+            HPAR.add(hiddenParams[i]);
+
+          serializeJson(doc, toReturn);
 
           SERVER_KEEPALIVE_FALSE()
           server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"HPAR.json\""));
