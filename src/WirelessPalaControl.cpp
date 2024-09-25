@@ -2205,31 +2205,32 @@ bool WebPalaControl::parseConfigWebRequest(WebServer &server)
 // Generate JSON from configuration properties
 String WebPalaControl::generateConfigJSON(bool forSaveFile = false)
 {
-  String gc('{');
+  JsonDocument doc;
 
-  gc = gc + F("\"haproto\":") + _ha.protocol;
-  gc = gc + F(",\"hahost\":\"") + _ha.hostname + '"';
-  gc = gc + F(",\"haupperiod\":") + _ha.uploadPeriod;
+  doc[F("haproto")] = _ha.protocol;
+  doc[F("hahost")] = _ha.hostname;
+  doc[F("haupperiod")] = _ha.uploadPeriod;
 
   // if for WebPage or protocol selected is MQTT
   if (!forSaveFile || _ha.protocol == HA_PROTO_MQTT)
   {
-    gc = gc + F(",\"hamtype\":") + _ha.mqtt.type;
-    gc = gc + F(",\"hamport\":") + _ha.mqtt.port;
-    gc = gc + F(",\"hamu\":\"") + _ha.mqtt.username + '"';
+    doc[F("hamtype")] = _ha.mqtt.type;
+    doc[F("hamport")] = _ha.mqtt.port;
+    doc[F("hamu")] = _ha.mqtt.username;
     if (forSaveFile)
-      gc = gc + F(",\"hamp\":\"") + _ha.mqtt.password + '"';
+      doc[F("hamp")] = _ha.mqtt.password;
     else
-      gc = gc + F(",\"hamp\":\"") + (__FlashStringHelper *)appDataPredefPassword + '"'; // predefined special password (mean to keep already saved one)
+      doc[F("hamp")] = (const __FlashStringHelper *)appDataPredefPassword; // predefined special password (mean to keep already saved one)
 
-    gc = gc + F(",\"hamgbt\":\"") + _ha.mqtt.generic.baseTopic + '"';
+    doc[F("hamgbt")] = _ha.mqtt.generic.baseTopic;
 
-    gc = gc + F(",\"hamhassde\":") + _ha.mqtt.hassDiscoveryEnabled;
+    doc[F("hamhassde")] = _ha.mqtt.hassDiscoveryEnabled;
 
-    gc = gc + F(",\"hamhassdp\":\"") + _ha.mqtt.hassDiscoveryPrefix + '"';
+    doc[F("hamhassdp")] = _ha.mqtt.hassDiscoveryPrefix;
   }
 
-  gc += '}';
+  String gc;
+  serializeJson(doc, gc);
 
   return gc;
 }
