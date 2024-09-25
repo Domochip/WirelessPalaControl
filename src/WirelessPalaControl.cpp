@@ -2109,30 +2109,32 @@ void WebPalaControl::setConfigDefaultValues()
 // Parse JSON object into configuration properties
 void WebPalaControl::parseConfigJSON(JsonDocument &doc)
 {
-  if (!doc[F("haproto")].isNull())
-    _ha.protocol = doc[F("haproto")];
-  if (!doc[F("hahost")].isNull())
-    strlcpy(_ha.hostname, doc[F("hahost")], sizeof(_ha.hostname));
-  if (!doc[F("haupperiod")].isNull())
-    _ha.uploadPeriod = doc[F("haupperiod")];
+  JsonVariant jv;
 
-  if (!doc[F("hamtype")].isNull())
-    _ha.mqtt.type = doc[F("hamtype")];
-  if (!doc[F("hamport")].isNull())
-    _ha.mqtt.port = doc[F("hamport")];
-  if (!doc[F("hamu")].isNull())
-    strlcpy(_ha.mqtt.username, doc[F("hamu")], sizeof(_ha.mqtt.username));
-  if (!doc[F("hamp")].isNull())
-    strlcpy(_ha.mqtt.password, doc[F("hamp")], sizeof(_ha.mqtt.password));
+  if ((jv = doc[F("haproto")]).is<byte>())
+    _ha.protocol = jv;
+  if ((jv = doc[F("hahost")]).is<const char *>())
+    strlcpy(_ha.hostname, jv, sizeof(_ha.hostname));
+  if ((jv = doc[F("haupperiod")]).is<uint16_t>())
+    _ha.uploadPeriod = jv;
 
-  if (!doc[F("hamgbt")].isNull())
-    strlcpy(_ha.mqtt.generic.baseTopic, doc[F("hamgbt")], sizeof(_ha.mqtt.generic.baseTopic));
+  if ((jv = doc[F("hamtype")]).is<byte>())
+    _ha.mqtt.type = jv;
+  if ((jv = doc[F("hamport")]).is<uint16_t>())
+    _ha.mqtt.port = jv;
+  if ((jv = doc[F("hamu")]).is<const char *>())
+    strlcpy(_ha.mqtt.username, jv, sizeof(_ha.mqtt.username));
+  if ((jv = doc[F("hamp")]).is<const char *>())
+    strlcpy(_ha.mqtt.password, jv, sizeof(_ha.mqtt.password));
 
-  if (!doc[F("hamhassde")].isNull())
-    _ha.mqtt.hassDiscoveryEnabled = doc[F("hamhassde")];
+  if ((jv = doc[F("hamgbt")]).is<const char *>())
+    strlcpy(_ha.mqtt.generic.baseTopic, jv, sizeof(_ha.mqtt.generic.baseTopic));
 
-  if (!doc[F("hamhassdp")].isNull())
-    strlcpy(_ha.mqtt.hassDiscoveryPrefix, doc[F("hamhassdp")], sizeof(_ha.mqtt.hassDiscoveryPrefix));
+  if ((jv = doc[F("hamhassde")]).is<bool>())
+    _ha.mqtt.hassDiscoveryEnabled = jv;
+
+  if ((jv = doc[F("hamhassdp")]).is<const char *>())
+    strlcpy(_ha.mqtt.hassDiscoveryPrefix, jv, sizeof(_ha.mqtt.hassDiscoveryPrefix));
 }
 
 //------------------------------------------
