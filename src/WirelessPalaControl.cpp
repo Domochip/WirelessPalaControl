@@ -2111,30 +2111,30 @@ void WebPalaControl::parseConfigJSON(JsonDocument &doc)
 {
   JsonVariant jv;
 
-  if ((jv = doc[F("haproto")]).is<byte>())
+  if ((jv = doc["haproto"]).is<byte>())
     _ha.protocol = jv;
-  if ((jv = doc[F("hahost")]).is<const char *>())
-    strlcpy(_ha.hostname, jv, sizeof(_ha.hostname));
-  if ((jv = doc[F("haupperiod")]).is<uint16_t>())
+  if ((jv = doc["hahost"]).is<const char *>() && strlen(jv.as<const char *>()) < sizeof(_ha.hostname))
+    strcpy(_ha.hostname, jv);
+  if ((jv = doc["haupperiod"]).is<uint16_t>())
     _ha.uploadPeriod = jv;
 
-  if ((jv = doc[F("hamtype")]).is<byte>())
+  if ((jv = doc["hamtype"]).is<byte>())
     _ha.mqtt.type = jv;
-  if ((jv = doc[F("hamport")]).is<uint16_t>())
+  if ((jv = doc["hamport"]).is<uint16_t>())
     _ha.mqtt.port = jv;
-  if ((jv = doc[F("hamu")]).is<const char *>())
-    strlcpy(_ha.mqtt.username, jv, sizeof(_ha.mqtt.username));
-  if ((jv = doc[F("hamp")]).is<const char *>())
-    strlcpy(_ha.mqtt.password, jv, sizeof(_ha.mqtt.password));
+  if ((jv = doc["hamu"]).is<const char *>() && strlen(jv.as<const char *>()) < sizeof(_ha.mqtt.username))
+    strcpy(_ha.mqtt.username, jv);
+  if ((jv = doc["hamp"]).is<const char *>() && strlen(jv.as<const char *>()) < sizeof(_ha.mqtt.password))
+    strcpy(_ha.mqtt.password, jv);
 
-  if ((jv = doc[F("hamgbt")]).is<const char *>())
-    strlcpy(_ha.mqtt.generic.baseTopic, jv, sizeof(_ha.mqtt.generic.baseTopic));
+  if ((jv = doc["hamgbt"]).is<const char *>() && strlen(jv.as<const char *>()) < sizeof(_ha.mqtt.generic.baseTopic))
+    strcpy(_ha.mqtt.generic.baseTopic, jv);
 
-  if ((jv = doc[F("hamhassde")]).is<bool>())
+  if ((jv = doc["hamhassde"]).is<bool>())
     _ha.mqtt.hassDiscoveryEnabled = jv;
 
-  if ((jv = doc[F("hamhassdp")]).is<const char *>())
-    strlcpy(_ha.mqtt.hassDiscoveryPrefix, jv, sizeof(_ha.mqtt.hassDiscoveryPrefix));
+  if ((jv = doc["hamhassdp"]).is<const char *>() && strlen(jv.as<const char *>()) < sizeof(_ha.mqtt.hassDiscoveryPrefix))
+    strcpy(_ha.mqtt.hassDiscoveryPrefix, jv);
 }
 
 //------------------------------------------
