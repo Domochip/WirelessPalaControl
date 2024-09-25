@@ -2458,8 +2458,8 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
           for (byte i = 0; i < 0x6A; i++)
             toReturn += String(i) + ';' + params[i] + '\r' + '\n';
 
-          server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"PARM.csv\""));
           SERVER_KEEPALIVE_FALSE()
+          server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"PARM.csv\""));
           server.send(200, F("text/csv"), toReturn);
           break;
 
@@ -2471,8 +2471,8 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
           
           serializeJson(doc, toReturn);
 
-          server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"PARM.json\""));
           SERVER_KEEPALIVE_FALSE()
+          server.sendHeader(F("Content-Disposition"), F("attachment; filename=\"PARM.json\""));
           server.send(200, F("text/json"), toReturn);
           break;
         }
