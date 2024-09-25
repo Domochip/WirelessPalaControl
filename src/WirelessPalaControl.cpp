@@ -554,7 +554,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     jsonDoc["mode"] = F("slider");
     jsonDoc["name"] = F("SetPoint");
     jsonDoc["object_id"] = F("stove_setp");
-    const __FlashStringHelper *setpTopicList[] = {F("~/SETP"), F("~/SET"), F("~/SET/SETP")};
+    const __FlashStringHelper *setpTopicList[] = {F("~/SETP"), F("~/SETP"), F("~/SETP/SETP")};
     jsonDoc["state_topic"] = setpTopicList[_ha.mqtt.type];
     jsonDoc["unique_id"] = uniqueId;
     jsonDoc["unit_of_measurement"] = F("°C");
