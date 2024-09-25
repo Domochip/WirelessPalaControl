@@ -839,6 +839,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   JsonDocument jsonDoc;
   JsonObject info = jsonDoc["INFO"].to<JsonObject>();
   JsonObject data = jsonDoc["DATA"].to<JsonObject>();
+  String palaCategory; // used to return data to the correct MQTT category (if needed)
 
   // Parse parameters
   byte cmdParamNumber = 0;
@@ -900,6 +901,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET STDT"))
   {
     cmdProcessed = true;
+    palaCategory = F("STDT");
 
     char SN[28];
     byte SNCHK;
@@ -1006,6 +1008,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET LABL"))
   {
     cmdProcessed = true;
+    palaCategory = F("LABL");
     cmdSuccess = Palazzetti::CommandResult::OK;
 
     data["LABEL"] = WiFi.getHostname();
@@ -1014,6 +1017,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET ALLS"))
   {
     cmdProcessed = true;
+    palaCategory = F("ALLS");
 
     bool refreshStatus = false;
     unsigned long currentMillis = millis();
@@ -1111,6 +1115,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET STAT"))
   {
     cmdProcessed = true;
+    palaCategory = F("STAT");
 
     uint16_t STATUS, LSTATUS, FSTATUS;
     cmdSuccess = _Pala.getStatus(&STATUS, &LSTATUS, &FSTATUS);
@@ -1126,6 +1131,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET TMPS"))
   {
     cmdProcessed = true;
+    palaCategory = F("TMPS");
 
     float T1, T2, T3, T4, T5;
     cmdSuccess = _Pala.getAllTemps(&T1, &T2, &T3, &T4, &T5);
@@ -1143,6 +1149,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET FAND"))
   {
     cmdProcessed = true;
+    palaCategory = F("FAND");
 
     uint16_t F1V, F2V, F1RPM, F2L, F2LF;
     bool isF3SF4SValid;
@@ -1174,6 +1181,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET SETP"))
   {
     cmdProcessed = true;
+    palaCategory = F("SETP");
 
     float SETP;
     cmdSuccess = _Pala.getSetPoint(&SETP);
@@ -1187,6 +1195,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET POWR"))
   {
     cmdProcessed = true;
+    palaCategory = F("POWR");
 
     byte PWR;
     float FDR;
@@ -1202,6 +1211,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && (cmd == F("GET CUNT") || cmd == F("GET CNTR")))
   {
     cmdProcessed = true;
+    palaCategory = F("CNTR");
 
     uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQT;
     cmdSuccess = _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQT);
@@ -1222,6 +1232,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET DPRS"))
   {
     cmdProcessed = true;
+    palaCategory = F("DPRS");
 
     uint16_t DP_TARGET, DP_PRESS;
     cmdSuccess = _Pala.getDPressData(&DP_TARGET, &DP_PRESS);
@@ -1236,6 +1247,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET TIME"))
   {
     cmdProcessed = true;
+    palaCategory = F("TIME");
 
     char STOVE_DATETIME[20];
     byte STOVE_WDAY;
@@ -1251,6 +1263,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET IOPT"))
   {
     cmdProcessed = true;
+    palaCategory = F("IOPT");
 
     byte IN_I01, IN_I02, IN_I03, IN_I04;
     byte OUT_O01, OUT_O02, OUT_O03, OUT_O04, OUT_O05, OUT_O06, OUT_O07;
@@ -1275,6 +1288,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET SERN"))
   {
     cmdProcessed = true;
+    palaCategory = F("SERN");
 
     char SN[28];
     cmdSuccess = _Pala.getSN(&SN);
@@ -1288,6 +1302,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET MDVE"))
   {
     cmdProcessed = true;
+    palaCategory = F("MDVE");
 
     uint16_t MOD, VER, CORE;
     char FWDATE[11];
@@ -1305,6 +1320,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("GET CHRD"))
   {
     cmdProcessed = true;
+    palaCategory = F("CHRD");
 
     byte CHRSTATUS;
     float PCHRSETP[6];
@@ -1362,6 +1378,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("GET PARM ")))
   {
     cmdProcessed = true;
+    palaCategory = F("PARM");
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
@@ -1383,6 +1400,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("GET HPAR ")))
   {
     cmdProcessed = true;
+    palaCategory = F("HPAR");
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
@@ -1404,6 +1422,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("CMD ON"))
   {
     cmdProcessed = true;
+    palaCategory = F("STAT");
 
     uint16_t STATUS, LSTATUS, FSTATUS;
     cmdSuccess = _Pala.switchOn(&STATUS, &LSTATUS, &FSTATUS);
@@ -1419,6 +1438,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("CMD OFF"))
   {
     cmdProcessed = true;
+    palaCategory = F("STAT");
 
     uint16_t STATUS, LSTATUS, FSTATUS;
     cmdSuccess = _Pala.switchOff(&STATUS, &LSTATUS, &FSTATUS);
@@ -1434,6 +1454,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("SET POWR ")))
   {
     cmdProcessed = true;
+    palaCategory = F("POWR");
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
@@ -1465,6 +1486,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("SET PWRU"))
   {
     cmdProcessed = true;
+    palaCategory = F("POWR");
 
     byte PWRReturn;
     bool isF2LReturnValid;
@@ -1490,6 +1512,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("SET PWRD"))
   {
     cmdProcessed = true;
+    palaCategory = F("POWR");
 
     byte PWRReturn;
     bool isF2LReturnValid;
@@ -1515,6 +1538,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("SET TIME ")))
   {
     cmdProcessed = true;
+    palaCategory = F("TIME");
 
     if (cmdParamNumber != 6)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
@@ -1554,6 +1578,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("SET RFAN ")))
   {
     cmdProcessed = true;
+    palaCategory = F("FAND");
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
@@ -1579,6 +1604,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("SET FN2U"))
   {
     cmdProcessed = true;
+    palaCategory = F("FAND");
 
     bool isPWRReturnValid;
     byte PWRReturn;
@@ -1598,6 +1624,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("SET FN2D"))
   {
     cmdProcessed = true;
+    palaCategory = F("FAND");
 
     bool isPWRReturnValid;
     byte PWRReturn;
@@ -1617,6 +1644,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("SET FN3L ")))
   {
     cmdProcessed = true;
+    palaCategory = F("FAND");
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
@@ -1636,6 +1664,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("SET FN4L ")))
   {
     cmdProcessed = true;
+    palaCategory = F("FAND");
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
@@ -1655,6 +1684,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("SET SLNT ")))
   {
     cmdProcessed = true;
+    palaCategory = F("FAND");
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
@@ -1688,6 +1718,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("SET CSST ")))
   {
     cmdProcessed = true;
+    palaCategory = F("CHRD");
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
@@ -1762,6 +1793,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("SET CDAY ")))
   {
     cmdProcessed = true;
+    palaCategory = F("CHRD");
 
     if (cmdParamNumber != 3)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
@@ -1792,6 +1824,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("SET CPRD ")))
   {
     cmdProcessed = true;
+    palaCategory = F("CHRD");
 
     if (info["MSG"].isNull())
     {
@@ -1822,6 +1855,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("SET SETP ")))
   {
     cmdProcessed = true;
+    palaCategory = F("SETP");
 
     if (cmdParamNumber != 1)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
@@ -1841,6 +1875,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("SET STPU"))
   {
     cmdProcessed = true;
+    palaCategory = F("SETP");
 
     float SETPReturn;
     cmdSuccess = _Pala.setSetPointUp(&SETPReturn);
@@ -1854,6 +1889,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd == F("SET STPD"))
   {
     cmdProcessed = true;
+    palaCategory = F("SETP");
 
     float SETPReturn;
     cmdSuccess = _Pala.setSetPointDown(&SETPReturn);
@@ -1867,6 +1903,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("SET STPF ")))
   {
     cmdProcessed = true;
+    palaCategory = F("SETP");
 
     if (cmdParamNumber != 2)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
@@ -1893,6 +1930,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("SET PARM ")))
   {
     cmdProcessed = true;
+    palaCategory = F("PARM");
 
     if (cmdParamNumber != 2)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
@@ -1911,6 +1949,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   if (!cmdProcessed && cmd.startsWith(F("SET HPAR ")))
   {
     cmdProcessed = true;
+    palaCategory = F("HPAR");
 
     if (cmdParamNumber != 2)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
@@ -1942,7 +1981,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       info["RSP"] = F("OK");
       jsonDoc["SUCCESS"] = true;
 
-      if (publish)
+      if (publish && palaCategory.length() > 0)
       {
         String strData;
         serializeJson(data, strData);
@@ -1953,7 +1992,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
         if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
         {
-          _haSendResult &= publishDataToMqtt(baseTopic, cmd.substring(4, 8), jsonDoc);
+          _haSendResult &= publishDataToMqtt(baseTopic, palaCategory, jsonDoc);
         }
       }
     }
