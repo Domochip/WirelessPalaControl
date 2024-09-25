@@ -1953,7 +1953,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
         if (_ha.protocol == HA_PROTO_MQTT && _haSendResult)
         {
-          _haSendResult &= publishDataToMqtt(baseTopic, cmd.substring(4), jsonDoc);
+          _haSendResult &= publishDataToMqtt(baseTopic, cmd.substring(4, 8), jsonDoc);
         }
       }
     }
