@@ -514,9 +514,9 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     jsonDoc["state_topic"] = statusTopicList[_ha.mqtt.type];
     jsonDoc["unique_id"] = uniqueId;
     if (_ha.mqtt.type == HA_MQTT_GENERIC || _ha.mqtt.type == HA_MQTT_GENERIC_CATEGORIZED)
-      jsonDoc["value_template"] = F("{{ iif(int(value) > 1, 'ON', 'OFF') }}");
+      jsonDoc["value_template"] = F("{{ iif(int(value) > 1 and int(value) != 10, 'ON', 'OFF') }}");
     else if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
-      jsonDoc["value_template"] = F("{{ iif(int(value_json.STATUS) > 1, 'ON', 'OFF') }}");
+      jsonDoc["value_template"] = F("{{ iif(int(value_json.STATUS) > 1 and int(value_json.STATUS) != 10, 'ON', 'OFF') }}");
 
     serializeJson(jsonDoc, payload);
 
