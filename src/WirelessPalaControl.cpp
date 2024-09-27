@@ -2239,26 +2239,26 @@ String WebPalaControl::generateConfigJSON(bool forSaveFile = false)
 {
   JsonDocument doc;
 
-  doc[F("haproto")] = _ha.protocol;
-  doc[F("hahost")] = _ha.hostname;
-  doc[F("haupperiod")] = _ha.uploadPeriod;
+  doc["haproto"] = _ha.protocol;
+  doc["hahost"] = _ha.hostname;
+  doc["haupperiod"] = _ha.uploadPeriod;
 
   // if for WebPage or protocol selected is MQTT
   if (!forSaveFile || _ha.protocol == HA_PROTO_MQTT)
   {
-    doc[F("hamtype")] = _ha.mqtt.type;
-    doc[F("hamport")] = _ha.mqtt.port;
-    doc[F("hamu")] = _ha.mqtt.username;
+    doc["hamtype"] = _ha.mqtt.type;
+    doc["hamport"] = _ha.mqtt.port;
+    doc["hamu"] = _ha.mqtt.username;
     if (forSaveFile)
-      doc[F("hamp")] = _ha.mqtt.password;
+      doc["hamp"] = _ha.mqtt.password;
     else
-      doc[F("hamp")] = (const __FlashStringHelper *)appDataPredefPassword; // predefined special password (mean to keep already saved one)
+      doc["hamp"] = (const __FlashStringHelper *)appDataPredefPassword; // predefined special password (mean to keep already saved one)
 
-    doc[F("hamgbt")] = _ha.mqtt.generic.baseTopic;
+    doc["hamgbt"] = _ha.mqtt.generic.baseTopic;
 
-    doc[F("hamhassde")] = _ha.mqtt.hassDiscoveryEnabled;
+    doc["hamhassde"] = _ha.mqtt.hassDiscoveryEnabled;
 
-    doc[F("hamhassdp")] = _ha.mqtt.hassDiscoveryPrefix;
+    doc["hamhassdp"] = _ha.mqtt.hassDiscoveryPrefix;
   }
 
   String gc;
@@ -2275,9 +2275,9 @@ String WebPalaControl::generateStatusJSON()
 
   char SN[28];
   if (_Pala.getSN(&SN) == Palazzetti::CommandResult::OK)
-    doc[F("liveData")][F("SN")] = SN;
+    doc["liveData"]["SN"] = SN;
   else
-    doc[F("liveData")][F("MSG")] = F("Stove communication failed! please check cabling to your stove.");
+    doc["liveData"]["MSG"] = F("Stove communication failed! please check cabling to your stove.");
 
   String has1;
   switch (_ha.protocol)
@@ -2317,10 +2317,10 @@ String WebPalaControl::generateStatusJSON()
       has1 = has1 + F("Connection Unauthorized");
       break;
     }
-    doc[F("has1")] = has1;
+    doc["has1"] = has1;
 
     if (_mqttMan.state() == MQTT_CONNECTED)
-      doc[F("has2")] = String(F("Last Publish Result : ")) + (_haSendResult ? F("OK") : F("Failed"));
+      doc["has2"] = String(F("Last Publish Result : ")) + (_haSendResult ? F("OK") : F("Failed"));
     break;
   }
 
