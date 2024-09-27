@@ -1965,6 +1965,9 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     }
   }
 
+  // releases the unused memory before serialization
+  jsonDoc.shrinkToFit();
+
   // if command has been processed
   if (cmdProcessed)
   {
