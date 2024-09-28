@@ -2116,15 +2116,15 @@ void WebPalaControl::parseConfigJSON(JsonDocument &doc, bool fromWebPage = false
   char tempPassword[150 + 1] = {0};
 
   // Parse HA protocol
-  if ((jv = doc["haproto"]).is<byte>())
+  if ((jv = doc["haproto"]).is<JsonVariant>())
     _ha.protocol = jv;
 
   // if an home Automation protocol has been selected then get common param
   if (_ha.protocol != HA_PROTO_DISABLED)
   {
-    if ((jv = doc["hahost"]).is<const char *>() && strlen(jv.as<const char *>()) < sizeof(_ha.hostname))
-      strcpy(_ha.hostname, jv);
-    if ((jv = doc["haupperiod"]).is<uint16_t>())
+    if ((jv = doc["hahost"]).is<const char *>())
+      strlcpy(_ha.hostname, jv, sizeof(_ha.hostname));
+    if ((jv = doc["haupperiod"]).is<JsonVariant>())
       _ha.uploadPeriod = jv;
   }
 
@@ -2134,39 +2134,40 @@ void WebPalaControl::parseConfigJSON(JsonDocument &doc, bool fromWebPage = false
 
   case HA_PROTO_MQTT:
 
-    if ((jv = doc["hamtype"]).is<byte>())
+    if ((jv = doc["hamtype"]).is<JsonVariant>())
       _ha.mqtt.type = jv;
-    if ((jv = doc["hamport"]).is<uint16_t>())
+    if ((jv = doc["hamport"]).is<JsonVariant>())
       _ha.mqtt.port = jv;
-    if ((jv = doc["hamu"]).is<const char *>() && strlen(jv.as<const char *>()) < sizeof(_ha.mqtt.username))
-      strcpy(_ha.mqtt.username, jv);
+    if ((jv = doc["hamu"]).is<const char *>())
+      strlcpy(_ha.mqtt.username, jv, sizeof(_ha.mqtt.username));
 
     // put MQTT password into tempPassword
-    if ((jv = doc["hamp"]).is<const char *>() && strlen(jv.as<const char *>()) < sizeof(tempPassword))
-      strcpy(tempPassword, jv);
+    if ((jv = doc["hamp"]).is<const char *>())
+    {
+      strlcpy(tempPassword, jv, sizeof(tempPassword));
 
-    // if password is not the predefined one then copy it to _ha.mqtt.password
-    if (strcmp_P(tempPassword, appDataPredefPassword))
-      strcpy(_ha.mqtt.password, tempPassword);
+      // if not from web page or password is not the predefined one then copy it to _ha.mqtt.password
+      if (!fromWebPage || strcmp_P(tempPassword, appDataPredefPassword))
+        strcpy(_ha.mqtt.password, tempPassword);
+    }
 
     switch (_ha.mqtt.type)
     {
     case HA_MQTT_GENERIC:
     case HA_MQTT_GENERIC_JSON:
     case HA_MQTT_GENERIC_CATEGORIZED:
-      if ((jv = doc["hamgbt"]).is<const char *>() && strlen(jv.as<const char *>()) < sizeof(_ha.mqtt.generic.baseTopic))
-        strcpy(_ha.mqtt.generic.baseTopic, jv);
+      if ((jv = doc["hamgbt"]).is<const char *>())
+        strlcpy(_ha.mqtt.generic.baseTopic, jv, sizeof(_ha.mqtt.generic.baseTopic));
 
       if (!_ha.hostname[0] || !_ha.mqtt.generic.baseTopic[0])
         _ha.protocol = HA_PROTO_DISABLED;
       break;
     }
 
-    if ((jv = doc["hamhassde"]).is<bool>())
-      _ha.mqtt.hassDiscoveryEnabled = jv;
+    _ha.mqtt.hassDiscoveryEnabled = doc["hamhassde"];
 
-    if ((jv = doc["hamhassdp"]).is<const char *>() && strlen(jv.as<const char *>()) < sizeof(_ha.mqtt.hassDiscoveryPrefix))
-      strcpy(_ha.mqtt.hassDiscoveryPrefix, jv);
+    if ((jv = doc["hamhassdp"]).is<const char *>())
+      strlcpy(_ha.mqtt.hassDiscoveryPrefix, jv, sizeof(_ha.mqtt.hassDiscoveryPrefix));
 
     break;
   }
