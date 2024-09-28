@@ -173,7 +173,7 @@
     $(qsp + "#f1").addEventListener('submit', function (event) {
         $(qsp + "#r").innerHTML = "Saving Configuration...";
         post("/sc" + qsp[8],
-            new FormData($(qsp + "#f1")),
+            convertFormDataToJson(new FormData($(qsp + "#f1"))),
             function () {
                 $(qsp + "#f1").style.display = 'none';
 

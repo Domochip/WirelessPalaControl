@@ -2177,63 +2177,21 @@ void WebPalaControl::parseConfigJSON(JsonDocument &doc, bool fromWebPage = false
 // Parse HTTP POST parameters in request into configuration properties
 bool WebPalaControl::parseConfigWebRequest(WebServer &server)
 {
+  // config json is received in POST body (arg("plain"))
 
-  // Parse HA protocol
-  if (server.hasArg(F("haproto")))
-    _ha.protocol = server.arg(F("haproto")).toInt();
+  // parse JSON
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, server.arg("plain"));
 
-  // if an home Automation protocol has been selected then get common param
-  if (_ha.protocol != HA_PROTO_DISABLED)
+  if (error)
   {
-    if (server.hasArg(F("hahost")) && server.arg(F("hahost")).length() < sizeof(_ha.hostname))
-      strcpy(_ha.hostname, server.arg(F("hahost")).c_str());
-    if (server.hasArg(F("haupperiod")))
-      _ha.uploadPeriod = server.arg(F("haupperiod")).toInt();
+    SERVER_KEEPALIVE_FALSE()
+    server.send(400, F("text/html"), F("Malformed JSON"));
+    return false;
   }
 
-  // Now get specific param
-  switch (_ha.protocol)
-  {
+  parseConfigJSON(doc, true);
 
-  case HA_PROTO_MQTT:
-
-    if (server.hasArg(F("hamtype")))
-      _ha.mqtt.type = server.arg(F("hamtype")).toInt();
-    if (server.hasArg(F("hamport")))
-      _ha.mqtt.port = server.arg(F("hamport")).toInt();
-    if (server.hasArg(F("hamu")) && server.arg(F("hamu")).length() < sizeof(_ha.mqtt.username))
-      strcpy(_ha.mqtt.username, server.arg(F("hamu")).c_str());
-    char tempPassword[64 + 1] = {0};
-    // put MQTT password into temporary one for predefpassword
-    if (server.hasArg(F("hamp")) && server.arg(F("hamp")).length() < sizeof(tempPassword))
-      strcpy(tempPassword, server.arg(F("hamp")).c_str());
-    // check for previous password (there is a predefined special password that mean to keep already saved one)
-    if (strcmp_P(tempPassword, appDataPredefPassword))
-      strcpy(_ha.mqtt.password, tempPassword);
-
-    switch (_ha.mqtt.type)
-    {
-    case HA_MQTT_GENERIC:
-    case HA_MQTT_GENERIC_JSON:
-    case HA_MQTT_GENERIC_CATEGORIZED:
-      if (server.hasArg(F("hamgbt")) && server.arg(F("hamgbt")).length() < sizeof(_ha.mqtt.generic.baseTopic))
-        strcpy(_ha.mqtt.generic.baseTopic, server.arg(F("hamgbt")).c_str());
-
-      if (!_ha.hostname[0] || !_ha.mqtt.generic.baseTopic[0])
-        _ha.protocol = HA_PROTO_DISABLED;
-      break;
-    }
-
-    if (server.hasArg(F("hamhassde")))
-      _ha.mqtt.hassDiscoveryEnabled = (server.arg(F("hamhassde")) == F("on"));
-    else
-      _ha.mqtt.hassDiscoveryEnabled = false;
-
-    if (server.hasArg(F("hamhassdp")) && server.arg(F("hamhassdp")).length() < sizeof(_ha.mqtt.hassDiscoveryPrefix))
-      strcpy(_ha.mqtt.hassDiscoveryPrefix, server.arg(F("hamhassdp")).c_str());
-
-    break;
-  }
   return true;
 }
 
@@ -2261,7 +2219,6 @@ String WebPalaControl::generateConfigJSON(bool forSaveFile = false)
     doc["hamgbt"] = _ha.mqtt.generic.baseTopic;
 
     doc["hamhassde"] = _ha.mqtt.hassDiscoveryEnabled;
-
     doc["hamhassdp"] = _ha.mqtt.hassDiscoveryPrefix;
   }
 
