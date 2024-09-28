@@ -88,7 +88,7 @@
         }
         $(qsp + "#r").innerHTML = "Saving Configuration...";
         post("/scw",
-            new FormData($(qsp + "#fw")),
+            convertFormDataToJson(new FormData($(qsp + "#fw"))),
             function () {
                 $(qsp + "#fw").style.display = 'none';
 

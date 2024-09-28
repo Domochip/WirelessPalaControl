@@ -100,7 +100,7 @@
             if (uploadProgress) xhr.upload.addEventListener('progress', uploadProgress);
             xhr.open(method, url);
             if (timeout) xhr.timeout = timeout;
-            if (typeof data == "string") xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+            if (typeof data == "string") xhr.setRequestHeader('Content-type', 'application/json');
             xhr.send(data);
         }
 
@@ -131,6 +131,22 @@
         function post(url, data, success, fail, timeout, uploadProgress) {
             request("POST", url, data, success, fail, timeout, uploadProgress);
         };
+
+        function convertFormDataToJson(formData) {
+            var object = {};
+            formData.forEach(function (value, key) {
+                // Reflect.has in favor of: object.hasOwnProperty(key)
+                if (!Reflect.has(object, key)) {
+                    object[key] = value;
+                    return;
+                }
+                if (!Array.isArray(object[key])) {
+                    object[key] = [object[key]];
+                }
+                object[key].push(value);
+            });
+            return JSON.stringify(object);
+        }
 
         function fadeOut(el) {
             el.style.opacity = 1;

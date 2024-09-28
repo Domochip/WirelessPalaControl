@@ -1,6 +1,6 @@
 #ifndef Version_h
 #define Version_h
 
-#define BASE_VERSION "2.2.4"
+#define BASE_VERSION "2.3.0"
 
 #endif

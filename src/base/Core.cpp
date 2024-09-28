@@ -10,12 +10,12 @@
 #include "data/side-menu.js.gz.h"
 
 void Core::setConfigDefaultValues(){};
-void Core::parseConfigJSON(JsonDocument &doc){};
+void Core::parseConfigJSON(JsonDocument &doc, bool fromWebPage = false){};
 bool Core::parseConfigWebRequest(WebServer &server) { return true; };
 String Core::generateConfigJSON(bool clearPassword = false) { return String(); };
 String Core::generateStatusJSON()
 {
-  String gs('{');
+  JsonDocument doc;
 
   char sn[9];
 #ifdef ESP8266
@@ -25,15 +25,16 @@ String Core::generateStatusJSON()
 #endif
   unsigned long minutes = millis() / 60000;
 
-  gs = gs + F("\"sn\":\"") + sn + '"';
-  gs = gs + F(",\"b\":\"") + BASE_VERSION + '/' + VERSION + '"';
-  gs = gs + F(",\"u\":\"") + (byte)(minutes / 1440) + 'd' + (byte)(minutes / 60 % 24) + 'h' + (byte)(minutes % 60) + 'm' + '"';
-  gs = gs + F(",\"f\":") + ESP.getFreeHeap();
+  doc["sn"] = sn;
+  doc["b"] = BASE_VERSION "/" VERSION;
+  doc["u"] = String((byte)(minutes / 1440)) + 'd' + (byte)(minutes / 60 % 24) + 'h' + (byte)(minutes % 60) + 'm';
+  doc["f"] = ESP.getFreeHeap();
 #ifdef ESP8266
-  gs = gs + F(",\"fcrs\":") + ESP.getFlashChipRealSize();
+  doc["fcrs"] = ESP.getFlashChipRealSize();
 #endif
 
-  gs = gs + '}';
+  String gs;
+  serializeJson(doc, gs);
 
   return gs;
 }

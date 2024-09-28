@@ -95,162 +95,137 @@ void WifiMan::setConfigDefaultValues()
   dns2 = 0;
 }
 
-void WifiMan::parseConfigJSON(JsonDocument &doc)
+void WifiMan::parseConfigJSON(JsonDocument &doc, bool fromWebPage = false)
 {
-  JsonVariant v;
+  JsonVariant jv;
+  char tempPassword[64 + 1] = {0};
 
-  if ((v = doc["s"]).is<const char *>())
-    strlcpy(ssid, v, sizeof(ssid));
+  if ((jv = doc["s"]).is<const char *>() && strlen(jv) < sizeof(ssid))
+    strcpy(ssid, jv);
 
-  if ((v = doc["p"]).is<const char *>())
-    strlcpy(password, v, sizeof(password));
+  if ((jv = doc["p"]).is<const char *>() && strlen(jv) < sizeof(tempPassword))
+    strcpy(tempPassword, jv);
 
-  if ((v = doc["h"]).is<const char *>())
-    strlcpy(hostname, v, sizeof(hostname));
+  // if not from web page or password is not the predefined one
+  if (!fromWebPage || strcmp_P(tempPassword, predefPassword))
+    strcpy(password, tempPassword);
 
-  if ((v = doc["ip"]).is<uint32_t>())
-    ip = v;
-  if ((v = doc["gw"]).is<uint32_t>())
-    gw = v;
-  if ((v = doc["mask"]).is<uint32_t>())
-    mask = v;
-  if ((v = doc["dns1"]).is<uint32_t>())
-    dns1 = v;
-  if ((v = doc["dns2"]).is<uint32_t>())
-    dns2 = v;
+  if ((jv = doc["h"]).is<const char *>() && strlen(jv) < sizeof(hostname))
+    strcpy(hostname, jv);
+
+  IPAddress ipParser;
+  if ((jv = doc["ip"]).is<const char *>() && ipParser.fromString(jv.as<const char *>()))
+    ip = static_cast<uint32_t>(ipParser);
+  else
+    ip = 0;
+
+  if ((jv = doc["gw"]).is<const char *>() && ipParser.fromString(jv.as<const char *>()))
+    gw = static_cast<uint32_t>(ipParser);
+  else
+    gw = 0;
+
+  if ((jv = doc["mask"]).is<const char *>() && ipParser.fromString(jv.as<const char *>()))
+    mask = static_cast<uint32_t>(ipParser);
+  else
+    mask = 0;
+
+  if ((jv = doc["dns1"]).is<const char *>() && ipParser.fromString(jv.as<const char *>()))
+    dns1 = static_cast<uint32_t>(ipParser);
+  else
+    dns1 = 0;
+
+  if ((jv = doc["dns2"]).is<const char *>() && ipParser.fromString(jv.as<const char *>()))
+    dns2 = static_cast<uint32_t>(ipParser);
+  else
+    dns2 = 0;
 }
 
 bool WifiMan::parseConfigWebRequest(WebServer &server)
 {
+  // config json is received in POST body (arg("plain"))
 
-  // basic control
-  if (!server.hasArg(F("s")))
+  // parse JSON
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, server.arg("plain"));
+
+  if (error)
   {
     SERVER_KEEPALIVE_FALSE()
-    server.send_P(400, PSTR("text/html"), PSTR("SSID missing"));
+    server.send(400, F("text/html"), F("Invalid JSON"));
     return false;
   }
 
-  char tempPassword[64 + 1] = {0};
-
-  if (server.hasArg(F("s")) && server.arg(F("s")).length() < sizeof(ssid))
-    strcpy(ssid, server.arg(F("s")).c_str());
-
-  if (server.hasArg(F("p")) && server.arg(F("p")).length() < sizeof(tempPassword))
-    strcpy(tempPassword, server.arg(F("p")).c_str());
-  if (server.hasArg(F("h")) && server.arg(F("h")).length() < sizeof(hostname))
-    strcpy(hostname, server.arg(F("h")).c_str());
-
-  IPAddress ipParser;
-  if (server.hasArg(F("ip")))
+  // basic control
+  if (!doc["s"].is<const char *>())
   {
-    if (ipParser.fromString(server.arg(F("ip"))))
-      ip = static_cast<uint32_t>(ipParser);
-    else
-      ip = 0;
-  }
-  if (server.hasArg(F("gw")))
-  {
-    if (ipParser.fromString(server.arg(F("gw"))))
-      gw = static_cast<uint32_t>(ipParser);
-    else
-      gw = 0;
-  }
-  if (server.hasArg(F("mask")))
-  {
-    if (ipParser.fromString(server.arg(F("mask"))))
-      mask = static_cast<uint32_t>(ipParser);
-    else
-      mask = 0;
-  }
-  if (server.hasArg(F("dns1")))
-  {
-    if (ipParser.fromString(server.arg(F("dns1"))))
-      dns1 = static_cast<uint32_t>(ipParser);
-    else
-      dns1 = 0;
-  }
-  if (server.hasArg(F("dns2")))
-  {
-    if (ipParser.fromString(server.arg(F("dns2"))))
-      dns2 = static_cast<uint32_t>(ipParser);
-    else
-      dns2 = 0;
+    SERVER_KEEPALIVE_FALSE()
+    server.send(400, F("text/html"), F("SSID missing"));
+    return false;
   }
 
-  // check for previous password ssid (there is a predefined special password that mean to keep already saved one)
-  if (strcmp_P(tempPassword, predefPassword))
-    strcpy(password, tempPassword);
+  parseConfigJSON(doc, true);
 
   return true;
 }
 
 String WifiMan::generateConfigJSON(bool forSaveFile = false)
 {
+  JsonDocument doc;
 
-  String gc('{');
-  gc = gc + F("\"s\":\"") + ssid + '"';
+  doc["s"] = ssid;
 
   if (forSaveFile)
-    gc = gc + F(",\"p\":\"") + password + '"';
+    doc["p"] = password;
   else
     // there is a predefined special password (mean to keep already saved one)
-    gc = gc + F(",\"p\":\"") + (__FlashStringHelper *)predefPassword + '"';
-  gc = gc + F(",\"h\":\"") + hostname + '"';
+    doc["p"] = (const __FlashStringHelper *)predefPassword;
 
-  if (forSaveFile)
-  {
-    gc = gc + F(",\"ip\":") + ip;
-    gc = gc + F(",\"gw\":") + gw;
-    gc = gc + F(",\"mask\":") + mask;
-    gc = gc + F(",\"dns1\":") + dns1;
-    gc = gc + F(",\"dns2\":") + dns2;
-  }
+  doc["h"] = hostname;
+
+  doc["staticip"] = (ip ? 1 : 0);
+  if (ip)
+    doc["ip"] = IPAddress(ip).toString();
+  if (gw)
+    doc["gw"] = IPAddress(gw).toString();
   else
-  {
-    gc = gc + F(",\"staticip\":") + (ip ? true : false);
-    if (ip)
-      gc = gc + F(",\"ip\":\"") + IPAddress(ip).toString() + '"';
-    if (gw)
-      gc = gc + F(",\"gw\":\"") + IPAddress(gw).toString() + '"';
-    else
-      gc = gc + F(",\"gw\":\"0.0.0.0\"");
-    if (mask)
-      gc = gc + F(",\"mask\":\"") + IPAddress(mask).toString() + '"';
-    else
-      gc = gc + F(",\"mask\":\"0.0.0.0\"");
-    if (dns1)
-      gc = gc + F(",\"dns1\":\"") + IPAddress(dns1).toString() + '"';
-    if (dns2)
-      gc = gc + F(",\"dns2\":\"") + IPAddress(dns2).toString() + '"';
-  }
+    doc["gw"] = F("0.0.0.0");
+  if (mask)
+    doc["mask"] = IPAddress(mask).toString();
+  else
+    doc["mask"] = F("0.0.0.0");
+  if (dns1)
+    doc["dns1"] = IPAddress(dns1).toString();
+  if (dns2)
+    doc["dns2"] = IPAddress(dns2).toString();
 
-  gc = gc + '}';
+  String gc;
+  serializeJson(doc, gc);
 
   return gc;
 }
 
 String WifiMan::generateStatusJSON()
 {
+  JsonDocument doc;
 
-  String gs('{');
   if ((WiFi.getMode() & WIFI_AP))
   {
-    gs = gs + F("\"ap\":\"on\"");
-    gs = gs + F(",\"ai\":\"") + WiFi.softAPIP().toString().c_str() + '"';
+    doc["ap"] = F("on");
+    doc["ai"] = WiFi.softAPIP().toString();
   }
   else
   {
-    gs = gs + F("\"ap\":\"off\"");
-    gs = gs + F(",\"ai\":\"-\"");
+    doc["ap"] = F("off");
+    doc["ai"] = "-";
   }
 
-  gs = gs + F(",\"sta\":\"") + (ssid[0] ? F("on") : F("off")) + '"';
-  gs = gs + F(",\"stai\":\"") + (ssid[0] ? (WiFi.isConnected() ? ((WiFi.localIP().toString() + ' ' + (ip ? F("Static IP") : F("DHCP"))).c_str()) : "Not Connected") : "-") + '"';
+  doc["sta"] = (ssid[0] ? F("on") : F("off"));
+  doc["stai"] = String(ssid[0] ? (WiFi.isConnected() ? (WiFi.localIP().toString() + ' ' + (ip ? F("Static IP") : F("DHCP"))).c_str() : "Not Connected") : "-");
 
-  gs = gs + F(",\"mac\":\"") + WiFi.macAddress() + '"';
+  doc["mac"] = WiFi.macAddress();
 
-  gs = gs + '}';
+  String gs;
+  serializeJson(doc, gs);
 
   return gs;
 }
@@ -261,23 +236,12 @@ bool WifiMan::appInit(bool reInit = false)
   {
     // build "unique" AP name (DEFAULT_AP_SSID + 4 last digit of ChipId)
     _apSsid[0] = 0;
-    strcpy(_apSsid, DEFAULT_AP_SSID);
-#ifdef ESP8266
-    uint16_t id = ESP.getChipId() & 0xFFFF;
-#else
-    uint16_t id = (uint32_t)(ESP.getEfuseMac() << 40 >> 40);
-#endif
 
-    byte endOfSsid = strlen(_apSsid);
-    byte num = (id & 0xF000) / 0x1000;
-    _apSsid[endOfSsid] = num + ((num <= 9) ? 0x30 : 0x37);
-    num = (id & 0xF00) / 0x100;
-    _apSsid[endOfSsid + 1] = num + ((num <= 9) ? 0x30 : 0x37);
-    num = (id & 0xF0) / 0x10;
-    _apSsid[endOfSsid + 2] = num + ((num <= 9) ? 0x30 : 0x37);
-    num = id & 0xF;
-    _apSsid[endOfSsid + 3] = num + ((num <= 9) ? 0x30 : 0x37);
-    _apSsid[endOfSsid + 4] = 0;
+#ifdef ESP8266
+    sprintf_P(_apSsid, PSTR("%s%04X"), DEFAULT_AP_SSID, ESP.getChipId() & 0xFFFF);
+#else
+    sprintf_P(_apSsid, PSTR("%s%04X"), DEFAULT_AP_SSID, (uint32_t)(ESP.getEfuseMac() << 40 >> 40));
+#endif
   }
 
   // make changes saved to flash
@@ -427,33 +391,34 @@ void WifiMan::appInitWebServer(WebServer &server, bool &shouldReboot, bool &paus
 
   server.on("/wnl", HTTP_GET, [this, &server]()
             {
+    // prepare response
+    SERVER_KEEPALIVE_FALSE()
+    server.sendHeader(F("Cache-Control"), F("no-cache"));
+
     int8_t n = WiFi.scanComplete();
     if (n == -2)
     {
-      SERVER_KEEPALIVE_FALSE()
-      server.sendHeader(F("Cache-Control"), F("no-cache"));
       server.send(200, F("text/json"), F("{\"r\":-2,\"wnl\":[]}"));
       WiFi.scanNetworks(true);
     }
     else if (n == -1)
     {
-      SERVER_KEEPALIVE_FALSE()
-      server.sendHeader(F("Cache-Control"), F("no-cache"));
       server.send(200, F("text/json"), F("{\"r\":-1,\"wnl\":[]}"));
     }
     else
     {
-      String networksJSON(F("{\"r\":"));
-      networksJSON = networksJSON + n + F(",\"wnl\":[");
+      JsonDocument doc;
+      doc["r"] = n;
+      JsonArray wnl = doc["wnl"].to<JsonArray>();
       for (byte i = 0; i < n; i++)
       {
-        networksJSON = networksJSON + F("{\"SSID\":\"") + WiFi.SSID(i) + F("\",\"RSSI\":") + WiFi.RSSI(i) + F("}");
-        if (i != (n - 1))
-          networksJSON += ',';
+        JsonObject wnl0 = wnl.add<JsonObject>();
+        wnl0["SSID"] = WiFi.SSID(i);
+        wnl0["RSSI"] = WiFi.RSSI(i);
       }
-      networksJSON += F("]}");
-      SERVER_KEEPALIVE_FALSE()
-      server.sendHeader(F("Cache-Control"), F("no-cache"));
+      String networksJSON;
+      serializeJson(doc, networksJSON);
+
       server.send(200, F("text/json"), networksJSON);
       WiFi.scanDelete();
     } });

@@ -5,7 +5,7 @@
 #include <LittleFS.h>
 #ifdef ESP8266
 #include <ESP8266WebServer.h>
-#define WebServer ESP8266WebServer
+using WebServer = ESP8266WebServer;
 #define SERVER_KEEPALIVE_FALSE() server.keepAlive(false);
 #else
 #include <WebServer.h>
@@ -55,7 +55,7 @@ protected:
 
   // specialization required from the application
   virtual void setConfigDefaultValues() = 0;
-  virtual void parseConfigJSON(JsonDocument &doc) = 0;
+  virtual void parseConfigJSON(JsonDocument &doc, bool fromWebPage = false) = 0;
   virtual bool parseConfigWebRequest(WebServer &server) = 0;
   virtual String generateConfigJSON(bool forSaveFile = false) = 0;
   virtual String generateStatusJSON() = 0;
