@@ -2110,7 +2110,7 @@ void WebPalaControl::setConfigDefaultValues()
 
 //------------------------------------------
 // Parse JSON object into configuration properties
-void WebPalaControl::parseConfigJSON(JsonDocument &doc)
+void WebPalaControl::parseConfigJSON(JsonDocument &doc, bool fromWebPage = false)
 {
   JsonVariant jv;
   char tempPassword[150 + 1] = {0};
