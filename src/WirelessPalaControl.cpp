@@ -2577,22 +2577,24 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
 void WebPalaControl::appRun()
 {
   if (_ha.protocol == HA_PROTO_MQTT)
+  {
     _mqttMan.loop();
+
+    // if Home Assistant discovery enabled and publish is needed
+    if (_ha.mqtt.hassDiscoveryEnabled && _needPublishHassDiscovery)
+    {
+      if (publishHassDiscoveryToMqtt()) // publish discovery
+      {
+        _needPublishHassDiscovery = false;
+        _needPublish = true; // force publishTick after discovery
+      }
+    }
+  }
 
   if (_needPublish)
   {
     _needPublish = false;
     publishTick();
-  }
-
-  // if MQTT and Home Assistant discovery enabled and publish is needed
-  if (_ha.protocol == HA_PROTO_MQTT && _ha.mqtt.hassDiscoveryEnabled && _needPublishHassDiscovery)
-  {
-    if (publishHassDiscoveryToMqtt()) // publish discovery
-    {
-      _needPublishHassDiscovery = false;
-      publishTick(); // publish immediately after HAss discovery
-    }
   }
 
   // Handle UDP requests
