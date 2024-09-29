@@ -274,6 +274,8 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   jsonDoc["state_topic"] = F("~/connected");
   jsonDoc["unique_id"] = uniqueId;
   jsonDoc["value_template"] = F("{{ iif(int(value) > 0, 'ON', 'OFF') }}");
+
+  jsonDoc.shrinkToFit();
   serializeJson(jsonDoc, payload);
 
   // publish
@@ -326,6 +328,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   jsonDoc["unique_id"] = uniqueId;
   jsonDoc["value_template"] = F("{{ iif(int(value) > 1, 'ON', 'OFF') }}");
 
+  jsonDoc.shrinkToFit();
   serializeJson(jsonDoc, payload);
 
   // publish
@@ -360,6 +363,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
     jsonDoc["value_template"] = F("{{ value_json.STATUS }}");
 
+  jsonDoc.shrinkToFit();
   serializeJson(jsonDoc, payload);
 
   // publish
@@ -396,6 +400,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   else if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
     jsonDoc["value_template"] = F("{% set ns = namespace(found=false) %}{% set statusList=[([0],'Off'),([1],'Off Timer'),([2],'Test Fire'),([3,4,5],'Ignition'),([6],'Burning'),([9],'Cool'),([10],'Fire Stop'),([11],'Clean Fire'),([12],'Cool'),([239],'MFDoor Alarm'),([240],'Fire Error'),([241],'Chimney Alarm'),([243],'Grate Error'),([244],'NTC2 Alarm'),([245],'NTC3 Alarm'),([247],'Door Alarm'),([248],'Pressure Alarm'),([249],'NTC1 Alarm'),([250],'TC1 Alarm'),([252],'Gas Alarm'),([253],'No Pellet Alarm')] %}{% for num,text in statusList %}{% if int(value_json.STATUS) in num %}{{ text }}{% set ns.found = true %}{% break %}{% endif %}{% endfor %}{% if not ns.found %}Unkown STATUS code {{ value_json.STATUS }}{% endif %}");
 
+  jsonDoc.shrinkToFit();
   serializeJson(jsonDoc, payload);
 
   // publish
@@ -438,6 +443,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   else if (_ha.mqtt.type == HA_MQTT_GENERIC_CATEGORIZED)
     jsonDoc["state_topic"] = String(F("~/TMPS/T")) + (char)('1' + MAINTPROBE);
 
+  jsonDoc.shrinkToFit();
   serializeJson(jsonDoc, payload);
 
   // publish
@@ -475,6 +481,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
     jsonDoc["value_template"] = F("{{ value_json.PQT }}");
 
+  jsonDoc.shrinkToFit();
   serializeJson(jsonDoc, payload);
 
   // publish
@@ -518,6 +525,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     else if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
       jsonDoc["value_template"] = F("{{ iif(int(value_json.STATUS) > 1 and int(value_json.STATUS) != 10, 'ON', 'OFF') }}");
 
+    jsonDoc.shrinkToFit();
     serializeJson(jsonDoc, payload);
 
     // publish
@@ -561,6 +569,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
       jsonDoc["value_template"] = F("{{ value_json.SETP }}");
 
+    jsonDoc.shrinkToFit();
     serializeJson(jsonDoc, payload);
 
     // publish
@@ -603,6 +612,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
       jsonDoc["value_template"] = F("{{ value_json.PWR }}");
 
+    jsonDoc.shrinkToFit();
     serializeJson(jsonDoc, payload);
 
     // publish
@@ -662,6 +672,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
       jsonDoc["value_template"] = F("{{ value_json.F2L }}");
 
+    jsonDoc.shrinkToFit();
     serializeJson(jsonDoc, payload);
 
     // publish
@@ -706,6 +717,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
     else if (_ha.mqtt.type == HA_MQTT_GENERIC_JSON)
       jsonDoc["value_template"] = F("{{ iif(int(value_json.F2L) == 7, 'ON', 'OFF') }}");
 
+    jsonDoc.shrinkToFit();
     serializeJson(jsonDoc, payload);
 
     // publish
@@ -761,6 +773,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
       jsonDoc["mode"] = F("slider");
     }
 
+    jsonDoc.shrinkToFit();
     serializeJson(jsonDoc, payload);
 
     // publish
@@ -816,6 +829,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
       jsonDoc["mode"] = F("slider");
     }
 
+    jsonDoc.shrinkToFit();
     serializeJson(jsonDoc, payload);
 
     // publish
