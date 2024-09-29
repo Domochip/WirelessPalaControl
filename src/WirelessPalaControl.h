@@ -59,7 +59,7 @@ private:
   bool _needPublish = false;
   Ticker _publishTicker;
   bool _publishedStoveConnected = false;
-  bool _needPublishHassDiscovery = false; // set to true when MQTT connection is established
+  bool _needPublishHassDiscovery = false;
 
   int myOpenSerial(uint32_t baudrate);
   void myCloseSerial();
