@@ -1,6 +1,5 @@
 #include "Core.h"
 #include <EEPROM.h>
-// #include <SPIFFSEditor.h>
 #include "../Main.h" //for VERSION define
 #include "Version.h" //for BASE_VERSION define
 
@@ -26,7 +25,8 @@ String Core::generateStatusJSON()
   unsigned long minutes = millis() / 60000;
 
   doc["sn"] = sn;
-  doc["b"] = BASE_VERSION "/" VERSION;
+  doc["b"] = BASE_VERSION;
+  doc["v"] = VERSION;
   doc["u"] = String((byte)(minutes / 1440)) + 'd' + (byte)(minutes / 60 % 24) + 'h' + (byte)(minutes % 60) + 'm';
   doc["f"] = ESP.getFreeHeap();
 #ifdef ESP8266
@@ -112,9 +112,9 @@ void Core::appInitWebServer(WebServer &server, bool &shouldReboot, bool &pauseAp
     //answer with a JSON string containing sn, model and version numbers
     char discoJSON[128];
 #ifdef ESP8266
-    sprintf_P(discoJSON, PSTR("{\"sn\":\"%08x\",\"m\":\"%s\",\"v\":\"%s\"}"), ESP.getChipId(), APPLICATION1_NAME, BASE_VERSION "/" VERSION);
+    sprintf_P(discoJSON, PSTR("{\"sn\":\"%08x\",\"m\":\"%s\",\"v\":\"%s\"}"), ESP.getChipId(), APPLICATION1_NAME, VERSION);
 #else
-    sprintf_P(discoJSON, PSTR("{\"sn\":\"%08x\",\"m\":\"%s\",\"v\":\"%s\"}"), (uint32_t)(ESP.getEfuseMac() << 40 >> 40), APPLICATION1_NAME, BASE_VERSION "/" VERSION);
+    sprintf_P(discoJSON, PSTR("{\"sn\":\"%08x\",\"m\":\"%s\",\"v\":\"%s\"}"), (uint32_t)(ESP.getEfuseMac() << 40 >> 40), APPLICATION1_NAME, VERSION);
 #endif
     SERVER_KEEPALIVE_FALSE()
     server.enableCORS(true); //allow this URL to be requested from everywhere
