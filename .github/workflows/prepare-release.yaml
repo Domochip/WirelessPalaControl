@@ -35,19 +35,16 @@ jobs:
         id: versions
         run: |
           VERSION_NUMBER=$(grep -oP '(?<=#define VERSION_NUMBER ").*(?=")'  ./src/Main.h)
-          BASE_VERSION=$(grep -oP '(?<=#define BASE_VERSION ").*(?=")'  ./src/base/Version.h)
           echo "VERSION_NUMBER=${VERSION_NUMBER}" >> $GITHUB_ENV
-          echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_ENV
-          echo "VERSION=v${BASE_VERSION}-${VERSION_NUMBER}" >> $GITHUB_ENV
 
       - name: Rename Firmware
-        run: mv .pio/build/d1_mini/WirelessPalaControl.bin .pio/build/d1_mini/WirelessPalaControl.${{ env.VERSION }}.bin
+        run: mv .pio/build/d1_mini/WirelessPalaControl.bin .pio/build/d1_mini/WirelessPalaControl.${{ env.VERSION_NUMBER }}.bin
 
       - name: Create Draft Release
         uses: softprops/action-gh-release@v2
         with:
           draft: true
-          tag_name: "${{ env.VERSION }}"
-          body: "Base Version: ${{ env.BASE_VERSION }}\nWPalaControl Version: ${{ env.VERSION_NUMBER }}"
+          tag_name: "${{ env.VERSION_NUMBER }}"
+          body: "WPalaControl Version: ${{ env.VERSION_NUMBER }}"
           generate_release_notes: true
-          files: .pio/build/d1_mini/WirelessPalaControl.${{ env.VERSION }}.bin
+          files: .pio/build/d1_mini/WirelessPalaControl.${{ env.VERSION_NUMBER }}.bin
