@@ -48,8 +48,7 @@ private:
   void refreshWiFi();
 
   void setConfigDefaultValues();
-  void parseConfigJSON(JsonDocument &doc, bool fromWebPage);
-  bool parseConfigWebRequest(WebServer &server);
+  bool parseConfigJSON(JsonDocument &doc, bool fromWebPage);
   String generateConfigJSON(bool forSaveFile);
   String generateStatusJSON();
   bool appInit(bool reInit);

@@ -119,8 +119,7 @@ bool Application::loadConfig()
     }
     else
     { // otherwise pass it to application
-      parseConfigJSON(jsonDoc);
-      result = true;
+      result = parseConfigJSON(jsonDoc);
     }
     configFile.close();
   }
@@ -209,23 +208,35 @@ void Application::initWebServer(WebServer &server, bool &shouldReboot, bool &pau
   sprintf_P(url, PSTR("/sc%c"), _appId);
   server.on(url, HTTP_POST, [this, &server]()
             {
-    if (!parseConfigWebRequest(server))
-      return;
+    // All responses have keep-alive set to false
+    SERVER_KEEPALIVE_FALSE()
 
-    //then save
-    bool result = saveConfig();
+    // config json are received in POST body (arg("plain"))
 
-    //Send client answer
-    if (result)
+    // Deserialize it
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, server.arg("plain"));
+    if (error)
     {
-      SERVER_KEEPALIVE_FALSE()
-      server.send(200);
-      _reInit = true;
+      server.send(400, F("text/html"), F("Malformed JSON"));
+      return;
     }
-    else{
-      SERVER_KEEPALIVE_FALSE()
+
+    // Parse it using the application method
+    if (!parseConfigJSON(doc, true)){
+      server.send(400, F("text/html"), F("Invalid Configuration"));
+      return;
+    }
+
+    // Save it
+    if (!saveConfig()){
       server.send(500, F("text/html"), F("Configuration hasn't been saved"));
-    } });
+      return;
+    }
+
+    //Everything went fine, Send client answer
+    server.send(200);
+    _reInit = true; });
 
 #if ENABLE_STATUS_EVTSRC
   // register EventSource Uri

@@ -55,8 +55,7 @@ protected:
 
   // specialization required from the application
   virtual void setConfigDefaultValues() = 0;
-  virtual void parseConfigJSON(JsonDocument &doc, bool fromWebPage = false) = 0;
-  virtual bool parseConfigWebRequest(WebServer &server) = 0;
+  virtual bool parseConfigJSON(JsonDocument &doc, bool fromWebPage = false) = 0;
   virtual String generateConfigJSON(bool forSaveFile = false) = 0;
   virtual String generateStatusJSON() = 0;
   virtual bool appInit(bool reInit = false) = 0;

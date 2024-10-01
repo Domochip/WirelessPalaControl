@@ -95,7 +95,7 @@ void WifiMan::setConfigDefaultValues()
   dns2 = 0;
 }
 
-void WifiMan::parseConfigJSON(JsonDocument &doc, bool fromWebPage = false)
+bool WifiMan::parseConfigJSON(JsonDocument &doc, bool fromWebPage = false)
 {
   JsonVariant jv;
   char tempPassword[64 + 1] = {0};
@@ -155,24 +155,6 @@ void WifiMan::parseConfigJSON(JsonDocument &doc, bool fromWebPage = false)
     else
       dns2 = 0;
   }
-}
-
-bool WifiMan::parseConfigWebRequest(WebServer &server)
-{
-  // config json is received in POST body (arg("plain"))
-
-  // parse JSON
-  JsonDocument doc;
-  DeserializationError error = deserializeJson(doc, server.arg("plain"));
-
-  if (error)
-  {
-    SERVER_KEEPALIVE_FALSE()
-    server.send(400, F("text/html"), F("Malformed JSON"));
-    return false;
-  }
-
-  parseConfigJSON(doc, true);
 
   return true;
 }
