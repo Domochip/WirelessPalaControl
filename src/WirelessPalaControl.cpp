@@ -2130,7 +2130,7 @@ void WebPalaControl::setConfigDefaultValues()
 
 //------------------------------------------
 // Parse JSON object into configuration properties
-void WebPalaControl::parseConfigJSON(JsonDocument &doc, bool fromWebPage = false)
+bool WebPalaControl::parseConfigJSON(JsonDocument &doc, bool fromWebPage = false)
 {
   JsonVariant jv;
   char tempPassword[150 + 1] = {0};
@@ -2191,26 +2191,6 @@ void WebPalaControl::parseConfigJSON(JsonDocument &doc, bool fromWebPage = false
 
     break;
   }
-}
-
-//------------------------------------------
-// Parse HTTP POST parameters in request into configuration properties
-bool WebPalaControl::parseConfigWebRequest(WebServer &server)
-{
-  // config json is received in POST body (arg("plain"))
-
-  // parse JSON
-  JsonDocument doc;
-  DeserializationError error = deserializeJson(doc, server.arg("plain"));
-
-  if (error)
-  {
-    SERVER_KEEPALIVE_FALSE()
-    server.send(400, F("text/html"), F("Malformed JSON"));
-    return false;
-  }
-
-  parseConfigJSON(doc, true);
 
   return true;
 }
