@@ -118,6 +118,7 @@ void WebPalaControl::publishStoveConnectedToMqtt(bool stoveConnected)
   {
     // if Stove is connected, publish 2 to connected topic otherwise fallback to 1
     _mqttMan.publishToConnectedTopic((stoveConnected ? "2" : "1"));
+    _needPublishHassDiscovery = true; // raise flag to publish Home Assistant discovery data
     _publishedStoveConnected = stoveConnected;
   }
 }
@@ -175,47 +176,10 @@ bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &pa
 
 bool WebPalaControl::publishHassDiscoveryToMqtt()
 {
-  if (!_Pala.isInitialized() || !_mqttMan.connected())
+  if (!_mqttMan.connected())
     return false;
 
   LOG_SERIAL.println(F("Publish Home Assistant Discovery data"));
-
-  // read static data from stove
-  char SN[28];
-  byte SNCHK;
-  uint16_t MOD, VER;
-  char FWDATE[11];
-  uint16_t FLUID;
-  byte MAINTPROBE;
-  byte STOVETYPE;
-  byte FAN2TYPE;
-  byte FAN2MODE;
-  if (Palazzetti::CommandResult::OK != _Pala.getStaticData(&SN, &SNCHK, nullptr, &MOD, &VER, nullptr, &FWDATE, &FLUID, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, nullptr, nullptr, nullptr, nullptr, nullptr))
-    return false;
-
-  // read all status from stove
-  bool refreshStatus = false;
-  unsigned long currentMillis = millis();
-  if ((currentMillis - _lastAllStatusRefreshMillis) > 15000UL) // refresh AllStatus data if it's 15sec old
-    refreshStatus = true;
-  float SETP;
-  uint16_t FANLMINMAX[6];
-  if (Palazzetti::CommandResult::OK != _Pala.getAllStatus(false, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &SETP, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &FANLMINMAX, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr))
-    return false;
-  else if (refreshStatus)
-    _lastAllStatusRefreshMillis = currentMillis;
-
-  // calculate flags (https://github.com/palazzetti/palazzetti-sdk-asset-parser-python/blob/main/palazzetti_sdk_asset_parser/data/asset_parser.json)
-  bool hasSetPoint = (SETP != 0);
-  bool hasPower = (STOVETYPE != 8);
-  bool hasOnOff = (STOVETYPE != 7 && STOVETYPE != 8);
-  bool hasRoomFan = (FAN2TYPE > 1);
-  bool hasFan3 = (FAN2TYPE > 3);
-  bool ifFan3SwitchEntity = (FANLMINMAX[2] == 0 && FANLMINMAX[3] == 1);
-  bool hasFan4 = (FAN2TYPE > 2);
-  bool ifFan4SwitchEntity = (FANLMINMAX[4] == 0 && FANLMINMAX[5] == 1);
-  bool isAirType = (STOVETYPE == 1 || STOVETYPE == 3 || STOVETYPE == 5 || STOVETYPE == 7 || STOVETYPE == 8);
-  bool hasFanAuto = (FAN2MODE == 2 || FAN2MODE == 3);
 
   // variables
   JsonDocument jsonDoc;
@@ -229,16 +193,12 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   baseTopic = _ha.mqtt.generic.baseTopic;
   MQTTMan::prepareTopic(baseTopic);
 
+  // ---------- WPalaControl Device ----------
+
   // prepare unique id prefix for WPalaControl
   uniqueIdPrefixWPalaControl = F("WPalaControl_");
   uniqueIdPrefixWPalaControl += WiFi.macAddress();
   uniqueIdPrefixWPalaControl.replace(":", "");
-
-  // prepare unique id prefix for Stove
-  uniqueIdPrefixStove = F("WPalaControl_");
-  uniqueIdPrefixStove += SN;
-
-  // ---------- WPalaControl Device ----------
 
   // prepare WPalaControl device JSON
   jsonDoc["configuration_url"] = F("http://wpalacontrol.local");
@@ -286,7 +246,53 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   payload = "";
   device = "";
 
+  // ---------- Get Stove Device data ----------
+
+  if (!_Pala.isInitialized())
+    return true;
+
+  // read static data from stove
+  char SN[28];
+  byte SNCHK;
+  uint16_t MOD, VER;
+  char FWDATE[11];
+  uint16_t FLUID;
+  byte MAINTPROBE;
+  byte STOVETYPE;
+  byte FAN2TYPE;
+  byte FAN2MODE;
+  if (Palazzetti::CommandResult::OK != _Pala.getStaticData(&SN, &SNCHK, nullptr, &MOD, &VER, nullptr, &FWDATE, &FLUID, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &MAINTPROBE, &STOVETYPE, &FAN2TYPE, &FAN2MODE, nullptr, nullptr, nullptr, nullptr, nullptr))
+    return false;
+
+  // read all status from stove
+  bool refreshStatus = false;
+  unsigned long currentMillis = millis();
+  if ((currentMillis - _lastAllStatusRefreshMillis) > 15000UL) // refresh AllStatus data if it's 15sec old
+    refreshStatus = true;
+  float SETP;
+  uint16_t FANLMINMAX[6];
+  if (Palazzetti::CommandResult::OK != _Pala.getAllStatus(false, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &SETP, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &FANLMINMAX, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr))
+    return false;
+  else if (refreshStatus)
+    _lastAllStatusRefreshMillis = currentMillis;
+
+  // calculate flags (https://github.com/palazzetti/palazzetti-sdk-asset-parser-python/blob/main/palazzetti_sdk_asset_parser/data/asset_parser.json)
+  bool hasSetPoint = (SETP != 0);
+  bool hasPower = (STOVETYPE != 8);
+  bool hasOnOff = (STOVETYPE != 7 && STOVETYPE != 8);
+  bool hasRoomFan = (FAN2TYPE > 1);
+  bool hasFan3 = (FAN2TYPE > 3);
+  bool ifFan3SwitchEntity = (FANLMINMAX[2] == 0 && FANLMINMAX[3] == 1);
+  bool hasFan4 = (FAN2TYPE > 2);
+  bool ifFan4SwitchEntity = (FANLMINMAX[4] == 0 && FANLMINMAX[5] == 1);
+  bool isAirType = (STOVETYPE == 1 || STOVETYPE == 3 || STOVETYPE == 5 || STOVETYPE == 7 || STOVETYPE == 8);
+  bool hasFanAuto = (FAN2MODE == 2 || FAN2MODE == 3);
+
   // ---------- Stove Device ----------
+
+  // prepare unique id prefix for Stove
+  uniqueIdPrefixStove = F("WPalaControl_");
+  uniqueIdPrefixStove += SN;
 
   // prepare availability JSON for Stove entities
   jsonDoc["topic"] = F("~/connected");
