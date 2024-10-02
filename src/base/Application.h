@@ -26,6 +26,7 @@ protected:
     status,
     config,
     fw,
+    mn,
     discover
   } WebPageForPlaceHolder;
 

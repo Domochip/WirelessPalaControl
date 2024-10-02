@@ -48,6 +48,7 @@
                             class="pure-menu-link">Status</a></li>
                     <li class="pure-menu-item" id="menuConfig"><a href="" class="pure-menu-link">Config</a></li>
                     <li class="pure-menu-item" id="menuFirmware"><a href="" class="pure-menu-link">Firmware</a></li>
+                    <li class="pure-menu-item" id="menuMonitor"><a href="" class="pure-menu-link">Monitor</a></li>
                     <li class="pure-menu-item" id="menuDiscover"><a href="" class="pure-menu-link">Discover</a></li>
                 </ul>
             </div>
@@ -171,11 +172,11 @@
             el.dispatchEvent(evt);
         }
 
-
         function emptyContents() {
             $("#menuStatus").classList.remove("pure-menu-selected");
             $("#menuConfig").classList.remove("pure-menu-selected");
             $("#menuFirmware").classList.remove("pure-menu-selected");
+            $("#menuMonitor").classList.remove("pure-menu-selected");
             $("#menuDiscover").classList.remove("pure-menu-selected");
 
             $("#content0").innerHTML = '';
@@ -227,6 +228,14 @@
             $("#menuFirmware").classList.add("pure-menu-selected");
             $("#mainHeader").textContent = "Firmware";
             load($("#content0"), "/fw0.html");
+        });
+
+        $("#menuMonitor").addEventListener("click", function (evt) {
+            evt.preventDefault();
+            emptyContents();
+            $("#menuMonitor").classList.add("pure-menu-selected");
+            $("#mainHeader").textContent = "Monitor";
+            load($("#content0"), "/mn0.html");
         });
 
         $("#menuDiscover").addEventListener("click", function (evt) {
