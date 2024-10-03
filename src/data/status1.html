@@ -56,7 +56,7 @@
         }
     );
 
-    if (!!window.EventSource) {
+    if (!!window.EventSource && (typeof statusEventSource === 'undefined' || statusEventSource.readyState === 2)) {
         var statusEventSource = new EventSource('/statusEvt' + qsp[8]);
         statusEventSource.addEventListener('message', function (e) {
             console.log('statusEvt' + qsp[8] + ' : ' + e.data);
