@@ -10,23 +10,14 @@ using WebServer = ESP8266WebServer;
 #include <LittleFS.h>
 #include <FS.h>
 
-
 #include "Version.h"
 #include "../Main.h"
 #include "Application.h"
 #include "Core.h"
 #include "WifiMan.h"
 
-// include Application header files
-#ifdef APPLICATION1_HEADER
+// include Application header file
 #include APPLICATION1_HEADER
-#endif
-#ifdef APPLICATION2_HEADER
-#include APPLICATION2_HEADER
-#endif
-#ifdef APPLICATION3_HEADER
-#include APPLICATION3_HEADER
-#endif
 
 // System
 Core core('0', "Core");
@@ -42,17 +33,7 @@ bool pauseApplication = false;
 bool shouldReboot = false;
 
 // Application1 object
-#ifdef APPLICATION1_CLASS
 APPLICATION1_CLASS application1('1', APPLICATION1_NAME);
-#endif
-// Application2 object
-#ifdef APPLICATION2_CLASS
-APPLICATION2_CLASS application2('2', APPLICATION2_NAME);
-#endif
-// Application3 object
-#ifdef APPLICATION3_CLASS
-APPLICATION3_CLASS application3('3', APPLICATION3_NAME);
-#endif
 
 //-----------------------------------------------------------------------
 // Setup function
@@ -136,31 +117,16 @@ void setup()
   // Init WiFi
   wifiMan.init(skipExistingConfig);
 
-// Init Application
-#ifdef APPLICATION1_CLASS
+  // Init Application
   application1.init(skipExistingConfig);
-#endif
-#ifdef APPLICATION2_CLASS
-  application2.init(skipExistingConfig);
-#endif
-#ifdef APPLICATION3_CLASS
-  application3.init(skipExistingConfig);
-#endif
 
 #ifdef LOG_SERIAL
   LOG_SERIAL.print(F("Start WebServer : "));
 #endif
   core.initWebServer(server, shouldReboot, pauseApplication);
   wifiMan.initWebServer(server, shouldReboot, pauseApplication);
-#ifdef APPLICATION1_CLASS
   application1.initWebServer(server, shouldReboot, pauseApplication);
-#endif
-#ifdef APPLICATION2_CLASS
-  application2.initWebServer(server, shouldReboot, pauseApplication);
-#endif
-#ifdef APPLICATION3_CLASS
-  application3.initWebServer(server, shouldReboot, pauseApplication);
-#endif
+
   server.begin();
 #ifdef LOG_SERIAL
   LOG_SERIAL.println(F("OK"));
@@ -180,15 +146,7 @@ void loop(void)
 
   if (!pauseApplication)
   {
-#ifdef APPLICATION1_CLASS
     application1.run();
-#endif
-#ifdef APPLICATION2_CLASS
-    application2.run();
-#endif
-#ifdef APPLICATION3_CLASS
-    application3.run();
-#endif
   }
 
   wifiMan.run();

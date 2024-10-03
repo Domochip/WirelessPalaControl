@@ -181,8 +181,6 @@
             $("#content0").innerHTML = '';
             $("#contentw").innerHTML = '';
             $("#content1").innerHTML = '';
-            $("#content2").innerHTML = '';
-            $("#content3").innerHTML = '';
         };
 
         $("#menuStatus").addEventListener("click", function (evt) {
@@ -204,8 +202,6 @@
                     $("#menuAppName").innerText = $("#shortApplicationName").innerText;
                 }
             });
-            load($("#content2"), "/status2.html");
-            load($("#content3"), "/status3.html");
         });
         triggerEvent($("#menuStatus"), 'click');
 
@@ -217,8 +213,6 @@
             load($("#content0"), "/config0.html");
             load($("#contentw"), "/configw.html");
             load($("#content1"), "/config1.html");
-            load($("#content2"), "/config2.html");
-            load($("#content3"), "/config3.html");
         });
 
         $("#menuFirmware").addEventListener("click", function (evt) {
