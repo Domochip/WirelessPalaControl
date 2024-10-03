@@ -171,6 +171,7 @@
     });
 
     $(qsp + "#f1").addEventListener('submit', function (event) {
+        event.preventDefault();
         $(qsp + "#r").innerHTML = "Saving Configuration...";
         post("/sc" + qsp[8],
             convertFormDataToJson(new FormData($(qsp + "#f1"))),
@@ -184,7 +185,6 @@
                 $(qsp + '#r').innerHTML = '<h3><b>Configuration <span style="color: red;">error</span>.</b></h3>';
             }
         );
-        event.preventDefault();
     });
 
     getJSON("/gc" + qsp[8],
