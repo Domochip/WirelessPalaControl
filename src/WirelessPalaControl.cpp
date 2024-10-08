@@ -898,6 +898,10 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
 
       cmdParams[cmdParamNumber] = strCmdParams[cmdParamNumber].toInt();
 
+      // special case EXT ADRD and EXT ADWR (first parameter is an hexadecimal address)
+      if (cmdParamNumber == 0 && (cmd.startsWith(F("EXT ADRD ")) || cmd.startsWith(F("EXT ADWR "))))
+        cmdParams[cmdParamNumber] = strtol(strCmdParams[cmdParamNumber].c_str(), NULL, 16);
+
       // verify convertion is successfull
       // ( copy strCmdParams and remove all 0 from the string, if convertion result is 0, then resulting string should be empty)
       String validation = strCmdParams[cmdParamNumber];
@@ -1985,6 +1989,28 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
         data["STOVE_DATETIME"] = STOVE_DATETIMEReturn;
         data["STOVE_WDAY"] = STOVE_WDAYReturn;
       }
+    }
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("EXT ADRD")))
+  {
+    cmdProcessed = true;
+    palaCategory = F("ADRD");
+
+    if (cmdParamNumber != 2 && cmdParamNumber != 3)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    // the third parameter was designed for Micronova MB and is not used in Fumis board
+
+    uint16_t ADDR_DATA;
+    cmdSuccess = _Pala.readData(cmdParams[0], cmdParams[1], &ADDR_DATA);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      String addrName(F("ADDR_"));
+      // append the first parameter as hex string
+      addrName += String(cmdParams[0], HEX);
+      data[addrName] = ADDR_DATA;
     }
   }
 
