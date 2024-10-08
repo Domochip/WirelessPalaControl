@@ -855,13 +855,13 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   bool cmdProcessed = false;                                                             // cmd has been processed
   Palazzetti::CommandResult cmdSuccess = Palazzetti::CommandResult::COMMUNICATION_ERROR; // Palazzetti function calls successful
 
-  // Prepare answer structure
+  // Prepare answer structure --------------------------------------------------
   JsonDocument jsonDoc;
   JsonObject info = jsonDoc["INFO"].to<JsonObject>();
   JsonObject data = jsonDoc["DATA"].to<JsonObject>();
   String palaCategory; // used to return data to the correct MQTT category (if needed)
 
-  // Parse parameters
+  // Parse parameters ----------------------------------------------------------
   byte cmdParamNumber = 0;
   String strCmdParams[6];
   uint16_t cmdParams[6];
@@ -871,14 +871,14 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     String cmdWorkingCopy = cmd.substring(9);
     cmdWorkingCopy.trim();
 
-    // SET TIME special case
+    // special case SET TIME
     if (cmd.startsWith(F("SET TIME ")))
     {
       cmdWorkingCopy.replace('-', ' ');
       cmdWorkingCopy.replace(':', ' ');
     }
 
-    // SET STPF special case
+    // special case SET STPF
     if (cmd.startsWith(F("SET STPF ")))
       cmdWorkingCopy.replace('.', ' ');
 
@@ -895,6 +895,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
         strCmdParams[cmdParamNumber] = cmdWorkingCopy.substring(0, pos);
         cmdWorkingCopy = cmdWorkingCopy.substring(pos + 1);
       }
+
       cmdParams[cmdParamNumber] = strCmdParams[cmdParamNumber].toInt();
 
       // verify convertion is successfull
@@ -915,6 +916,390 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     {
       cmdProcessed = true;
       info["MSG"] = F("Incorrect Parameter Number");
+    }
+  }
+
+  // Process commands ---------------------------------------------------------
+
+  if (!cmdProcessed && cmd == F("CMD OFF"))
+  {
+    cmdProcessed = true;
+    palaCategory = F("STAT");
+
+    uint16_t STATUS, LSTATUS, FSTATUS;
+    cmdSuccess = _Pala.switchOff(&STATUS, &LSTATUS, &FSTATUS);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      data["STATUS"] = STATUS;
+      data["LSTATUS"] = LSTATUS;
+      data["FSTATUS"] = FSTATUS;
+    }
+  }
+
+  if (!cmdProcessed && cmd == F("CMD ON"))
+  {
+    cmdProcessed = true;
+    palaCategory = F("STAT");
+
+    uint16_t STATUS, LSTATUS, FSTATUS;
+    cmdSuccess = _Pala.switchOn(&STATUS, &LSTATUS, &FSTATUS);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      data["STATUS"] = STATUS;
+      data["LSTATUS"] = LSTATUS;
+      data["FSTATUS"] = FSTATUS;
+    }
+  }
+
+  if (!cmdProcessed && cmd == F("GET ALLS"))
+  {
+    cmdProcessed = true;
+    palaCategory = F("ALLS");
+
+    bool refreshStatus = false;
+    unsigned long currentMillis = millis();
+    if ((currentMillis - _lastAllStatusRefreshMillis) > 15000UL) // refresh AllStatus data if it's 15sec old
+      refreshStatus = true;
+
+    int MBTYPE;
+    uint16_t MOD, VER, CORE;
+    char FWDATE[11];
+    char APLTS[20];
+    uint16_t APLWDAY;
+    byte CHRSTATUS;
+    uint16_t STATUS, LSTATUS;
+    bool isMFSTATUSValid;
+    uint16_t MFSTATUS;
+    float SETP;
+    byte PUMP;
+    uint16_t PQT;
+    uint16_t F1V;
+    uint16_t F1RPM;
+    uint16_t F2L;
+    uint16_t F2LF;
+    uint16_t FANLMINMAX[6];
+    uint16_t F2V;
+    bool isF3LF4LValid;
+    uint16_t F3L;
+    uint16_t F4L;
+    byte PWR;
+    float FDR;
+    uint16_t DPT;
+    uint16_t DP;
+    byte IN;
+    byte OUT;
+    float T1, T2, T3, T4, T5;
+    bool isSNValid;
+    char SN[28];
+    cmdSuccess = _Pala.getAllStatus(refreshStatus, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &APLTS, &APLWDAY, &CHRSTATUS, &STATUS, &LSTATUS, &isMFSTATUSValid, &MFSTATUS, &SETP, &PUMP, &PQT, &F1V, &F1RPM, &F2L, &F2LF, &FANLMINMAX, &F2V, &isF3LF4LValid, &F3L, &F4L, &PWR, &FDR, &DPT, &DP, &IN, &OUT, &T1, &T2, &T3, &T4, &T5, &isSNValid, &SN);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      if (refreshStatus)
+        _lastAllStatusRefreshMillis = currentMillis;
+
+      data["MBTYPE"] = MBTYPE;
+      data["MAC"] = WiFi.macAddress();
+      data["MOD"] = MOD;
+      data["VER"] = VER;
+      data["CORE"] = CORE;
+      data["FWDATE"] = FWDATE;
+      data["APLTS"] = APLTS;
+      data["APLWDAY"] = APLWDAY;
+      data["CHRSTATUS"] = CHRSTATUS;
+      data["STATUS"] = STATUS;
+      data["LSTATUS"] = LSTATUS;
+      if (isMFSTATUSValid)
+        data["MFSTATUS"] = MFSTATUS;
+      data["SETP"] = serialized(String(SETP, 2));
+      data["PUMP"] = PUMP;
+      data["PQT"] = PQT;
+      data["F1V"] = F1V;
+      data["F1RPM"] = F1RPM;
+      data["F2L"] = F2L;
+      data["F2LF"] = F2LF;
+      JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
+      fanlminmax.add(FANLMINMAX[0]);
+      fanlminmax.add(FANLMINMAX[1]);
+      fanlminmax.add(FANLMINMAX[2]);
+      fanlminmax.add(FANLMINMAX[3]);
+      fanlminmax.add(FANLMINMAX[4]);
+      fanlminmax.add(FANLMINMAX[5]);
+      data["F2V"] = F2V;
+      if (isF3LF4LValid)
+      {
+        data["F3L"] = F3L;
+        data["F4L"] = F4L;
+      }
+      data["PWR"] = PWR;
+      data["FDR"] = serialized(String(FDR, 2));
+      data["DPT"] = DPT;
+      data["DP"] = DP;
+      data["IN"] = IN;
+      data["OUT"] = OUT;
+      data["T1"] = serialized(String(T1, 2));
+      data["T2"] = serialized(String(T2, 2));
+      data["T3"] = serialized(String(T3, 2));
+      data["T4"] = serialized(String(T4, 2));
+      data["T5"] = serialized(String(T5, 2));
+
+      data["EFLAGS"] = 0; // new ErrorFlags not implemented
+      if (isSNValid)
+        data["SN"] = SN;
+    }
+  }
+
+  if (!cmdProcessed && cmd == F("GET CHRD"))
+  {
+    cmdProcessed = true;
+    palaCategory = F("CHRD");
+
+    byte CHRSTATUS;
+    float PCHRSETP[6];
+    byte PSTART[6][2];
+    byte PSTOP[6][2];
+    byte DM[7][3];
+    cmdSuccess = _Pala.getChronoData(&CHRSTATUS, &PCHRSETP, &PSTART, &PSTOP, &DM);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      data["CHRSTATUS"] = CHRSTATUS;
+
+      // Add Programs (P1->P6)
+      char programName[3] = {'P', 'X', 0};
+      char time[6] = {'0', '0', ':', '0', '0', 0};
+      for (byte i = 0; i < 6; i++)
+      {
+        programName[1] = i + '1';
+        JsonObject px = data[programName].to<JsonObject>();
+        px["CHRSETP"] = serialized(String(PCHRSETP[i], 2));
+        time[0] = PSTART[i][0] / 10 + '0';
+        time[1] = PSTART[i][0] % 10 + '0';
+        time[3] = PSTART[i][1] / 10 + '0';
+        time[4] = PSTART[i][1] % 10 + '0';
+        px["START"] = time;
+        time[0] = PSTOP[i][0] / 10 + '0';
+        time[1] = PSTOP[i][0] % 10 + '0';
+        time[3] = PSTOP[i][1] / 10 + '0';
+        time[4] = PSTOP[i][1] % 10 + '0';
+        px["STOP"] = time;
+      }
+
+      // Add Days (D1->D7)
+      char dayName[3] = {'D', 'X', 0};
+      char memoryName[3] = {'M', 'X', 0};
+      for (byte dayNumber = 0; dayNumber < 7; dayNumber++)
+      {
+        dayName[1] = dayNumber + '1';
+        JsonObject dx = data[dayName].to<JsonObject>();
+        for (byte memoryNumber = 0; memoryNumber < 3; memoryNumber++)
+        {
+          memoryName[1] = memoryNumber + '1';
+          if (DM[dayNumber][memoryNumber])
+          {
+            programName[1] = DM[dayNumber][memoryNumber] + '0';
+            dx[memoryName] = programName;
+          }
+          else
+            dx[memoryName] = F("OFF");
+        }
+      }
+    }
+  }
+
+  if (!cmdProcessed && (cmd == F("GET CNTR") || cmd == F("GET CUNT")))
+  {
+    cmdProcessed = true;
+    palaCategory = F("CNTR");
+
+    uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQT;
+    cmdSuccess = _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQT);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      data["IGN"] = IGN;
+      data["POWERTIME"] = String(POWERTIMEh) + ':' + (POWERTIMEm / 10) + (POWERTIMEm % 10);
+      data["HEATTIME"] = String(HEATTIMEh) + ':' + (HEATTIMEm / 10) + (HEATTIMEm % 10);
+      data["SERVICETIME"] = String(SERVICETIMEh) + ':' + (SERVICETIMEm / 10) + (SERVICETIMEm % 10);
+      data["ONTIME"] = String(ONTIMEh) + ':' + (ONTIMEm / 10) + (ONTIMEm % 10);
+      data["OVERTMPERRORS"] = OVERTMPERRORS;
+      data["IGNERRORS"] = IGNERRORS;
+      data["PQT"] = PQT;
+    }
+  }
+
+  if (!cmdProcessed && cmd == F("GET DPRS"))
+  {
+    cmdProcessed = true;
+    palaCategory = F("DPRS");
+
+    uint16_t DP_TARGET, DP_PRESS;
+    cmdSuccess = _Pala.getDPressData(&DP_TARGET, &DP_PRESS);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      data["DP_TARGET"] = DP_TARGET;
+      data["DP_PRESS"] = DP_PRESS;
+    }
+  }
+
+  if (!cmdProcessed && cmd == F("GET FAND"))
+  {
+    cmdProcessed = true;
+    palaCategory = F("FAND");
+
+    uint16_t F1V, F2V, F1RPM, F2L, F2LF;
+    bool isF3SF4SValid;
+    float F3S, F4S;
+    bool isF3LF4LValid;
+    uint16_t F3L, F4L;
+    cmdSuccess = _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3SF4SValid, &F3S, &F4S, &isF3LF4LValid, &F3L, &F4L);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      data["F1V"] = F1V;
+      data["F2V"] = F2V;
+      data["F1RPM"] = F1RPM;
+      data["F2L"] = F2L;
+      data["F2LF"] = F2LF;
+      if (isF3SF4SValid)
+      {
+        data["F3S"] = serialized(String(F3S, 2));
+        data["F4S"] = serialized(String(F4S, 2));
+      }
+      if (isF3LF4LValid)
+      {
+        data["F3L"] = F3L;
+        data["F4L"] = F4L;
+      }
+    }
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("GET HPAR ")))
+  {
+    cmdProcessed = true;
+    palaCategory = F("HPAR");
+
+    if (cmdParamNumber != 1)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    if (info["MSG"].isNull())
+    {
+      uint16_t hiddenParamValue;
+      cmdSuccess = _Pala.getHiddenParameter(cmdParams[0], &hiddenParamValue);
+
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
+      {
+        String hiddenParamName("HPAR");
+        hiddenParamName += cmdParams[0];
+        data[hiddenParamName] = hiddenParamValue;
+      }
+    }
+  }
+
+  if (!cmdProcessed && cmd == F("GET IOPT"))
+  {
+    cmdProcessed = true;
+    palaCategory = F("IOPT");
+
+    byte IN_I01, IN_I02, IN_I03, IN_I04;
+    byte OUT_O01, OUT_O02, OUT_O03, OUT_O04, OUT_O05, OUT_O06, OUT_O07;
+    cmdSuccess = _Pala.getIO(&IN_I01, &IN_I02, &IN_I03, &IN_I04, &OUT_O01, &OUT_O02, &OUT_O03, &OUT_O04, &OUT_O05, &OUT_O06, &OUT_O07);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      data["IN_I01"] = IN_I01;
+      data["IN_I02"] = IN_I02;
+      data["IN_I03"] = IN_I03;
+      data["IN_I04"] = IN_I04;
+      data["OUT_O01"] = OUT_O01;
+      data["OUT_O02"] = OUT_O02;
+      data["OUT_O03"] = OUT_O03;
+      data["OUT_O04"] = OUT_O04;
+      data["OUT_O05"] = OUT_O05;
+      data["OUT_O06"] = OUT_O06;
+      data["OUT_O07"] = OUT_O07;
+    }
+  }
+
+  if (!cmdProcessed && cmd == F("GET LABL"))
+  {
+    cmdProcessed = true;
+    palaCategory = F("LABL");
+    cmdSuccess = Palazzetti::CommandResult::OK;
+
+    data["LABEL"] = WiFi.getHostname();
+  }
+
+  if (!cmdProcessed && cmd == F("GET MDVE"))
+  {
+    cmdProcessed = true;
+    palaCategory = F("MDVE");
+
+    uint16_t MOD, VER, CORE;
+    char FWDATE[11];
+    cmdSuccess = _Pala.getModelVersion(&MOD, &VER, &CORE, &FWDATE);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      data["MOD"] = MOD;
+      data["VER"] = VER;
+      data["CORE"] = CORE;
+      data["FWDATE"] = FWDATE;
+    }
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("GET PARM ")))
+  {
+    cmdProcessed = true;
+    palaCategory = F("PARM");
+
+    if (cmdParamNumber != 1)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    if (info["MSG"].isNull())
+    {
+      byte paramValue;
+      cmdSuccess = _Pala.getParameter(cmdParams[0], &paramValue);
+
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
+      {
+        String paramName("PAR");
+        paramName += cmdParams[0];
+        data[paramName] = paramValue;
+      }
+    }
+  }
+
+  if (!cmdProcessed && cmd == F("GET SETP"))
+  {
+    cmdProcessed = true;
+    palaCategory = F("SETP");
+
+    float SETP;
+    cmdSuccess = _Pala.getSetPoint(&SETP);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      data["SETP"] = serialized(String(SETP, 2));
+    }
+  }
+
+  if (!cmdProcessed && cmd == F("GET STAT"))
+  {
+    cmdProcessed = true;
+    palaCategory = F("STAT");
+
+    uint16_t STATUS, LSTATUS, FSTATUS;
+    cmdSuccess = _Pala.getStatus(&STATUS, &LSTATUS, &FSTATUS);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      data["STATUS"] = STATUS;
+      data["LSTATUS"] = LSTATUS;
+      data["FSTATUS"] = FSTATUS;
     }
   }
 
@@ -1025,126 +1410,19 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     }
   }
 
-  if (!cmdProcessed && cmd == F("GET LABL"))
+  if (!cmdProcessed && cmd == F("GET TIME"))
   {
     cmdProcessed = true;
-    palaCategory = F("LABL");
-    cmdSuccess = Palazzetti::CommandResult::OK;
+    palaCategory = F("TIME");
 
-    data["LABEL"] = WiFi.getHostname();
-  }
-
-  if (!cmdProcessed && cmd == F("GET ALLS"))
-  {
-    cmdProcessed = true;
-    palaCategory = F("ALLS");
-
-    bool refreshStatus = false;
-    unsigned long currentMillis = millis();
-    if ((currentMillis - _lastAllStatusRefreshMillis) > 15000UL) // refresh AllStatus data if it's 15sec old
-      refreshStatus = true;
-
-    int MBTYPE;
-    uint16_t MOD, VER, CORE;
-    char FWDATE[11];
-    char APLTS[20];
-    uint16_t APLWDAY;
-    byte CHRSTATUS;
-    uint16_t STATUS, LSTATUS;
-    bool isMFSTATUSValid;
-    uint16_t MFSTATUS;
-    float SETP;
-    byte PUMP;
-    uint16_t PQT;
-    uint16_t F1V;
-    uint16_t F1RPM;
-    uint16_t F2L;
-    uint16_t F2LF;
-    uint16_t FANLMINMAX[6];
-    uint16_t F2V;
-    bool isF3LF4LValid;
-    uint16_t F3L;
-    uint16_t F4L;
-    byte PWR;
-    float FDR;
-    uint16_t DPT;
-    uint16_t DP;
-    byte IN;
-    byte OUT;
-    float T1, T2, T3, T4, T5;
-    bool isSNValid;
-    char SN[28];
-    cmdSuccess = _Pala.getAllStatus(refreshStatus, &MBTYPE, &MOD, &VER, &CORE, &FWDATE, &APLTS, &APLWDAY, &CHRSTATUS, &STATUS, &LSTATUS, &isMFSTATUSValid, &MFSTATUS, &SETP, &PUMP, &PQT, &F1V, &F1RPM, &F2L, &F2LF, &FANLMINMAX, &F2V, &isF3LF4LValid, &F3L, &F4L, &PWR, &FDR, &DPT, &DP, &IN, &OUT, &T1, &T2, &T3, &T4, &T5, &isSNValid, &SN);
+    char STOVE_DATETIME[20];
+    byte STOVE_WDAY;
+    cmdSuccess = _Pala.getDateTime(&STOVE_DATETIME, &STOVE_WDAY);
 
     if (cmdSuccess == Palazzetti::CommandResult::OK)
     {
-      if (refreshStatus)
-        _lastAllStatusRefreshMillis = currentMillis;
-
-      data["MBTYPE"] = MBTYPE;
-      data["MAC"] = WiFi.macAddress();
-      data["MOD"] = MOD;
-      data["VER"] = VER;
-      data["CORE"] = CORE;
-      data["FWDATE"] = FWDATE;
-      data["APLTS"] = APLTS;
-      data["APLWDAY"] = APLWDAY;
-      data["CHRSTATUS"] = CHRSTATUS;
-      data["STATUS"] = STATUS;
-      data["LSTATUS"] = LSTATUS;
-      if (isMFSTATUSValid)
-        data["MFSTATUS"] = MFSTATUS;
-      data["SETP"] = serialized(String(SETP, 2));
-      data["PUMP"] = PUMP;
-      data["PQT"] = PQT;
-      data["F1V"] = F1V;
-      data["F1RPM"] = F1RPM;
-      data["F2L"] = F2L;
-      data["F2LF"] = F2LF;
-      JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
-      fanlminmax.add(FANLMINMAX[0]);
-      fanlminmax.add(FANLMINMAX[1]);
-      fanlminmax.add(FANLMINMAX[2]);
-      fanlminmax.add(FANLMINMAX[3]);
-      fanlminmax.add(FANLMINMAX[4]);
-      fanlminmax.add(FANLMINMAX[5]);
-      data["F2V"] = F2V;
-      if (isF3LF4LValid)
-      {
-        data["F3L"] = F3L;
-        data["F4L"] = F4L;
-      }
-      data["PWR"] = PWR;
-      data["FDR"] = serialized(String(FDR, 2));
-      data["DPT"] = DPT;
-      data["DP"] = DP;
-      data["IN"] = IN;
-      data["OUT"] = OUT;
-      data["T1"] = serialized(String(T1, 2));
-      data["T2"] = serialized(String(T2, 2));
-      data["T3"] = serialized(String(T3, 2));
-      data["T4"] = serialized(String(T4, 2));
-      data["T5"] = serialized(String(T5, 2));
-
-      data["EFLAGS"] = 0; // new ErrorFlags not implemented
-      if (isSNValid)
-        data["SN"] = SN;
-    }
-  }
-
-  if (!cmdProcessed && cmd == F("GET STAT"))
-  {
-    cmdProcessed = true;
-    palaCategory = F("STAT");
-
-    uint16_t STATUS, LSTATUS, FSTATUS;
-    cmdSuccess = _Pala.getStatus(&STATUS, &LSTATUS, &FSTATUS);
-
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
-    {
-      data["STATUS"] = STATUS;
-      data["LSTATUS"] = LSTATUS;
-      data["FSTATUS"] = FSTATUS;
+      data["STOVE_DATETIME"] = STOVE_DATETIME;
+      data["STOVE_WDAY"] = STOVE_WDAY;
     }
   }
 
@@ -1166,52 +1444,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     }
   }
 
-  if (!cmdProcessed && cmd == F("GET FAND"))
-  {
-    cmdProcessed = true;
-    palaCategory = F("FAND");
-
-    uint16_t F1V, F2V, F1RPM, F2L, F2LF;
-    bool isF3SF4SValid;
-    float F3S, F4S;
-    bool isF3LF4LValid;
-    uint16_t F3L, F4L;
-    cmdSuccess = _Pala.getFanData(&F1V, &F2V, &F1RPM, &F2L, &F2LF, &isF3SF4SValid, &F3S, &F4S, &isF3LF4LValid, &F3L, &F4L);
-
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
-    {
-      data["F1V"] = F1V;
-      data["F2V"] = F2V;
-      data["F1RPM"] = F1RPM;
-      data["F2L"] = F2L;
-      data["F2LF"] = F2LF;
-      if (isF3SF4SValid)
-      {
-        data["F3S"] = serialized(String(F3S, 2));
-        data["F4S"] = serialized(String(F4S, 2));
-      }
-      if (isF3LF4LValid)
-      {
-        data["F3L"] = F3L;
-        data["F4L"] = F4L;
-      }
-    }
-  }
-
-  if (!cmdProcessed && cmd == F("GET SETP"))
-  {
-    cmdProcessed = true;
-    palaCategory = F("SETP");
-
-    float SETP;
-    cmdSuccess = _Pala.getSetPoint(&SETP);
-
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
-    {
-      data["SETP"] = serialized(String(SETP, 2));
-    }
-  }
-
   if (!cmdProcessed && cmd == F("GET POWR"))
   {
     cmdProcessed = true;
@@ -1228,83 +1460,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     }
   }
 
-  if (!cmdProcessed && (cmd == F("GET CUNT") || cmd == F("GET CNTR")))
-  {
-    cmdProcessed = true;
-    palaCategory = F("CNTR");
-
-    uint16_t IGN, POWERTIMEh, POWERTIMEm, HEATTIMEh, HEATTIMEm, SERVICETIMEh, SERVICETIMEm, ONTIMEh, ONTIMEm, OVERTMPERRORS, IGNERRORS, PQT;
-    cmdSuccess = _Pala.getCounters(&IGN, &POWERTIMEh, &POWERTIMEm, &HEATTIMEh, &HEATTIMEm, &SERVICETIMEh, &SERVICETIMEm, &ONTIMEh, &ONTIMEm, &OVERTMPERRORS, &IGNERRORS, &PQT);
-
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
-    {
-      data["IGN"] = IGN;
-      data["POWERTIME"] = String(POWERTIMEh) + ':' + (POWERTIMEm / 10) + (POWERTIMEm % 10);
-      data["HEATTIME"] = String(HEATTIMEh) + ':' + (HEATTIMEm / 10) + (HEATTIMEm % 10);
-      data["SERVICETIME"] = String(SERVICETIMEh) + ':' + (SERVICETIMEm / 10) + (SERVICETIMEm % 10);
-      data["ONTIME"] = String(ONTIMEh) + ':' + (ONTIMEm / 10) + (ONTIMEm % 10);
-      data["OVERTMPERRORS"] = OVERTMPERRORS;
-      data["IGNERRORS"] = IGNERRORS;
-      data["PQT"] = PQT;
-    }
-  }
-
-  if (!cmdProcessed && cmd == F("GET DPRS"))
-  {
-    cmdProcessed = true;
-    palaCategory = F("DPRS");
-
-    uint16_t DP_TARGET, DP_PRESS;
-    cmdSuccess = _Pala.getDPressData(&DP_TARGET, &DP_PRESS);
-
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
-    {
-      data["DP_TARGET"] = DP_TARGET;
-      data["DP_PRESS"] = DP_PRESS;
-    }
-  }
-
-  if (!cmdProcessed && cmd == F("GET TIME"))
-  {
-    cmdProcessed = true;
-    palaCategory = F("TIME");
-
-    char STOVE_DATETIME[20];
-    byte STOVE_WDAY;
-    cmdSuccess = _Pala.getDateTime(&STOVE_DATETIME, &STOVE_WDAY);
-
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
-    {
-      data["STOVE_DATETIME"] = STOVE_DATETIME;
-      data["STOVE_WDAY"] = STOVE_WDAY;
-    }
-  }
-
-  if (!cmdProcessed && cmd == F("GET IOPT"))
-  {
-    cmdProcessed = true;
-    palaCategory = F("IOPT");
-
-    byte IN_I01, IN_I02, IN_I03, IN_I04;
-    byte OUT_O01, OUT_O02, OUT_O03, OUT_O04, OUT_O05, OUT_O06, OUT_O07;
-    cmdSuccess = _Pala.getIO(&IN_I01, &IN_I02, &IN_I03, &IN_I04, &OUT_O01, &OUT_O02, &OUT_O03, &OUT_O04, &OUT_O05, &OUT_O06, &OUT_O07);
-
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
-    {
-      data["IN_I01"] = IN_I01;
-      data["IN_I02"] = IN_I02;
-      data["IN_I03"] = IN_I03;
-      data["IN_I04"] = IN_I04;
-      data["OUT_O01"] = OUT_O01;
-      data["OUT_O02"] = OUT_O02;
-      data["OUT_O03"] = OUT_O03;
-      data["OUT_O04"] = OUT_O04;
-      data["OUT_O05"] = OUT_O05;
-      data["OUT_O06"] = OUT_O06;
-      data["OUT_O07"] = OUT_O07;
-    }
-  }
-
   if (!cmdProcessed && cmd == F("GET SERN"))
   {
     cmdProcessed = true;
@@ -1317,497 +1472,6 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     {
       data["SN"] = SN;
     }
-  }
-
-  if (!cmdProcessed && cmd == F("GET MDVE"))
-  {
-    cmdProcessed = true;
-    palaCategory = F("MDVE");
-
-    uint16_t MOD, VER, CORE;
-    char FWDATE[11];
-    cmdSuccess = _Pala.getModelVersion(&MOD, &VER, &CORE, &FWDATE);
-
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
-    {
-      data["MOD"] = MOD;
-      data["VER"] = VER;
-      data["CORE"] = CORE;
-      data["FWDATE"] = FWDATE;
-    }
-  }
-
-  if (!cmdProcessed && cmd == F("GET CHRD"))
-  {
-    cmdProcessed = true;
-    palaCategory = F("CHRD");
-
-    byte CHRSTATUS;
-    float PCHRSETP[6];
-    byte PSTART[6][2];
-    byte PSTOP[6][2];
-    byte DM[7][3];
-    cmdSuccess = _Pala.getChronoData(&CHRSTATUS, &PCHRSETP, &PSTART, &PSTOP, &DM);
-
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
-    {
-      data["CHRSTATUS"] = CHRSTATUS;
-
-      // Add Programs (P1->P6)
-      char programName[3] = {'P', 'X', 0};
-      char time[6] = {'0', '0', ':', '0', '0', 0};
-      for (byte i = 0; i < 6; i++)
-      {
-        programName[1] = i + '1';
-        JsonObject px = data[programName].to<JsonObject>();
-        px["CHRSETP"] = serialized(String(PCHRSETP[i], 2));
-        time[0] = PSTART[i][0] / 10 + '0';
-        time[1] = PSTART[i][0] % 10 + '0';
-        time[3] = PSTART[i][1] / 10 + '0';
-        time[4] = PSTART[i][1] % 10 + '0';
-        px["START"] = time;
-        time[0] = PSTOP[i][0] / 10 + '0';
-        time[1] = PSTOP[i][0] % 10 + '0';
-        time[3] = PSTOP[i][1] / 10 + '0';
-        time[4] = PSTOP[i][1] % 10 + '0';
-        px["STOP"] = time;
-      }
-
-      // Add Days (D1->D7)
-      char dayName[3] = {'D', 'X', 0};
-      char memoryName[3] = {'M', 'X', 0};
-      for (byte dayNumber = 0; dayNumber < 7; dayNumber++)
-      {
-        dayName[1] = dayNumber + '1';
-        JsonObject dx = data[dayName].to<JsonObject>();
-        for (byte memoryNumber = 0; memoryNumber < 3; memoryNumber++)
-        {
-          memoryName[1] = memoryNumber + '1';
-          if (DM[dayNumber][memoryNumber])
-          {
-            programName[1] = DM[dayNumber][memoryNumber] + '0';
-            dx[memoryName] = programName;
-          }
-          else
-            dx[memoryName] = F("OFF");
-        }
-      }
-    }
-  }
-
-  if (!cmdProcessed && cmd.startsWith(F("GET PARM ")))
-  {
-    cmdProcessed = true;
-    palaCategory = F("PARM");
-
-    if (cmdParamNumber != 1)
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    if (info["MSG"].isNull())
-    {
-      byte paramValue;
-      cmdSuccess = _Pala.getParameter(cmdParams[0], &paramValue);
-
-      if (cmdSuccess == Palazzetti::CommandResult::OK)
-      {
-        String paramName("PAR");
-        paramName += cmdParams[0];
-        data[paramName] = paramValue;
-      }
-    }
-  }
-
-  if (!cmdProcessed && cmd.startsWith(F("GET HPAR ")))
-  {
-    cmdProcessed = true;
-    palaCategory = F("HPAR");
-
-    if (cmdParamNumber != 1)
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    if (info["MSG"].isNull())
-    {
-      uint16_t hiddenParamValue;
-      cmdSuccess = _Pala.getHiddenParameter(cmdParams[0], &hiddenParamValue);
-
-      if (cmdSuccess == Palazzetti::CommandResult::OK)
-      {
-        String hiddenParamName("HPAR");
-        hiddenParamName += cmdParams[0];
-        data[hiddenParamName] = hiddenParamValue;
-      }
-    }
-  }
-
-  if (!cmdProcessed && cmd == F("CMD ON"))
-  {
-    cmdProcessed = true;
-    palaCategory = F("STAT");
-
-    uint16_t STATUS, LSTATUS, FSTATUS;
-    cmdSuccess = _Pala.switchOn(&STATUS, &LSTATUS, &FSTATUS);
-
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
-    {
-      data["STATUS"] = STATUS;
-      data["LSTATUS"] = LSTATUS;
-      data["FSTATUS"] = FSTATUS;
-    }
-  }
-
-  if (!cmdProcessed && cmd == F("CMD OFF"))
-  {
-    cmdProcessed = true;
-    palaCategory = F("STAT");
-
-    uint16_t STATUS, LSTATUS, FSTATUS;
-    cmdSuccess = _Pala.switchOff(&STATUS, &LSTATUS, &FSTATUS);
-
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
-    {
-      data["STATUS"] = STATUS;
-      data["LSTATUS"] = LSTATUS;
-      data["FSTATUS"] = FSTATUS;
-    }
-  }
-
-  if (!cmdProcessed && cmd.startsWith(F("SET POWR ")))
-  {
-    cmdProcessed = true;
-    palaCategory = F("POWR");
-
-    if (cmdParamNumber != 1)
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    if (info["MSG"].isNull())
-    {
-      byte PWRReturn;
-      bool isF2LReturnValid;
-      uint16_t _F2LReturn;
-      uint16_t FANLMINMAXReturn[6];
-      cmdSuccess = _Pala.setPower(cmdParams[0], &PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
-
-      if (cmdSuccess == Palazzetti::CommandResult::OK)
-      {
-        data["PWR"] = PWRReturn;
-        if (isF2LReturnValid)
-          data["F2L"] = _F2LReturn;
-        JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
-        fanlminmax.add(FANLMINMAXReturn[0]);
-        fanlminmax.add(FANLMINMAXReturn[1]);
-        fanlminmax.add(FANLMINMAXReturn[2]);
-        fanlminmax.add(FANLMINMAXReturn[3]);
-        fanlminmax.add(FANLMINMAXReturn[4]);
-        fanlminmax.add(FANLMINMAXReturn[5]);
-      }
-    }
-  }
-
-  if (!cmdProcessed && cmd == F("SET PWRU"))
-  {
-    cmdProcessed = true;
-    palaCategory = F("POWR");
-
-    byte PWRReturn;
-    bool isF2LReturnValid;
-    uint16_t _F2LReturn;
-    uint16_t FANLMINMAXReturn[6];
-    cmdSuccess = _Pala.setPowerUp(&PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
-
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
-    {
-      data["PWR"] = PWRReturn;
-      if (isF2LReturnValid)
-        data["F2L"] = _F2LReturn;
-      JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
-      fanlminmax.add(FANLMINMAXReturn[0]);
-      fanlminmax.add(FANLMINMAXReturn[1]);
-      fanlminmax.add(FANLMINMAXReturn[2]);
-      fanlminmax.add(FANLMINMAXReturn[3]);
-      fanlminmax.add(FANLMINMAXReturn[4]);
-      fanlminmax.add(FANLMINMAXReturn[5]);
-    }
-  }
-
-  if (!cmdProcessed && cmd == F("SET PWRD"))
-  {
-    cmdProcessed = true;
-    palaCategory = F("POWR");
-
-    byte PWRReturn;
-    bool isF2LReturnValid;
-    uint16_t _F2LReturn;
-    uint16_t FANLMINMAXReturn[6];
-    cmdSuccess = _Pala.setPowerDown(&PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
-
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
-    {
-      data["PWR"] = PWRReturn;
-      if (isF2LReturnValid)
-        data["F2L"] = _F2LReturn;
-      JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
-      fanlminmax.add(FANLMINMAXReturn[0]);
-      fanlminmax.add(FANLMINMAXReturn[1]);
-      fanlminmax.add(FANLMINMAXReturn[2]);
-      fanlminmax.add(FANLMINMAXReturn[3]);
-      fanlminmax.add(FANLMINMAXReturn[4]);
-      fanlminmax.add(FANLMINMAXReturn[5]);
-    }
-  }
-
-  if (!cmdProcessed && cmd.startsWith(F("SET TIME ")))
-  {
-    cmdProcessed = true;
-    palaCategory = F("TIME");
-
-    if (cmdParamNumber != 6)
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    // Check if date is valid
-    // basic control
-    if (cmdParams[0] < 2000 || cmdParams[0] > 2099)
-      info["MSG"] = F("Incorrect Year");
-    else if (cmdParams[1] < 1 || cmdParams[1] > 12)
-      info["MSG"] = F("Incorrect Month");
-    else if ((cmdParams[2] < 1 || cmdParams[2] > 31) ||
-             ((cmdParams[2] == 4 || cmdParams[2] == 6 || cmdParams[2] == 9 || cmdParams[2] == 11) && cmdParams[3] > 30) ||                        // 30 days month control
-             (cmdParams[2] == 2 && cmdParams[3] > 29) ||                                                                                          // February leap year control
-             (cmdParams[2] == 2 && cmdParams[3] == 29 && !(((cmdParams[0] % 4 == 0) && (cmdParams[0] % 100 != 0)) || (cmdParams[0] % 400 == 0)))) // February not leap year control
-      info["MSG"] = F("Incorrect Day");
-    else if (cmdParams[3] > 23)
-      info["MSG"] = F("Incorrect Hour");
-    else if (cmdParams[4] > 59)
-      info["MSG"] = F("Incorrect Minute");
-    else if (cmdParams[5] > 59)
-      info["MSG"] = F("Incorrect Second");
-
-    if (info["MSG"].isNull())
-    {
-      char STOVE_DATETIMEReturn[20];
-      byte STOVE_WDAYReturn;
-      cmdSuccess = _Pala.setDateTime(cmdParams[0], cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4], cmdParams[5], &STOVE_DATETIMEReturn, &STOVE_WDAYReturn);
-
-      if (cmdSuccess == Palazzetti::CommandResult::OK)
-      {
-        data["STOVE_DATETIME"] = STOVE_DATETIMEReturn;
-        data["STOVE_WDAY"] = STOVE_WDAYReturn;
-      }
-    }
-  }
-
-  if (!cmdProcessed && cmd.startsWith(F("SET RFAN ")))
-  {
-    cmdProcessed = true;
-    palaCategory = F("FAND");
-
-    if (cmdParamNumber != 1)
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    if (info["MSG"].isNull())
-    {
-      bool isPWRReturnValid;
-      byte PWRReturn;
-      uint16_t F2LReturn;
-      uint16_t F2LFReturn;
-      cmdSuccess = _Pala.setRoomFan(cmdParams[0], &isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
-
-      if (cmdSuccess == Palazzetti::CommandResult::OK)
-      {
-        if (isPWRReturnValid)
-          data["PWR"] = PWRReturn;
-        data["F2L"] = F2LReturn;
-        data["F2LF"] = F2LFReturn;
-      }
-    }
-  }
-
-  if (!cmdProcessed && cmd == F("SET FN2U"))
-  {
-    cmdProcessed = true;
-    palaCategory = F("FAND");
-
-    bool isPWRReturnValid;
-    byte PWRReturn;
-    uint16_t F2LReturn;
-    uint16_t F2LFReturn;
-    cmdSuccess = _Pala.setRoomFanUp(&isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
-
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
-    {
-      if (isPWRReturnValid)
-        data["PWR"] = PWRReturn;
-      data["F2L"] = F2LReturn;
-      data["F2LF"] = F2LFReturn;
-    }
-  }
-
-  if (!cmdProcessed && cmd == F("SET FN2D"))
-  {
-    cmdProcessed = true;
-    palaCategory = F("FAND");
-
-    bool isPWRReturnValid;
-    byte PWRReturn;
-    uint16_t F2LReturn;
-    uint16_t F2LFReturn;
-    cmdSuccess = _Pala.setRoomFanDown(&isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
-
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
-    {
-      if (isPWRReturnValid)
-        data["PWR"] = PWRReturn;
-      data["F2L"] = F2LReturn;
-      data["F2LF"] = F2LFReturn;
-    }
-  }
-
-  if (!cmdProcessed && cmd.startsWith(F("SET FN3L ")))
-  {
-    cmdProcessed = true;
-    palaCategory = F("FAND");
-
-    if (cmdParamNumber != 1)
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    if (info["MSG"].isNull())
-    {
-      uint16_t F3LReturn;
-      cmdSuccess = _Pala.setRoomFan3(cmdParams[0], &F3LReturn);
-
-      if (cmdSuccess == Palazzetti::CommandResult::OK)
-      {
-        data["F3L"] = F3LReturn;
-      }
-    }
-  }
-
-  if (!cmdProcessed && cmd.startsWith(F("SET FN4L ")))
-  {
-    cmdProcessed = true;
-    palaCategory = F("FAND");
-
-    if (cmdParamNumber != 1)
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    if (info["MSG"].isNull())
-    {
-      uint16_t F4LReturn;
-      cmdSuccess = _Pala.setRoomFan4(cmdParams[0], &F4LReturn);
-
-      if (cmdSuccess == Palazzetti::CommandResult::OK)
-      {
-        data["F4L"] = F4LReturn;
-      }
-    }
-  }
-
-  if (!cmdProcessed && cmd.startsWith(F("SET SLNT ")))
-  {
-    cmdProcessed = true;
-    palaCategory = F("FAND");
-
-    if (cmdParamNumber != 1)
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    if (info["MSG"].isNull())
-    {
-      byte SLNTReturn;
-      byte PWRReturn;
-      uint16_t F2LReturn;
-      uint16_t F2LFReturn;
-      bool isF3LF4LReturnValid;
-      uint16_t F3LReturn;
-      uint16_t F4LReturn;
-      cmdSuccess = _Pala.setSilentMode(cmdParams[0], &SLNTReturn, &PWRReturn, &F2LReturn, &F2LFReturn, &isF3LF4LReturnValid, &F3LReturn, &F4LReturn);
-
-      if (cmdSuccess == Palazzetti::CommandResult::OK)
-      {
-        data["SLNT"] = SLNTReturn;
-        data["PWR"] = PWRReturn;
-        data["F2L"] = F2LReturn;
-        data["F2LF"] = F2LFReturn;
-        if (isF3LF4LReturnValid)
-        {
-          data["F3L"] = F3LReturn;
-          data["F4L"] = F4LReturn;
-        }
-      }
-    }
-  }
-
-  if (!cmdProcessed && cmd.startsWith(F("SET CSST ")))
-  {
-    cmdProcessed = true;
-    palaCategory = F("CHRD");
-
-    if (cmdParamNumber != 1)
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    if (info["MSG"].isNull())
-    {
-      byte CHRSTATUSReturn;
-      cmdSuccess = _Pala.setChronoStatus(cmdParams[0], &CHRSTATUSReturn);
-
-      if (cmdSuccess == Palazzetti::CommandResult::OK)
-      {
-        data["CHRSTATUS"] = CHRSTATUSReturn;
-      }
-    }
-  }
-
-  if (!cmdProcessed && cmd.startsWith(F("SET CSTH ")))
-  {
-    cmdProcessed = true;
-
-    if (cmdParamNumber != 2)
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    if (info["MSG"].isNull())
-      cmdSuccess = _Pala.setChronoStartHH(cmdParams[0], cmdParams[1]);
-  }
-
-  if (!cmdProcessed && cmd.startsWith(F("SET CSTM ")))
-  {
-    cmdProcessed = true;
-
-    if (cmdParamNumber != 2)
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    if (info["MSG"].isNull())
-      cmdSuccess = _Pala.setChronoStartMM(cmdParams[0], cmdParams[1]);
-  }
-
-  if (!cmdProcessed && cmd.startsWith(F("SET CSPH ")))
-  {
-    cmdProcessed = true;
-
-    if (cmdParamNumber != 2)
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    if (info["MSG"].isNull())
-      cmdSuccess = _Pala.setChronoStopHH(cmdParams[0], cmdParams[1]);
-  }
-
-  if (!cmdProcessed && cmd.startsWith(F("SET CSPM ")))
-  {
-    cmdProcessed = true;
-
-    if (cmdParamNumber != 2)
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    if (info["MSG"].isNull())
-      cmdSuccess = _Pala.setChronoStopMM(cmdParams[0], cmdParams[1]);
-  }
-
-  if (!cmdProcessed && cmd.startsWith(F("SET CSET ")))
-  {
-    cmdProcessed = true;
-
-    if (cmdParamNumber != 2)
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    if (info["MSG"].isNull())
-      cmdSuccess = _Pala.setChronoSetpoint(cmdParams[0], cmdParams[1]);
   }
 
   if (!cmdProcessed && cmd.startsWith(F("SET CDAY ")))
@@ -1872,6 +1536,309 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     }
   }
 
+  if (!cmdProcessed && cmd.startsWith(F("SET CSET ")))
+  {
+    cmdProcessed = true;
+
+    if (cmdParamNumber != 2)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    if (info["MSG"].isNull())
+      cmdSuccess = _Pala.setChronoSetpoint(cmdParams[0], cmdParams[1]);
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET CSPH ")))
+  {
+    cmdProcessed = true;
+
+    if (cmdParamNumber != 2)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    if (info["MSG"].isNull())
+      cmdSuccess = _Pala.setChronoStopHH(cmdParams[0], cmdParams[1]);
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET CSPM ")))
+  {
+    cmdProcessed = true;
+
+    if (cmdParamNumber != 2)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    if (info["MSG"].isNull())
+      cmdSuccess = _Pala.setChronoStopMM(cmdParams[0], cmdParams[1]);
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET CSST ")))
+  {
+    cmdProcessed = true;
+    palaCategory = F("CHRD");
+
+    if (cmdParamNumber != 1)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    if (info["MSG"].isNull())
+    {
+      byte CHRSTATUSReturn;
+      cmdSuccess = _Pala.setChronoStatus(cmdParams[0], &CHRSTATUSReturn);
+
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
+      {
+        data["CHRSTATUS"] = CHRSTATUSReturn;
+      }
+    }
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET CSTH ")))
+  {
+    cmdProcessed = true;
+
+    if (cmdParamNumber != 2)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    if (info["MSG"].isNull())
+      cmdSuccess = _Pala.setChronoStartHH(cmdParams[0], cmdParams[1]);
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET CSTM ")))
+  {
+    cmdProcessed = true;
+
+    if (cmdParamNumber != 2)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    if (info["MSG"].isNull())
+      cmdSuccess = _Pala.setChronoStartMM(cmdParams[0], cmdParams[1]);
+  }
+
+  if (!cmdProcessed && cmd == F("SET FN2D"))
+  {
+    cmdProcessed = true;
+    palaCategory = F("FAND");
+
+    bool isPWRReturnValid;
+    byte PWRReturn;
+    uint16_t F2LReturn;
+    uint16_t F2LFReturn;
+    cmdSuccess = _Pala.setRoomFanDown(&isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      if (isPWRReturnValid)
+        data["PWR"] = PWRReturn;
+      data["F2L"] = F2LReturn;
+      data["F2LF"] = F2LFReturn;
+    }
+  }
+
+  if (!cmdProcessed && cmd == F("SET FN2U"))
+  {
+    cmdProcessed = true;
+    palaCategory = F("FAND");
+
+    bool isPWRReturnValid;
+    byte PWRReturn;
+    uint16_t F2LReturn;
+    uint16_t F2LFReturn;
+    cmdSuccess = _Pala.setRoomFanUp(&isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      if (isPWRReturnValid)
+        data["PWR"] = PWRReturn;
+      data["F2L"] = F2LReturn;
+      data["F2LF"] = F2LFReturn;
+    }
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET FN3L ")))
+  {
+    cmdProcessed = true;
+    palaCategory = F("FAND");
+
+    if (cmdParamNumber != 1)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    if (info["MSG"].isNull())
+    {
+      uint16_t F3LReturn;
+      cmdSuccess = _Pala.setRoomFan3(cmdParams[0], &F3LReturn);
+
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
+      {
+        data["F3L"] = F3LReturn;
+      }
+    }
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET FN4L ")))
+  {
+    cmdProcessed = true;
+    palaCategory = F("FAND");
+
+    if (cmdParamNumber != 1)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    if (info["MSG"].isNull())
+    {
+      uint16_t F4LReturn;
+      cmdSuccess = _Pala.setRoomFan4(cmdParams[0], &F4LReturn);
+
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
+      {
+        data["F4L"] = F4LReturn;
+      }
+    }
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET HPAR ")))
+  {
+    cmdProcessed = true;
+    palaCategory = F("HPAR");
+
+    if (cmdParamNumber != 2)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    if (info["MSG"].isNull())
+    {
+      cmdSuccess = _Pala.setHiddenParameter(cmdParams[0], cmdParams[1]);
+
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
+      {
+        data[String(F("HPAR")) + cmdParams[0]] = cmdParams[1];
+      }
+    }
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET PARM ")))
+  {
+    cmdProcessed = true;
+    palaCategory = F("PARM");
+
+    if (cmdParamNumber != 2)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    if (info["MSG"].isNull())
+    {
+      cmdSuccess = _Pala.setParameter(cmdParams[0], cmdParams[1]);
+
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
+      {
+        data[String(F("PAR")) + cmdParams[0]] = cmdParams[1];
+      }
+    }
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET POWR ")))
+  {
+    cmdProcessed = true;
+    palaCategory = F("POWR");
+
+    if (cmdParamNumber != 1)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    if (info["MSG"].isNull())
+    {
+      byte PWRReturn;
+      bool isF2LReturnValid;
+      uint16_t _F2LReturn;
+      uint16_t FANLMINMAXReturn[6];
+      cmdSuccess = _Pala.setPower(cmdParams[0], &PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
+
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
+      {
+        data["PWR"] = PWRReturn;
+        if (isF2LReturnValid)
+          data["F2L"] = _F2LReturn;
+        JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
+        fanlminmax.add(FANLMINMAXReturn[0]);
+        fanlminmax.add(FANLMINMAXReturn[1]);
+        fanlminmax.add(FANLMINMAXReturn[2]);
+        fanlminmax.add(FANLMINMAXReturn[3]);
+        fanlminmax.add(FANLMINMAXReturn[4]);
+        fanlminmax.add(FANLMINMAXReturn[5]);
+      }
+    }
+  }
+
+  if (!cmdProcessed && cmd == F("SET PWRD"))
+  {
+    cmdProcessed = true;
+    palaCategory = F("POWR");
+
+    byte PWRReturn;
+    bool isF2LReturnValid;
+    uint16_t _F2LReturn;
+    uint16_t FANLMINMAXReturn[6];
+    cmdSuccess = _Pala.setPowerDown(&PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      data["PWR"] = PWRReturn;
+      if (isF2LReturnValid)
+        data["F2L"] = _F2LReturn;
+      JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
+      fanlminmax.add(FANLMINMAXReturn[0]);
+      fanlminmax.add(FANLMINMAXReturn[1]);
+      fanlminmax.add(FANLMINMAXReturn[2]);
+      fanlminmax.add(FANLMINMAXReturn[3]);
+      fanlminmax.add(FANLMINMAXReturn[4]);
+      fanlminmax.add(FANLMINMAXReturn[5]);
+    }
+  }
+
+  if (!cmdProcessed && cmd == F("SET PWRU"))
+  {
+    cmdProcessed = true;
+    palaCategory = F("POWR");
+
+    byte PWRReturn;
+    bool isF2LReturnValid;
+    uint16_t _F2LReturn;
+    uint16_t FANLMINMAXReturn[6];
+    cmdSuccess = _Pala.setPowerUp(&PWRReturn, &isF2LReturnValid, &_F2LReturn, &FANLMINMAXReturn);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      data["PWR"] = PWRReturn;
+      if (isF2LReturnValid)
+        data["F2L"] = _F2LReturn;
+      JsonArray fanlminmax = data["FANLMINMAX"].to<JsonArray>();
+      fanlminmax.add(FANLMINMAXReturn[0]);
+      fanlminmax.add(FANLMINMAXReturn[1]);
+      fanlminmax.add(FANLMINMAXReturn[2]);
+      fanlminmax.add(FANLMINMAXReturn[3]);
+      fanlminmax.add(FANLMINMAXReturn[4]);
+      fanlminmax.add(FANLMINMAXReturn[5]);
+    }
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET RFAN ")))
+  {
+    cmdProcessed = true;
+    palaCategory = F("FAND");
+
+    if (cmdParamNumber != 1)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    if (info["MSG"].isNull())
+    {
+      bool isPWRReturnValid;
+      byte PWRReturn;
+      uint16_t F2LReturn;
+      uint16_t F2LFReturn;
+      cmdSuccess = _Pala.setRoomFan(cmdParams[0], &isPWRReturnValid, &PWRReturn, &F2LReturn, &F2LFReturn);
+
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
+      {
+        if (isPWRReturnValid)
+          data["PWR"] = PWRReturn;
+        data["F2L"] = F2LReturn;
+        data["F2LF"] = F2LFReturn;
+      }
+    }
+  }
+
   if (!cmdProcessed && cmd.startsWith(F("SET SETP ")))
   {
     cmdProcessed = true;
@@ -1892,17 +1859,37 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     }
   }
 
-  if (!cmdProcessed && cmd == F("SET STPU"))
+  if (!cmdProcessed && cmd.startsWith(F("SET SLNT ")))
   {
     cmdProcessed = true;
-    palaCategory = F("SETP");
+    palaCategory = F("FAND");
 
-    float SETPReturn;
-    cmdSuccess = _Pala.setSetPointUp(&SETPReturn);
+    if (cmdParamNumber != 1)
+      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
 
-    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    if (info["MSG"].isNull())
     {
-      data["SETP"] = serialized(String(SETPReturn, 2));
+      byte SLNTReturn;
+      byte PWRReturn;
+      uint16_t F2LReturn;
+      uint16_t F2LFReturn;
+      bool isF3LF4LReturnValid;
+      uint16_t F3LReturn;
+      uint16_t F4LReturn;
+      cmdSuccess = _Pala.setSilentMode(cmdParams[0], &SLNTReturn, &PWRReturn, &F2LReturn, &F2LFReturn, &isF3LF4LReturnValid, &F3LReturn, &F4LReturn);
+
+      if (cmdSuccess == Palazzetti::CommandResult::OK)
+      {
+        data["SLNT"] = SLNTReturn;
+        data["PWR"] = PWRReturn;
+        data["F2L"] = F2LReturn;
+        data["F2LF"] = F2LFReturn;
+        if (isF3LF4LReturnValid)
+        {
+          data["F3L"] = F3LReturn;
+          data["F4L"] = F4LReturn;
+        }
+      }
     }
   }
 
@@ -1947,43 +1934,61 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     }
   }
 
-  if (!cmdProcessed && cmd.startsWith(F("SET PARM ")))
+  if (!cmdProcessed && cmd == F("SET STPU"))
   {
     cmdProcessed = true;
-    palaCategory = F("PARM");
+    palaCategory = F("SETP");
 
-    if (cmdParamNumber != 2)
+    float SETPReturn;
+    cmdSuccess = _Pala.setSetPointUp(&SETPReturn);
+
+    if (cmdSuccess == Palazzetti::CommandResult::OK)
+    {
+      data["SETP"] = serialized(String(SETPReturn, 2));
+    }
+  }
+
+  if (!cmdProcessed && cmd.startsWith(F("SET TIME ")))
+  {
+    cmdProcessed = true;
+    palaCategory = F("TIME");
+
+    if (cmdParamNumber != 6)
       info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+    // Check if date is valid
+    // basic control
+    if (cmdParams[0] < 2000 || cmdParams[0] > 2099)
+      info["MSG"] = F("Incorrect Year");
+    else if (cmdParams[1] < 1 || cmdParams[1] > 12)
+      info["MSG"] = F("Incorrect Month");
+    else if ((cmdParams[2] < 1 || cmdParams[2] > 31) ||
+             ((cmdParams[2] == 4 || cmdParams[2] == 6 || cmdParams[2] == 9 || cmdParams[2] == 11) && cmdParams[3] > 30) ||                        // 30 days month control
+             (cmdParams[2] == 2 && cmdParams[3] > 29) ||                                                                                          // February leap year control
+             (cmdParams[2] == 2 && cmdParams[3] == 29 && !(((cmdParams[0] % 4 == 0) && (cmdParams[0] % 100 != 0)) || (cmdParams[0] % 400 == 0)))) // February not leap year control
+      info["MSG"] = F("Incorrect Day");
+    else if (cmdParams[3] > 23)
+      info["MSG"] = F("Incorrect Hour");
+    else if (cmdParams[4] > 59)
+      info["MSG"] = F("Incorrect Minute");
+    else if (cmdParams[5] > 59)
+      info["MSG"] = F("Incorrect Second");
 
     if (info["MSG"].isNull())
     {
-      cmdSuccess = _Pala.setParameter(cmdParams[0], cmdParams[1]);
+      char STOVE_DATETIMEReturn[20];
+      byte STOVE_WDAYReturn;
+      cmdSuccess = _Pala.setDateTime(cmdParams[0], cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4], cmdParams[5], &STOVE_DATETIMEReturn, &STOVE_WDAYReturn);
 
       if (cmdSuccess == Palazzetti::CommandResult::OK)
       {
-        data[String(F("PAR")) + cmdParams[0]] = cmdParams[1];
+        data["STOVE_DATETIME"] = STOVE_DATETIMEReturn;
+        data["STOVE_WDAY"] = STOVE_WDAYReturn;
       }
     }
   }
 
-  if (!cmdProcessed && cmd.startsWith(F("SET HPAR ")))
-  {
-    cmdProcessed = true;
-    palaCategory = F("HPAR");
-
-    if (cmdParamNumber != 2)
-      info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
-
-    if (info["MSG"].isNull())
-    {
-      cmdSuccess = _Pala.setHiddenParameter(cmdParams[0], cmdParams[1]);
-
-      if (cmdSuccess == Palazzetti::CommandResult::OK)
-      {
-        data[String(F("HPAR")) + cmdParams[0]] = cmdParams[1];
-      }
-    }
-  }
+  // Process result -----------------------------------------------------------
 
   // releases the unused memory before serialization
   jsonDoc.shrinkToFit();
