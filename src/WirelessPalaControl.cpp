@@ -2014,6 +2014,20 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
     }
   }
 
+  // commented out because it can mess up the stove if not used carefully
+  // if (!cmdProcessed && cmd.startsWith(F("EXT ADWR")))
+  // {
+  //   cmdProcessed = true;
+  //   palaCategory = F("ADWR");
+
+  //   if (cmdParamNumber != 3 && cmdParamNumber != 4)
+  //     info["MSG"] = String(F("Incorrect Parameter Number : ")) + cmdParamNumber;
+
+  //   // the fourth parameter was designed for Micronova MB and is not used in Fumis board
+
+  //   cmdSuccess = _Pala.writeData(cmdParams[0], cmdParams[1], cmdParams[2]);
+  // }
+
   // Process result -----------------------------------------------------------
 
   // releases the unused memory before serialization
