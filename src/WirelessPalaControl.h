@@ -2,7 +2,6 @@
 #define WirelessPalaControl_h
 
 #include "Main.h"
-#include "base/Utils.h"
 #include "base/MQTTMan.h"
 #include "base/Application.h"
 

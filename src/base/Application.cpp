@@ -173,26 +173,6 @@ void Application::initWebServer(WebServer &server, bool &shouldReboot, bool &pau
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), getHTMLContent(config), getHTMLContentSize(config)); });
 
-  // Core only handlers
-  if (_appId == '0')
-  {
-    // HTML fw handler
-    sprintf_P(url, PSTR("/fw%c.html"), _appId);
-    server.on(url, HTTP_GET, [this, &server]()
-              {
-    SERVER_KEEPALIVE_FALSE()
-    server.sendHeader(F("Content-Encoding"), F("gzip"));
-    server.send_P(200, PSTR("text/html"), getHTMLContent(fw), getHTMLContentSize(fw)); });
-
-    // HTML discover handler
-    sprintf_P(url, PSTR("/discover%c.html"), _appId);
-    server.on(url, HTTP_GET, [this, &server]()
-              {
-    SERVER_KEEPALIVE_FALSE()
-    server.sendHeader(F("Content-Encoding"), F("gzip"));
-    server.send_P(200, PSTR("text/html"), getHTMLContent(discover), getHTMLContentSize(discover)); });
-  }
-
   // JSON Status handler
   sprintf_P(url, PSTR("/gs%c"), _appId);
   server.on(url, HTTP_GET, [this, &server]()

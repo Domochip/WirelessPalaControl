@@ -14,19 +14,13 @@ using WebServer = ESP8266WebServer;
 #include <ArduinoJson.h>
 #include <Ticker.h>
 
-// Maximum size that can be allocated to Parsed JSON
-#define JSON_DOC_MAX_MEM_SIZE 4096
-#define JSON_DOC_MEM_STEP 256
-
 class Application
 {
 protected:
   typedef enum
   {
     status,
-    config,
-    fw,
-    discover
+    config
   } WebPageForPlaceHolder;
 
   char _appId;

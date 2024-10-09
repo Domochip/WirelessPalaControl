@@ -48,12 +48,6 @@ const PROGMEM char *Core::getHTMLContent(WebPageForPlaceHolder wp)
   case config:
     return config0htmlgz;
     break;
-  case fw:
-    return fw0htmlgz;
-    break;
-  case discover:
-    return discover0htmlgz;
-    break;
   };
   return nullptr;
 }
@@ -67,12 +61,6 @@ size_t Core::getHTMLContentSize(WebPageForPlaceHolder wp)
   case config:
     return sizeof(config0htmlgz);
     break;
-  case fw:
-    return sizeof(fw0htmlgz);
-    break;
-  case discover:
-    return sizeof(discover0htmlgz);
-    break;
   };
   return 0;
 }
@@ -85,7 +73,41 @@ void Core::appInitWebServer(WebServer &server, bool &shouldReboot, bool &pauseAp
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, PSTR("text/html"), indexhtmlgz, sizeof(indexhtmlgz)); });
 
-  // sn url is a way to find module on network
+  // Ressources URLs
+  server.on("/pure-min.css", HTTP_GET, [&server]()
+            {
+    SERVER_KEEPALIVE_FALSE()
+    server.sendHeader(F("Content-Encoding"), F("gzip"));
+    server.sendHeader(F("Cache-Control"), F("max-age=604800, public"));
+    server.send_P(200, PSTR("text/css"), puremincssgz, sizeof(puremincssgz)); });
+
+  server.on("/side-menu.css", HTTP_GET, [&server]()
+            {
+    SERVER_KEEPALIVE_FALSE()
+    server.sendHeader(F("Content-Encoding"), F("gzip"));
+    server.sendHeader(F("Cache-Control"), F("max-age=604800, public"));
+    server.send_P(200, PSTR("text/css"), sidemenucssgz, sizeof(sidemenucssgz)); });
+
+  server.on("/side-menu.js", HTTP_GET, [&server]()
+            {
+    SERVER_KEEPALIVE_FALSE()
+    server.sendHeader(F("Content-Encoding"), F("gzip"));
+    server.sendHeader(F("Cache-Control"), F("max-age=604800, public"));
+    server.send_P(200, PSTR("text/javascript"), sidemenujsgz, sizeof(sidemenujsgz)); });
+
+  server.on("/fw.html", HTTP_GET, [this, &server]()
+            {
+    SERVER_KEEPALIVE_FALSE()
+    server.sendHeader(F("Content-Encoding"), F("gzip"));
+    server.send_P(200, PSTR("text/html"), fwhtmlgz, sizeof(fwhtmlgz)); });
+
+  server.on("/discover.html", HTTP_GET, [this, &server]()
+            {
+    SERVER_KEEPALIVE_FALSE()
+    server.sendHeader(F("Content-Encoding"), F("gzip"));
+    server.send_P(200, PSTR("text/html"), discoverhtmlgz, sizeof(discoverhtmlgz)); });
+
+  // sn url is a way to find module on network --------------------------------
   char discoURL[10];
 #ifdef ESP8266
   sprintf_P(discoURL, PSTR("/%08x"), ESP.getChipId());
@@ -105,7 +127,7 @@ void Core::appInitWebServer(WebServer &server, bool &shouldReboot, bool &pauseAp
     server.sendHeader(F("Cache-Control"), F("no-cache"));
     server.send(200, "text/html", chipID); });
 
-  // ffffffff url is a way to find all modules on the network
+  // ffffffff url is a way to find all modules on the network -----------------
   server.on("/ffffffff", HTTP_GET, [&server]()
             {
     //answer with a JSON string containing sn, model and version numbers
@@ -120,7 +142,7 @@ void Core::appInitWebServer(WebServer &server, bool &shouldReboot, bool &pauseAp
     server.sendHeader(F("Cache-Control"), F("no-cache"));
     server.send(200, "text/json", discoJSON); });
 
-  // FirmWare POST URL allows to push new firmware
+  // FirmWare POST URL allows to push new firmware ----------------------------
   server.on(
       "/fw", HTTP_POST, [&shouldReboot, &pauseApplication, &server]()
       {
@@ -233,14 +255,14 @@ void Core::appInitWebServer(WebServer &server, bool &shouldReboot, bool &pauseAp
         yield();
       });
 
-  // reboot POST
+  // reboot POST --------------------------------------------------------------
   server.on("/rbt", HTTP_POST, [&shouldReboot, &server]()
             {
     SERVER_KEEPALIVE_FALSE()
     server.send_P(200,PSTR("text/html"),PSTR("Reboot command received<script>setTimeout(function(){if('referrer' in document)window.location=document.referrer;},30000);</script>"));
     shouldReboot = true; });
 
-  // reboot Rescue POST
+  // reboot RescueMode POST ---------------------------------------------------
   server.on("/rbtrsc", HTTP_POST, [&shouldReboot, &server]()
             {
     SERVER_KEEPALIVE_FALSE()
@@ -251,29 +273,7 @@ void Core::appInitWebServer(WebServer &server, bool &shouldReboot, bool &pauseAp
     EEPROM.end();
     shouldReboot = true; });
 
-  // Ressources URLs
-  server.on("/pure-min.css", HTTP_GET, [&server]()
-            {
-    SERVER_KEEPALIVE_FALSE()
-    server.sendHeader(F("Content-Encoding"), F("gzip"));
-    server.sendHeader(F("Cache-Control"), F("max-age=604800, public"));
-    server.send_P(200, PSTR("text/css"), puremincssgz, sizeof(puremincssgz)); });
-
-  server.on("/side-menu.css", HTTP_GET, [&server]()
-            {
-    SERVER_KEEPALIVE_FALSE()
-    server.sendHeader(F("Content-Encoding"), F("gzip"));
-    server.sendHeader(F("Cache-Control"), F("max-age=604800, public"));
-    server.send_P(200, PSTR("text/css"), sidemenucssgz, sizeof(sidemenucssgz)); });
-
-  server.on("/side-menu.js", HTTP_GET, [&server]()
-            {
-    SERVER_KEEPALIVE_FALSE()
-    server.sendHeader(F("Content-Encoding"), F("gzip"));
-    server.sendHeader(F("Cache-Control"), F("max-age=604800, public"));
-    server.send_P(200, PSTR("text/javascript"), sidemenujsgz, sizeof(sidemenujsgz)); });
-
-  // 404 on not found
+  // 404 on not found ---------------------------------------------------------
   server.onNotFound([&server]()
                     {
     SERVER_KEEPALIVE_FALSE()
