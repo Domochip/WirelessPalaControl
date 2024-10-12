@@ -2055,7 +2055,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
       {
         String strData;
         serializeJson(data, strData);
-        statusEventSourceBroadcast(strData);
+        _eventSourceMan.eventSourceBroadcast(strData);
 
         String baseTopic = _ha.mqtt.generic.baseTopic;
         MQTTMan::prepareTopic(baseTopic);
@@ -2617,6 +2617,9 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
         // send response
         SERVER_KEEPALIVE_FALSE()
         server.send(200, F("text/json"), strJson); });
+
+  // register EventSource
+  _eventSourceMan.initEventSourceServer(_appId, server);
 }
 
 //------------------------------------------
