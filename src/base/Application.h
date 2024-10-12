@@ -27,22 +27,6 @@ protected:
   String _appName;
   bool _reInit = false;
 
-#if ENABLE_STATUS_EVTSRC
-  WiFiClient _statusEvtSrcClient[STATUS_EVTSRC_MAX_CLIENTS];
-#if ENABLE_STATUS_EVTSRC_KEEPALIVE
-  bool _needStatusEvtSrcKeepAlive = false;
-  Ticker _statusEvtSrcKeepAliveTicker;
-#endif
-#endif
-
-#if ENABLE_STATUS_EVTSRC
-  void statusEventSourceHandler(WebServer &server);
-  void statusEventSourceBroadcast(const String &message, const String &eventType = "message");
-#if ENABLE_STATUS_EVTSRC_KEEPALIVE
-  void statusEventSourceKeepAlive();
-#endif
-#endif
-
   // already built methods
   bool saveConfig();
   bool loadConfig();
