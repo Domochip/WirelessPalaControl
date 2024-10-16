@@ -28,9 +28,11 @@ String Core::generateStatusJSON()
   doc["v"] = VERSION;
   doc["u"] = String((byte)(minutes / 1440)) + 'd' + (byte)(minutes / 60 % 24) + 'h' + (byte)(minutes % 60) + 'm';
   doc["fh"] = ESP.getFreeHeap();
-  doc["fs"] = ESP.getFreeContStack();
 #ifdef ESP8266
+  doc["fs"] = ESP.getFreeContStack();
   doc["fcrs"] = ESP.getFlashChipRealSize();
+#else
+  doc["fs"] = uxTaskGetStackHighWaterMark(nullptr);
 #endif
 
   String gs;
