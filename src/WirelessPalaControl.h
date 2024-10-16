@@ -26,7 +26,7 @@ private:
     byte type = HA_MQTT_GENERIC_JSON;
     uint32_t port = 1883;
     char username[32 + 1] = {0};
-    char password[150 + 1] = {0};
+    char password[64 + 1] = {0};
     struct
     {
       char baseTopic[64 + 1] = {0};
