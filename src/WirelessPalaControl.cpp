@@ -2655,6 +2655,8 @@ void WebPalaControl::appRun()
 // Constructor
 WebPalaControl::WebPalaControl(char appId, String appName) : Application(appId, appName)
 {
+  _applicationList[Application::Applications::Application1] = this;
+
   // TX/GPIO15 is pulled down and so block the stove bus by default...
   pinMode(15, OUTPUT); // set TX PIN to OUTPUT HIGH to unlock bus during WiFi connection
   digitalWrite(15, HIGH);
