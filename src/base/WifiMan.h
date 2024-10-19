@@ -30,12 +30,12 @@ private:
   uint32_t dns1 = 0;
   uint32_t dns2 = 0;
 
-  // Run properties
-  #ifdef ESP8266
+// Run properties
+#ifdef ESP8266
   WiFiEventHandler _discoEventHandler;
   WiFiEventHandler _staConnectedHandler;
   WiFiEventHandler _staDisconnectedHandler;
-  #endif
+#endif
   int _apChannel = 2;
   char _apSsid[64];
   bool _needRefreshWifi = false;
@@ -58,7 +58,7 @@ private:
   void appRun();
 
 public:
-  WifiMan(char appId, String appName) : Application(appId, appName) {}
+  WifiMan(char appId, String appName) : Application(appId, appName) { _applicationList[Application::Applications::WifiMan] = this; }
 };
 
 #endif

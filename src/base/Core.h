@@ -23,10 +23,10 @@ private:
   const PROGMEM char *getHTMLContent(WebPageForPlaceHolder wp);
   size_t getHTMLContentSize(WebPageForPlaceHolder wp);
   void appInitWebServer(WebServer &server, bool &shouldReboot, bool &pauseApplication);
-  void appRun(){};
+  void appRun() {};
 
 public:
-  Core(char appId, String fileName) : Application(appId, fileName) {}
+  Core(char appId, String appName) : Application(appId, appName) { _applicationList[Application::Applications::Core] = this; }
 };
 
 #endif

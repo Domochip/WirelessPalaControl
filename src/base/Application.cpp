@@ -1,5 +1,7 @@
 #include "Application.h"
 
+Application *Application::_applicationList[3] = {nullptr, nullptr, nullptr};
+
 bool Application::saveConfig()
 {
   File configFile = LittleFS.open(String('/') + _appName + F(".json"), "w");
@@ -50,6 +52,11 @@ bool Application::loadConfig()
   }
 
   return result;
+}
+
+String Application::getStatusJSON()
+{
+  return generateStatusJSON();
 }
 
 void Application::init(bool skipExistingConfig)

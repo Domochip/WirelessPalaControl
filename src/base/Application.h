@@ -19,6 +19,15 @@ class Application
 protected:
   typedef enum
   {
+    Core,
+    WifiMan,
+    Application1
+  } Applications;
+
+  static Application *_applicationList[3]; // static list of all applications
+
+  typedef enum
+  {
     status,
     config
   } WebPageForPlaceHolder;
@@ -44,11 +53,9 @@ protected:
 
 public:
   // already built methods
-  Application(char appId, String appName)
-  {
-    _appId = appId;
-    _appName = appName;
-  }
+  Application(char appId, String appName) : _appId(appId), _appName(appName) {}
+
+  String getStatusJSON();
   void init(bool skipExistingConfig);
   void initWebServer(WebServer &server, bool &shouldReboot, bool &pauseApplication);
   void run();
