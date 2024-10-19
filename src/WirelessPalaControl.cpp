@@ -2103,6 +2103,25 @@ void WebPalaControl::publishTick()
 {
   LOG_SERIAL.println(F("PublishTick"));
 
+  // if MQTT protocol is enabled and connected then publish Core, Wifi and WPalaControl status
+  if (_ha.protocol == HA_PROTO_MQTT && _mqttMan.connected())
+  {
+    String baseTopic = _ha.mqtt.generic.baseTopic;
+    MQTTMan::prepareTopic(baseTopic);
+    // remove the last char of baseTopic which is a '/'
+    baseTopic.remove(baseTopic.length() - 1);
+
+    JsonDocument doc;
+    doc["Core"] = serialized(_applicationList[Core]->getStatusJSON());
+    doc["Wifi"] = serialized(_applicationList[WifiMan]->getStatusJSON());
+    doc["WPalaControl"] = serialized(getStatusJSON());
+
+    String strJson;
+    serializeJson(doc, strJson);
+
+    _mqttMan.publish(baseTopic.c_str(), strJson.c_str(), true);
+  }
+
   // array of commands to execute
   const char *cmdList[] = {
       "GET STAT",
