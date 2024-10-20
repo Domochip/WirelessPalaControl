@@ -2300,55 +2300,48 @@ String WebPalaControl::generateStatusJSON()
 {
   JsonDocument doc;
 
-  char SN[28];
-  if (_Pala.getSN(&SN) == Palazzetti::CommandResult::OK)
-    doc["liveData"]["SN"] = SN;
+  // Home Automation protocol
+  if (_ha.protocol == HA_PROTO_MQTT)
+    doc["haprotocol"] = F("MQTT");
   else
-    doc["liveData"]["MSG"] = F("Stove communication failed! please check cabling to your stove.");
+    doc["haprotocol"] = F("Disabled");
 
-  String has1;
-  switch (_ha.protocol)
+  // Home automation connection status
+  if (_ha.protocol == HA_PROTO_MQTT)
   {
-  case HA_PROTO_DISABLED:
-    has1 = F("Disabled");
-    break;
-  case HA_PROTO_MQTT:
-    has1 = F("MQTT Connection State : ");
     switch (_mqttMan.state())
     {
     case MQTT_CONNECTION_TIMEOUT:
-      has1 = has1 + F("Timed Out");
+      doc["hamqttstatus"] = F("Timed Out");
       break;
     case MQTT_CONNECTION_LOST:
-      has1 = has1 + F("Lost");
+      doc["hamqttstatus"] = F("Lost");
       break;
     case MQTT_CONNECT_FAILED:
-      has1 = has1 + F("Failed");
+      doc["hamqttstatus"] = F("Failed");
       break;
     case MQTT_CONNECTED:
-      has1 = has1 + F("Connected");
+      doc["hamqttstatus"] = F("Connected");
       break;
     case MQTT_CONNECT_BAD_PROTOCOL:
-      has1 = has1 + F("Bad Protocol Version");
+      doc["hamqttstatus"] = F("Bad Protocol Version");
       break;
     case MQTT_CONNECT_BAD_CLIENT_ID:
-      has1 = has1 + F("Incorrect ClientID ");
+      doc["hamqttstatus"] = F("Incorrect ClientID ");
       break;
     case MQTT_CONNECT_UNAVAILABLE:
-      has1 = has1 + F("Server Unavailable");
+      doc["hamqttstatus"] = F("Server Unavailable");
       break;
     case MQTT_CONNECT_BAD_CREDENTIALS:
-      has1 = has1 + F("Bad Credentials");
+      doc["hamqttstatus"] = F("Bad Credentials");
       break;
     case MQTT_CONNECT_UNAUTHORIZED:
-      has1 = has1 + F("Connection Unauthorized");
+      doc["hamqttstatus"] = F("Connection Unauthorized");
       break;
     }
-    doc["has1"] = has1;
 
     if (_mqttMan.state() == MQTT_CONNECTED)
-      doc["has2"] = String(F("Last Publish Result : ")) + (_haSendResult ? F("OK") : F("Failed"));
-    break;
+      doc["hamqttlastpublish"] = (_haSendResult ? F("OK") : F("Failed"));
   }
 
   String gs;

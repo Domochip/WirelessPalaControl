@@ -7,10 +7,13 @@
 <h3 class="content-subhead">Stove infos (<span id="lastRefresh">AutoRefresh if HA configured</span>)</h3>
 <dl id="liveData"></dl>
 <h3 class="content-subhead">Home Automation Status</h3>
-<dl id="has">
-    <dd id="has1"></dd>
-    <dd id="has2"></dd>
-</dl>
+Protocol: <span id="haprotocol"></span><br>
+<span id="hamqttstatuse" style='display:none'>
+    Connection State: <span id="hamqttstatus"></span><br>
+</span>
+<span id="hamqttlastpublishe" style='display:none'>
+    Last Publish : <span id="hamqttlastpublish"></span><br>
+</span>
 
 <script>
     //QuerySelector Prefix is added by load function to know into what element queySelector need to look for
@@ -46,13 +49,25 @@
     getJSON("/gs" + qsp[8],
         function (GS) {
             for (k in GS) {
-                if (k == 'liveData') parseLiveData(GS[k]);
-                else if ((e = $(qsp + '#' + k)) != undefined) e.innerHTML = GS[k];
+                if ((e = $(qsp + '#' + k)) != undefined) e.innerHTML = GS[k];
             }
+
+            $(qsp + "#hamqttstatuse").style.display = (GS["hamqttstatus"] ? '' : 'none');
+            $(qsp + "#hamqttlastpublishe").style.display = (GS["hamqttlastpublish"] ? '' : 'none');
+
             fadeOut($(qsp + '#l'));
         },
         function () {
             $(qsp + '#l').innerHTML = '<h4 style="display:inline;color:red;"><b> Failed</b></h4>';
+        }
+    );
+
+    getJSON("/cgi-bin/sendmsg.lua?cmd=GET+SERN",
+        function (SERN) {
+            if (SERN.SUCCESS)
+                parseLiveData({ SN: SERN.DATA.SN });
+            else
+            parseLiveData({ MSG: (SERN.INFO.MSG + '! Please check cabling to your stove.') });
         }
     );
 
