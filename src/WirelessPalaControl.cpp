@@ -2114,7 +2114,7 @@ void WebPalaControl::publishTick()
     JsonDocument doc;
     doc["Core"] = serialized(_applicationList[Core]->getStatusJSON());
     doc["Wifi"] = serialized(_applicationList[WifiMan]->getStatusJSON());
-    doc["WPalaControl"] = serialized(getStatusJSON());
+    doc[APPLICATION1_NAME] = serialized(getStatusJSON());
 
     String strJson;
     serializeJson(doc, strJson);
