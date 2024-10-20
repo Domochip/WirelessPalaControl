@@ -24,15 +24,15 @@ String Core::generateStatusJSON()
   unsigned long minutes = millis() / 60000;
 
   doc["sn"] = sn;
-  doc["b"] = BASE_VERSION;
-  doc["v"] = VERSION;
-  doc["u"] = String((byte)(minutes / 1440)) + 'd' + (byte)(minutes / 60 % 24) + 'h' + (byte)(minutes % 60) + 'm';
-  doc["fh"] = ESP.getFreeHeap();
+  doc["baseversion"] = BASE_VERSION;
+  doc["version"] = VERSION;
+  doc["uptime"] = String((byte)(minutes / 1440)) + 'd' + (byte)(minutes / 60 % 24) + 'h' + (byte)(minutes % 60) + 'm';
+  doc["freeheap"] = ESP.getFreeHeap();
 #ifdef ESP8266
-  doc["fs"] = ESP.getFreeContStack();
-  doc["fcrs"] = ESP.getFlashChipRealSize();
+  doc["freestack"] = ESP.getFreeContStack();
+  doc["flashsize"] = ESP.getFlashChipRealSize();
 #else
-  doc["fs"] = uxTaskGetStackHighWaterMark(nullptr);
+  doc["freestack"] = uxTaskGetStackHighWaterMark(nullptr);
 #endif
 
   String gs;

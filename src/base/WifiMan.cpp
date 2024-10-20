@@ -201,17 +201,23 @@ String WifiMan::generateStatusJSON()
 
   if ((WiFi.getMode() & WIFI_AP))
   {
-    doc["ap"] = F("on");
-    doc["ai"] = WiFi.softAPIP().toString();
+    doc["apmode"] = F("on");
+    doc["apip"] = WiFi.softAPIP().toString();
   }
   else
-  {
-    doc["ap"] = F("off");
-    doc["ai"] = "-";
-  }
+    doc["apmode"] = F("off");
 
-  doc["sta"] = (ssid[0] ? F("on") : F("off"));
-  doc["stai"] = String(ssid[0] ? (WiFi.isConnected() ? (WiFi.localIP().toString() + ' ' + (ip ? F("Static IP") : F("DHCP"))).c_str() : "Not Connected") : "-");
+  if (ssid[0])
+  {
+    doc["stationmode"] = F("on");
+    if (WiFi.isConnected())
+    {
+      doc["stationip"] = WiFi.localIP().toString();
+      doc["stationipsource"] = ip ? F("Static IP") : F("DHCP");
+    }
+  }
+  else
+    doc["stationmode"] = F("off");
 
   doc["mac"] = WiFi.macAddress();
 
