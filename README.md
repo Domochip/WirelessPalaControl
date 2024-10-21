@@ -1,7 +1,7 @@
 ![GitHub Release](https://img.shields.io/github/v/release/Domochip/WirelessPalaControl)
 ![Home Assistant](https://img.shields.io/badge/home_assistant-2021.2-blue.svg?logo=homeassistant)
 
-# WirelessPalaControl
+# WPalaControl
 
 This project uses "Palazzetti library" and a D1 Mini to control Fumis based stove.  
 It allows to power On/Off, change the setPoint, change fans speed, get status/alarms/temperatures of the stove.
@@ -37,15 +37,15 @@ If you have this control panel and/or controller in your stove, it's compatible.
 ## Connect
 
 ⚠️ **You need to use a crossed RJ11 phone cable like this:** ⚠️  
-![WirelessPalaControl rj11](img/rj11-pinout.png)
+![WPalaControl rj11](img/rj11-pinout.png)
 
 Most of stove have an RJ11/RJ12 connector for PalaControl connection.  
 If you don't have it, you need to cable it using a splitter to connect screen and PalaControl at the same time :  
-![WirelessPalaControl cabling](img/cabling.png)
+![WPalaControl cabling](img/cabling.png)
 
 Splitter and additional cable can be found on Aliexpress (search for "6p6c splitter" and "rj12 cable").  
 The splitter should correspond to this small schematic :  
-![WirelessPalaControl schematic-splitter](img/schematic-splitter.png)
+![WPalaControl schematic-splitter](img/schematic-splitter.png)
 
 ## First Boot
 
@@ -96,7 +96,7 @@ It returns you useful informations about the module and the stove.
 
 ### Firmware
 
-It allows you to flash a new firmware version using `WirelessPalaControl.*.bin` file:  
+It allows you to flash a new firmware version using `WPalaControl.*.bin` file:  
 ![firmware screenshot](img/firmware.png)
 
 ## Use it
