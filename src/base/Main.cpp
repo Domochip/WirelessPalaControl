@@ -55,7 +55,7 @@ void setup()
 #endif
 
 #ifdef LOG_SERIAL
-  LOG_SERIAL.print(F(APPLICATION1_DESC " "));
+  LOG_SERIAL.print(F(APPLICATION1_MANUFACTURER " " APPLICATION1_MODEL " "));
   LOG_SERIAL.println(VERSION);
   LOG_SERIAL.println(F("---Booting---"));
 #endif
