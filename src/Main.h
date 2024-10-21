@@ -10,7 +10,7 @@
 #define APPLICATION1_HEADER "WirelessPalaControl.h"
 #define APPLICATION1_NAME "WPalaControl"
 #define APPLICATION1_DESC "DomoChip Wireless Palazzetti Control"
-#define APPLICATION1_CLASS WebPalaControl
+#define APPLICATION1_CLASS WPalaControl
 
 #define VERSION_NUMBER "3.1.11"
 

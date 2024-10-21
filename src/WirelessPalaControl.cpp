@@ -7,7 +7,7 @@
 #endif
 
 // Serial management functions -------------
-int WebPalaControl::myOpenSerial(uint32_t baudrate)
+int WPalaControl::myOpenSerial(uint32_t baudrate)
 {
 #ifdef ESP8266
   PALA_SERIAL.begin(baudrate);
@@ -17,7 +17,7 @@ int WebPalaControl::myOpenSerial(uint32_t baudrate)
 #endif
   return 0;
 }
-void WebPalaControl::myCloseSerial()
+void WPalaControl::myCloseSerial()
 {
   PALA_SERIAL.end();
   // set TX PIN to OUTPUT HIGH to avoid stove bus blocking
@@ -29,7 +29,7 @@ void WebPalaControl::myCloseSerial()
   digitalWrite(5, HIGH);
 #endif
 }
-int WebPalaControl::mySelectSerial(unsigned long timeout)
+int WPalaControl::mySelectSerial(unsigned long timeout)
 {
   size_t avail;
   unsigned long startmillis = millis();
@@ -38,23 +38,23 @@ int WebPalaControl::mySelectSerial(unsigned long timeout)
 
   return avail;
 }
-size_t WebPalaControl::myReadSerial(void *buf, size_t count) { return PALA_SERIAL.read((char *)buf, count); }
-size_t WebPalaControl::myWriteSerial(const void *buf, size_t count) { return PALA_SERIAL.write((const uint8_t *)buf, count); }
-int WebPalaControl::myDrainSerial()
+size_t WPalaControl::myReadSerial(void *buf, size_t count) { return PALA_SERIAL.read((char *)buf, count); }
+size_t WPalaControl::myWriteSerial(const void *buf, size_t count) { return PALA_SERIAL.write((const uint8_t *)buf, count); }
+int WPalaControl::myDrainSerial()
 {
   PALA_SERIAL.flush(); // On ESP, Serial.flush() is drain
   return 0;
 }
-int WebPalaControl::myFlushSerial()
+int WPalaControl::myFlushSerial()
 {
   PALA_SERIAL.flush();
   while (PALA_SERIAL.read() != -1)
     ; // flush RX buffer
   return 0;
 }
-void WebPalaControl::myUSleep(unsigned long usecond) { delayMicroseconds(usecond); }
+void WPalaControl::myUSleep(unsigned long usecond) { delayMicroseconds(usecond); }
 
-void WebPalaControl::mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnection)
+void WPalaControl::mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnection)
 {
 
   // Subscribe to needed topic
@@ -81,13 +81,13 @@ void WebPalaControl::mqttConnectedCallback(MQTTMan *mqttMan, bool firstConnectio
   _needPublishHassDiscovery = true;
 }
 
-void WebPalaControl::mqttDisconnectedCallback()
+void WPalaControl::mqttDisconnectedCallback()
 {
   // if MQTT is disconnected, MQTT Reconnection will publish "1" to connectedTopic
   _publishedStoveConnected = false;
 }
 
-void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int length)
+void WPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int length)
 {
   // if topic is basetopic/cmd
   // commented because only this topic is subscribed
@@ -112,7 +112,7 @@ void WebPalaControl::mqttCallback(char *topic, uint8_t *payload, unsigned int le
   _mqttMan.publish(resTopic.c_str(), strJson.c_str());
 }
 
-void WebPalaControl::publishStoveConnectedToMqtt(bool stoveConnected)
+void WPalaControl::publishStoveConnectedToMqtt(bool stoveConnected)
 {
   if (_mqttMan.connected() && _publishedStoveConnected != stoveConnected)
   {
@@ -123,7 +123,7 @@ void WebPalaControl::publishStoveConnectedToMqtt(bool stoveConnected)
   }
 }
 
-bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &palaCategory, const JsonDocument &jsonDoc)
+bool WPalaControl::publishDataToMqtt(const String &baseTopic, const String &palaCategory, const JsonDocument &jsonDoc)
 {
   bool res = false;
   if (_mqttMan.connected())
@@ -174,7 +174,7 @@ bool WebPalaControl::publishDataToMqtt(const String &baseTopic, const String &pa
   return res;
 }
 
-bool WebPalaControl::publishHassDiscoveryToMqtt()
+bool WPalaControl::publishHassDiscoveryToMqtt()
 {
   if (!_mqttMan.connected())
     return false;
@@ -850,7 +850,7 @@ bool WebPalaControl::publishHassDiscoveryToMqtt()
   return true;
 }
 
-bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool publish /* = false*/)
+bool WPalaControl::executePalaCmd(const String &cmd, String &strJson, bool publish /* = false*/)
 {
   bool cmdProcessed = false;                                                             // cmd has been processed
   Palazzetti::CommandResult cmdSuccess = Palazzetti::CommandResult::COMMUNICATION_ERROR; // Palazzetti function calls successful
@@ -2099,7 +2099,7 @@ bool WebPalaControl::executePalaCmd(const String &cmd, String &strJson, bool pub
   return jsonDoc["SUCCESS"].as<bool>();
 }
 
-void WebPalaControl::publishTick()
+void WPalaControl::publishTick()
 {
   LOG_SERIAL.println(F("PublishTick"));
 
@@ -2146,7 +2146,7 @@ void WebPalaControl::publishTick()
   }
 }
 
-void WebPalaControl::udpRequestHandler(WiFiUDP &udpServer)
+void WPalaControl::udpRequestHandler(WiFiUDP &udpServer)
 {
 
   int packetSize = udpServer.parsePacket();
@@ -2179,7 +2179,7 @@ void WebPalaControl::udpRequestHandler(WiFiUDP &udpServer)
 
 //------------------------------------------
 // Used to initialize configuration properties to default values
-void WebPalaControl::setConfigDefaultValues()
+void WPalaControl::setConfigDefaultValues()
 {
   _ha.protocol = HA_PROTO_DISABLED;
   _ha.hostname[0] = 0;
@@ -2196,7 +2196,7 @@ void WebPalaControl::setConfigDefaultValues()
 
 //------------------------------------------
 // Parse JSON object into configuration properties
-bool WebPalaControl::parseConfigJSON(JsonDocument &doc, bool fromWebPage = false)
+bool WPalaControl::parseConfigJSON(JsonDocument &doc, bool fromWebPage = false)
 {
   JsonVariant jv;
   char tempPassword[150 + 1] = {0};
@@ -2263,7 +2263,7 @@ bool WebPalaControl::parseConfigJSON(JsonDocument &doc, bool fromWebPage = false
 
 //------------------------------------------
 // Generate JSON from configuration properties
-String WebPalaControl::generateConfigJSON(bool forSaveFile = false)
+String WPalaControl::generateConfigJSON(bool forSaveFile = false)
 {
   JsonDocument doc;
 
@@ -2296,7 +2296,7 @@ String WebPalaControl::generateConfigJSON(bool forSaveFile = false)
 
 //------------------------------------------
 // Generate JSON of application status
-String WebPalaControl::generateStatusJSON()
+String WPalaControl::generateStatusJSON()
 {
   JsonDocument doc;
 
@@ -2354,7 +2354,7 @@ String WebPalaControl::generateStatusJSON()
 
 //------------------------------------------
 // code to execute during initialization and reinitialization of the app
-bool WebPalaControl::appInit(bool reInit)
+bool WPalaControl::appInit(bool reInit)
 {
   // Stop UdpServer
   _udpServer.stop();
@@ -2377,9 +2377,9 @@ bool WebPalaControl::appInit(bool reInit)
     _mqttMan.setBufferSize(1600); // max JSON size (STDT ~1100 but STATUS_text HAss discovery ~1600)
     _mqttMan.setClient(_wifiClient).setServer(_ha.hostname, _ha.mqtt.port);
     _mqttMan.setConnectedAndWillTopic(willTopic.c_str());
-    _mqttMan.setConnectedCallback(std::bind(&WebPalaControl::mqttConnectedCallback, this, std::placeholders::_1, std::placeholders::_2));
-    _mqttMan.setDisconnectedCallback(std::bind(&WebPalaControl::mqttDisconnectedCallback, this));
-    _mqttMan.setCallback(std::bind(&WebPalaControl::mqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    _mqttMan.setConnectedCallback(std::bind(&WPalaControl::mqttConnectedCallback, this, std::placeholders::_1, std::placeholders::_2));
+    _mqttMan.setDisconnectedCallback(std::bind(&WPalaControl::mqttDisconnectedCallback, this));
+    _mqttMan.setCallback(std::bind(&WPalaControl::mqttCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
     // Connect
     _mqttMan.connect(_ha.mqtt.username, _ha.mqtt.password);
@@ -2389,14 +2389,14 @@ bool WebPalaControl::appInit(bool reInit)
 
   Palazzetti::CommandResult cmdRes;
   cmdRes = _Pala.initialize(
-      std::bind(&WebPalaControl::myOpenSerial, this, std::placeholders::_1),
-      std::bind(&WebPalaControl::myCloseSerial, this),
-      std::bind(&WebPalaControl::mySelectSerial, this, std::placeholders::_1),
-      std::bind(&WebPalaControl::myReadSerial, this, std::placeholders::_1, std::placeholders::_2),
-      std::bind(&WebPalaControl::myWriteSerial, this, std::placeholders::_1, std::placeholders::_2),
-      std::bind(&WebPalaControl::myDrainSerial, this),
-      std::bind(&WebPalaControl::myFlushSerial, this),
-      std::bind(&WebPalaControl::myUSleep, this, std::placeholders::_1));
+      std::bind(&WPalaControl::myOpenSerial, this, std::placeholders::_1),
+      std::bind(&WPalaControl::myCloseSerial, this),
+      std::bind(&WPalaControl::mySelectSerial, this, std::placeholders::_1),
+      std::bind(&WPalaControl::myReadSerial, this, std::placeholders::_1, std::placeholders::_2),
+      std::bind(&WPalaControl::myWriteSerial, this, std::placeholders::_1, std::placeholders::_2),
+      std::bind(&WPalaControl::myDrainSerial, this),
+      std::bind(&WPalaControl::myFlushSerial, this),
+      std::bind(&WPalaControl::myUSleep, this, std::placeholders::_1));
 
   if (cmdRes == Palazzetti::CommandResult::OK)
   {
@@ -2430,7 +2430,7 @@ bool WebPalaControl::appInit(bool reInit)
 
 //------------------------------------------
 // Return HTML Code to insert into Status Web page
-const PROGMEM char *WebPalaControl::getHTMLContent(WebPageForPlaceHolder wp)
+const PROGMEM char *WPalaControl::getHTMLContent(WebPageForPlaceHolder wp)
 {
   switch (wp)
   {
@@ -2448,7 +2448,7 @@ const PROGMEM char *WebPalaControl::getHTMLContent(WebPageForPlaceHolder wp)
 }
 
 // and his Size
-size_t WebPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
+size_t WPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
 {
   switch (wp)
   {
@@ -2467,7 +2467,7 @@ size_t WebPalaControl::getHTMLContentSize(WebPageForPlaceHolder wp)
 
 //------------------------------------------
 // code to register web request answer to the web server
-void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, bool &pauseApplication)
+void WPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, bool &pauseApplication)
 {
   // Handle HTTP GET requests
   server.on(F("/cgi-bin/sendmsg.lua"), HTTP_GET, [this, &server]()
@@ -2638,7 +2638,7 @@ void WebPalaControl::appInitWebServer(WebServer &server, bool &shouldReboot, boo
 
 //------------------------------------------
 // Run for timer
-void WebPalaControl::appRun()
+void WPalaControl::appRun()
 {
   if (_ha.protocol == HA_PROTO_MQTT)
   {
@@ -2667,7 +2667,7 @@ void WebPalaControl::appRun()
 
 //------------------------------------------
 // Constructor
-WebPalaControl::WebPalaControl(char appId, String appName) : Application(appId, appName)
+WPalaControl::WPalaControl(char appId, String appName) : Application(appId, appName)
 {
   _applicationList[Application::Applications::Application1] = this;
 

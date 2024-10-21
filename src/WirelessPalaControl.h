@@ -14,7 +14,7 @@ const char appDataPredefPassword[] PROGMEM = "ewcXoCt4HHjZUvY1";
 #include <Palazzetti.h>
 #include <WiFiUdp.h>
 
-class WebPalaControl : public Application
+class WPalaControl : public Application
 {
 private:
 #define HA_MQTT_GENERIC 0
@@ -92,7 +92,7 @@ private:
   void appRun();
 
 public:
-  WebPalaControl(char appId, String fileName);
+  WPalaControl(char appId, String fileName);
 };
 
 #endif
