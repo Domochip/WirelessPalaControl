@@ -13,9 +13,9 @@ All files are inside `schematic` subfolder and has been designed with KiCad (fre
 
 ### PCB
 
-<img src="img/pcb-top.png" alt="WirelessPalaControl PCB Top" width="239" height="315"><img src="img/pcb-bottom.png" alt="WirelessPalaControl PCB Bottom" width="239" height="315">  
+<img src="img/pcb-top.png" alt="WPalaControl PCB Top" width="239" height="315"><img src="img/pcb-bottom.png" alt="WPalaControl PCB Bottom" width="239" height="315">  
 
-<img src="img/3boards.png" alt="WirelessPalaControl 3boards"  width="334">  
+<img src="img/3boards.png" alt="WPalaControl 3boards"  width="334">  
 
 *I'm producing small batches of this adapter.*  
 *If you are interested, you can find it here: [WPalacontrol on tindie](https://www.tindie.com/products/domochip/wirelesspalacontrol-aka-wpalacontrol/)* 🛍️
@@ -30,4 +30,4 @@ Box project (Fusion 360 & STL) can be found into `box` folder
 
 Source code can be compiled using VSCode/PlatformIO and flashed onto a D1 Mini  
 Or  
-Download latest release in [Release section](https://github.com/Domochip/WirelessPalaControl/releases)
+Download latest release in [Release section](https://github.com/Domochip/WPalaControl/releases)
