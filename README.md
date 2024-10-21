@@ -32,7 +32,7 @@ If you have this control panel and/or controller in your stove, it's compatible.
 
 🔧 If you want to build it yourself, you can find all details here : [BUILD](BUILD.md) 🔧  
 
-🛍️🚀 Otherwise, I'm producing some small batches and offering it ready to use here : [![Tindie product](./img/tindie-mediums.png)](https://www.tindie.com/products/domochip/wirelesspalacontrol-aka-wpalacontrol/)  
+🛍️🚀 Otherwise, I'm producing some small batches and offering it ready to use here : [![Tindie product](./img/tindie-mediums.png)](https://www.tindie.com/products/35770/)  
 
 ## Connect
 
