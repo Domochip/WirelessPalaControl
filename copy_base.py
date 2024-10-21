@@ -48,10 +48,10 @@ def sync_tree_left_to_right(src, dst):
 
 print('---- Copying base files ----')
 
-sourceFolder = r'../WirelessBase/src/base'
+sourceFolder = r'../WBase/src/base'
 destinationFolder = r'./src/base'
 
-if not os.path.exists(r'./src/WirelessBase.h') and os.path.exists(sourceFolder) and os.path.abspath(sourceFolder).lower() != os.path.abspath(destinationFolder).lower():
+if not os.path.exists(r'./src/WBase.h') and os.path.exists(sourceFolder) and os.path.abspath(sourceFolder).lower() != os.path.abspath(destinationFolder).lower():
     sync_tree_left_to_right(sourceFolder, destinationFolder)
 
 print('----------------------------')
