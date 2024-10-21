@@ -9,7 +9,7 @@ This design uses exact same schematic and components.
 
 All files are inside `schematic` subfolder and has been designed with KiCad (free and open source)  
 
-![WirelessPalaControl schematic](img/schematic.png)
+![WPalaControl schematic](img/schematic.png)
 
 ### PCB
 
@@ -24,7 +24,7 @@ All files are inside `schematic` subfolder and has been designed with KiCad (fre
 
 Box project (Fusion 360 & STL) can be found into `box` folder
 
-![WirelessPalaControl box](img/box.png)
+![WPalaControl box](img/box.png)
 
 ### Firmware
 
