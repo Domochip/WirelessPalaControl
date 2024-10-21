@@ -7,7 +7,7 @@
 // Configuration Web Pages :
 // http://IP/
 
-#define APPLICATION1_HEADER "WirelessPalaControl.h"
+#define APPLICATION1_HEADER "WPalaControl.h"
 #define APPLICATION1_NAME "WPalaControl"
 #define APPLICATION1_DESC "DomoChip Wireless Palazzetti Control"
 #define APPLICATION1_CLASS WPalaControl

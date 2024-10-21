@@ -1,5 +1,5 @@
-#ifndef WirelessPalaControl_h
-#define WirelessPalaControl_h
+#ifndef WPalaControl_h
+#define WPalaControl_h
 
 #include "Main.h"
 #include "base/MQTTMan.h"

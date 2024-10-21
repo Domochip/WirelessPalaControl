@@ -1,4 +1,4 @@
-#include "WirelessPalaControl.h"
+#include "WPalaControl.h"
 
 #ifdef ESP8266
 #define PALA_SERIAL Serial
