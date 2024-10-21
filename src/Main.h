@@ -3,21 +3,22 @@
 
 #include <Arduino.h>
 
-// DomoChip Informations
-// Configuration Web Pages :
-// http://IP/
+// Helper macros to convert a define to a string
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
 
-#define APPLICATION1_HEADER "WPalaControl.h"
-#define APPLICATION1_NAME "WPalaControl"
-#define APPLICATION1_DESC "DomoChip Wireless Palazzetti Control"
+// ----- Should be modified for your application -----
+#define APPLICATION1_MANUFACTURER "Domochip"
+#define APPLICATION1_MODEL "WPalaControl"
 #define APPLICATION1_CLASS WPalaControl
-
 #define VERSION_NUMBER "3.1.11"
 
-#define DEFAULT_AP_SSID "WirelessPalaControl"
-#define DEFAULT_AP_PSK "PasswordPalaControl"
+#define APPLICATION1_NAME TOSTRING(APPLICATION1_CLASS)     // stringified class name
+#define APPLICATION1_HEADER TOSTRING(APPLICATION1_CLASS.h) // calculated header file "{APPLICATION1_NAME}.h"
+#define DEFAULT_AP_SSID APPLICATION1_NAME                  // Default Access Point SSID "{APPLICATION1_NAME}{4 digits of ChipID}"
+#define DEFAULT_AP_PSK APPLICATION1_NAME "Pass"            // Default Access Point Password "{APPLICATION1_NAME}Pass"
 
-// Enable status webpage EventSource
+// Control EventSourceMan code (To be used by Application if EventSource server is needed)
 #define EVTSRC_ENABLED 1
 #define EVTSRC_MAX_CLIENTS 2
 #define EVTSRC_KEEPALIVE_ENABLED 0
